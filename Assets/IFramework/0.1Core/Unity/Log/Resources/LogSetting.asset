@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b429f9e961bdc74ea5fa848fe91e6b0, type: 3}
+  m_Name: LogSetting
+  m_EditorClassIdentifier: 
+  Infos:
+  - Name: Log.cs
+    Path: Assets/IFramework/0.1Core/Unity/Log/Log.cs
+    Text: {fileID: 11500000, guid: bc0f3793220f4c84486ae7ca880deeb4, type: 3}
+  - Name: LogSetting.cs
+    Path: Assets/IFramework/0.1Core/Unity/Log/LogSetting.cs
+    Text: {fileID: 11500000, guid: 0b429f9e961bdc74ea5fa848fe91e6b0, type: 3}
+  - Name: LogSettingInspector.cs
+    Path: Assets/IFramework/0.1Core/Unity/Log/Editor/LogSettingInspector.cs
+    Text: {fileID: 11500000, guid: 9c3bee5045f5a9746a83a8b2f92bf0e7, type: 3}
+  - Name: RepositionLog.cs
+    Path: Assets/IFramework/0.1Core/Unity/Log/Editor/RepositionLog.cs
+    Text: {fileID: 11500000, guid: 6df373af3ca534c49b06392f4060077b, type: 3}
+  - Name: RepositionLogWindow.cs
+    Path: Assets/IFramework/0.1Core/Unity/Log/Editor/RepositionLogWindow.cs
+    Text: {fileID: 11500000, guid: ab2b2701be4ef0644af70e070e634c95, type: 3}
+  LogLevel: 0
+  WarnningLevel: 0
+  ErrLevel: 0
+  Enable: 1
+  LogEnable: 1
+  WarnningEnable: 1
+  ErrEnable: 1

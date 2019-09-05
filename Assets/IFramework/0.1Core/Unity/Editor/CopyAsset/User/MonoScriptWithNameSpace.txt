@@ -1,0 +1,20 @@
+/*********************************************************************************
+ *Author:         #User#
+ *Version:        #UserVERSION#
+ *UnityVersion:   #UserUNITYVERSION#
+ *Date:           #UserDATE#
+ *Description:    #UserNameSpace#
+ *History:        #UserDATE#--
+*********************************************************************************/
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace #UserNameSpace#
+{
+	public class #UserSCRIPTNAME# : MonoBehaviour
+	{
+	
+	}
+}

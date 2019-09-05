@@ -1,0 +1,19 @@
+/*********************************************************************************
+ *Author:         #SCAuthor#
+ *Version:        #SCVERSION#
+ *UnityVersion:   #SCUNITYVERSION#
+ *Date:           #SCDATE#
+ *Description:    #SCDescription#
+ *History:        #SCDATE#--
+*********************************************************************************/
+using System.Collections;
+using System.Collections.Generic;
+using IFramework;
+#SCUsing#
+namespace #SCNameSpace#
+{
+	public class #SCSCRIPTNAME# : MonoBehaviour
+	{
+#SCField#
+	}
+}
