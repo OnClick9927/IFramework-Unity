@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f388b479060acb4398e034d6e6c480f, type: 3}
   m_Name: ProjectConfig
   m_EditorClassIdentifier: 
-  IsUseNameSpace: 1
-  NameSpace: IFramework
+  NameSpace: IFramework_Demo
   UserName: OnClick
-  Version: 1.0
-  Description: Description
+  Version: 0.0.1
+  Description: "Description\u7684"

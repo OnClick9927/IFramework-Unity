@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-06-14
  *Description:    IFramework
@@ -14,8 +14,86 @@ using System.Reflection;
 namespace IFramework
 {
     [CustomEditor(typeof(Transform)), CanEditMultipleObjects]
-    public class TransformEditor : Editor
+    class TransformEditor : Editor
     {
+        class CustomFloatField
+        {
+            private static readonly int Hint = "EditorTextField".GetHashCode();
+            private static readonly Type EditorGUIType = typeof(EditorGUI);
+            private static readonly Type RecycledTextEditorType = Assembly.GetAssembly(EditorGUIType).GetType("UnityEditor.EditorGUI+RecycledTextEditor");
+            private static readonly Type[] ArgumentTypes =
+                    {
+                    RecycledTextEditorType,
+                    typeof (Rect),
+                    typeof (Rect),
+                    typeof (int),
+                    typeof (float),
+                    typeof (string),
+                    typeof (GUIStyle),
+                    typeof (bool)
+                    };
+
+            private static readonly MethodInfo DoFloatFieldMethodInfo = EditorGUIType.GetMethod("DoFloatField", BindingFlags.NonPublic | BindingFlags.Static, null, ArgumentTypes, null);
+            private static readonly FieldInfo FieldInfo = EditorGUIType.GetField("s_RecycledEditor", BindingFlags.NonPublic | BindingFlags.Static);
+            private static readonly object RecycledEditor = FieldInfo.GetValue(null);
+
+            public static float Draw(Rect draw, Rect drag, float value, GUIStyle style)
+            {
+                var controlID = GUIUtility.GetControlID(Hint, FocusType.Keyboard, draw);
+                var parameters = new object[] { RecycledEditor, draw, drag, controlID, value, "g7", style, true };
+
+                return (float)DoFloatFieldMethodInfo.Invoke(null, parameters);
+            }
+        }
+        class TransformRotationGUI
+        {
+            private object transformRotationGUI;
+            private FieldInfo eulerAnglesField;
+            private MethodInfo onEnableMethod;
+            private MethodInfo rotationFieldMethod;
+            private MethodInfo setLocalEulerAnglesMethod;
+
+            private SerializedProperty property;
+
+            public Vector3 eulerAngles { get { return (Vector3)eulerAnglesField.GetValue(transformRotationGUI); } }
+
+            public TransformRotationGUI()
+            {
+                if (transformRotationGUI == null)
+                {
+                    var transformRotationGUIType = Type.GetType("UnityEditor.TransformRotationGUI,UnityEditor");
+                    var transformType = typeof(Transform);
+                    eulerAnglesField = transformRotationGUIType.GetField("m_EulerAngles", BindingFlags.Instance | BindingFlags.NonPublic);
+                    onEnableMethod = transformRotationGUIType.GetMethod("OnEnable");
+                    rotationFieldMethod = transformRotationGUIType.GetMethod("RotationField", new Type[] { });
+                    setLocalEulerAnglesMethod = transformType.GetMethod("SetLocalEulerAngles", BindingFlags.Instance | BindingFlags.NonPublic);
+
+                    transformRotationGUI = Activator.CreateInstance(transformRotationGUIType);
+                }
+            }
+
+            public void Initialize(SerializedProperty property, GUIContent content)
+            {
+                this.property = property;
+                onEnableMethod.Invoke(transformRotationGUI, new object[] { property, content });
+            }
+
+            public void Draw()
+            {
+                rotationFieldMethod.Invoke(transformRotationGUI, null);
+            }
+
+            public void Reset()
+            {
+                var targets = property.serializedObject.targetObjects;
+                var parameters = new object[] { Vector3.zero, 0 };
+
+                Undo.RecordObjects(targets, "Reset Rotation");
+                foreach (var target in targets)
+                    setLocalEulerAnglesMethod.Invoke(target, parameters);
+            }
+        }
+       
         private class Content
         {
             public static readonly GUIContent Position = new GUIContent("Position", "The local position of this GameObject relative to the parent.");
@@ -192,82 +270,6 @@ namespace IFramework
         }
     }
 
-    public class TransformRotationGUI
-    {
-        private object transformRotationGUI;
-        private FieldInfo eulerAnglesField;
-        private MethodInfo onEnableMethod;
-        private MethodInfo rotationFieldMethod;
-        private MethodInfo setLocalEulerAnglesMethod;
 
-        private SerializedProperty property;
-
-        public Vector3 eulerAngles { get { return (Vector3)eulerAnglesField.GetValue(transformRotationGUI); } }
-
-        public TransformRotationGUI()
-        {
-            if (transformRotationGUI == null)
-            {
-                var transformRotationGUIType = Type.GetType("UnityEditor.TransformRotationGUI,UnityEditor");
-                var transformType = typeof(Transform);
-                eulerAnglesField = transformRotationGUIType.GetField("m_EulerAngles", BindingFlags.Instance | BindingFlags.NonPublic);
-                onEnableMethod = transformRotationGUIType.GetMethod("OnEnable");
-                rotationFieldMethod = transformRotationGUIType.GetMethod("RotationField", new Type[] { });
-                setLocalEulerAnglesMethod = transformType.GetMethod("SetLocalEulerAngles", BindingFlags.Instance | BindingFlags.NonPublic);
-
-                transformRotationGUI = Activator.CreateInstance(transformRotationGUIType);
-            }
-        }
-
-        public void Initialize(SerializedProperty property, GUIContent content)
-        {
-            this.property = property;
-            onEnableMethod.Invoke(transformRotationGUI, new object[] { property, content });
-        }
-
-        public void Draw()
-        {
-            rotationFieldMethod.Invoke(transformRotationGUI, null);
-        }
-
-        public void Reset()
-        {
-            var targets = property.serializedObject.targetObjects;
-            var parameters = new object[] { Vector3.zero, 0 };
-
-            Undo.RecordObjects(targets, "Reset Rotation");
-            foreach (var target in targets)
-                setLocalEulerAnglesMethod.Invoke(target, parameters);
-        }
-    }
-    public static class CustomFloatField
-    {
-        private static readonly int Hint = "EditorTextField".GetHashCode();
-        private static readonly Type EditorGUIType = typeof(EditorGUI);
-        private static readonly Type RecycledTextEditorType = System.Reflection.Assembly.GetAssembly(EditorGUIType).GetType("UnityEditor.EditorGUI+RecycledTextEditor");
-        private static readonly Type[] ArgumentTypes =
-        {
-            RecycledTextEditorType,
-            typeof (Rect),
-            typeof (Rect),
-            typeof (int),
-            typeof (float),
-            typeof (string),
-            typeof (GUIStyle),
-            typeof (bool)
-        };
-
-        private static readonly MethodInfo DoFloatFieldMethodInfo = EditorGUIType.GetMethod("DoFloatField", BindingFlags.NonPublic | BindingFlags.Static, null, ArgumentTypes, null);
-        private static readonly FieldInfo FieldInfo = EditorGUIType.GetField("s_RecycledEditor", BindingFlags.NonPublic | BindingFlags.Static);
-        private static readonly object RecycledEditor = FieldInfo.GetValue(null);
-
-        public static float Draw(Rect draw, Rect drag, float value, GUIStyle style)
-        {
-            var controlID = GUIUtility.GetControlID(Hint, FocusType.Keyboard, draw);
-            var parameters = new object[] { RecycledEditor, draw, drag, controlID, value, "g7", style, true };
-
-            return (float)DoFloatFieldMethodInfo.Invoke(null, parameters);
-        }
-    }
 
 }

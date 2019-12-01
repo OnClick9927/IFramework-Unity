@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-05-17
  *Description:    IFramework
@@ -26,6 +26,6 @@ namespace IFramework
     {
         public string Name;
         public string Path;
-        public UnityEngine.TextAsset Text;
+        public TextAsset Text;
     }
 }

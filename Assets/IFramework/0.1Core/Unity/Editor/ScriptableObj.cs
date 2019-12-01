@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.1f1
  *Date:           2019-03-23
  *Description:    IFramework
@@ -19,7 +19,6 @@ namespace IFramework
 	{
         public static T Create<T>(string savePath) where T : ScriptableObject
         {
-            //if (EditorApplication.isCompiling) return default(T);
             ScriptableObject sto = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(sto, savePath);
             EditorUtility.SetDirty(sto);
@@ -30,26 +29,21 @@ namespace IFramework
         }
         public static T Load<T>(string path) where T : ScriptableObject
         {
-            //if (EditorApplication.isCompiling) return default(T);
             return AssetDatabase.LoadAssetAtPath<T>(path);
         }
         public static void Update<T>(T t) where T : ScriptableObject
         {
-            //if (EditorApplication.isCompiling) return;
             EditorApplication.delayCall += delegate ()
             {
                 EditorUtility.SetDirty(t);
                 AssetDatabase.SaveAssets();
-                //Selection.activeObject = t;
                 AssetDatabase.Refresh();
             };
         }
         public static void Update<T>(T sto,Object[] subAssets)where T:ScriptableObject
         {
-            //if (EditorApplication.isCompiling) return;
             EditorApplication.delayCall += delegate () {
                 string path = AssetDatabase.GetAssetPath(sto);
-                //Object[] objs = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
                 Object[] objs = AssetDatabase.LoadAllAssetsAtPath(path);
                 if (objs != null)
                 {
@@ -105,13 +99,11 @@ namespace IFramework
         }
         public static void Delete<T>(string path)where T : ScriptableObject
         {
-            //if (EditorApplication.isCompiling) return;
             AssetDatabase.DeleteAsset(path);
             AssetDatabase.Refresh();
         }
         public static void Delete<T>(T sto) where T : ScriptableObject
         {
-            //if (EditorApplication.isCompiling) return;
             AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(sto));
             AssetDatabase.Refresh();
         }
@@ -119,8 +111,7 @@ namespace IFramework
         {
             if (org == null)
                 throw new System.ArgumentNullException("Cannot overwrite canvas as data is null!");
-            //if (target == null)
-                target = ScriptableObject.CreateInstance<T>();
+            target = ScriptableObject.CreateInstance<T>();
             EditorUtility.CopySerialized(org, target);
             target.name = org.name;
 

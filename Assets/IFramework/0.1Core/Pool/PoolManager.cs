@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-04-28
  *Description:    IFramework
@@ -35,7 +35,7 @@ namespace IFramework
         }
         private PoolObjInfoPool infoCreater;
         private List<PoolObjInfo> infos;
-        private Dictionary<Type, PoolObjPool> dic = new Dictionary<Type, PoolObjPool>();
+        private Dictionary<Type, PoolObjectPool> dic = new Dictionary<Type, PoolObjectPool>();
 
         private PoolManager() { }
 
@@ -50,25 +50,33 @@ namespace IFramework
             infoCreater.Dispose();
         }
 
-        public PoolObjPool this[Type type]
+        public PoolObjectPool this[Type type]
         {
             get {
                 if (!Instance.dic.ContainsKey(type))
-                    Instance.dic.Add(type, new PoolObjPool());
+                {
+                    var pool = new PoolObjectPool();
+                    Instance.dic.Add(type, pool);
+
+                    pool.OnRunningPoolCreateObject += (obj, arg, paras) => { Log.E("Err running pool cant't Creat anything"); };
+                    pool.OnRunningPoolGetObject += (obj, arg, paras) => { /*Log.L("running pool Get obj");*/};
+                    pool.OnRunningPoolSetObject += (obj, arg, paras) => { /*Log.L("running pool Set obj"); */};
+                    pool.OnRunningPoolClearObject += (obj,arg,paras) => { /*Log.L("running pool Cycle obj");*/ };
+                }
                 return Instance.dic[type];
             }
         }
-        public static PoolObjPool GetPool<T>() where T : IPoolObject
+        public static PoolObjectPool GetPool<T>() where T : IPoolObject
         {
-            return Instance.dic[typeof(T)];
+            return Instance[typeof(T)];
         }
 
-        public static void SetCreater<T>(PoolObjPool.PoolObjCollecter creater) where T : IPoolObject
+        public static void SetCreater<T>(PoolObjectPool.PoolObjectInnerPool creater) where T : IPoolObject
         {
             Type type = typeof(T);
             Instance[type].SleepPool= creater;
         }
-        public static void AddCreaterDel<T>(PoolObjPool.PoolObjCreaterDel creater) where T : IPoolObject
+        public static void AddCreaterDel<T>(PoolObjectPool.PoolObjCreaterDel creater) where T : IPoolObject
         {
             Type type = typeof(T);
             Instance[type].AddCreater(creater);

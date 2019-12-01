@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-05-30
  *Description:    IFramework
@@ -9,7 +9,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.GUITool
 {
     public class IFPopupWindow : PopupWindowContent
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using IFramework;
 using UnityEngine;
-namespace IFramework.Example
+namespace IFramework_Demo
 {
     public class AttributeTest : MonoBehaviour
     {

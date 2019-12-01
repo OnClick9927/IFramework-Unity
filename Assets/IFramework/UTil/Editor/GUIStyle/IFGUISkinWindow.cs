@@ -1,11 +1,12 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-05-16
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using IFramework.GUITool;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
@@ -44,7 +45,7 @@ namespace IFramework
             if (!System.IO.File.Exists(StoPath)) ScriptableObj.Create<IFGUISKin>(StoPath);
             Skin = ScriptableObj.Load<IFGUISKin>(StoPath);
             searchField = new SearchFieldDrawer();
-            searchField.onValueChange = (str) =>
+            searchField.onValueChange += (str) =>
             {
                 input = str;
             };
@@ -60,18 +61,18 @@ namespace IFramework
                 {
                     Fresh();
                 }, EditorGUIUtility.IconContent("d_TreeEditor.Refresh"),
-                   GUIUtil.Width(TopHeight),
-                    GUIUtil.Height(TopHeight));
+                   GUILayout.Width(TopHeight),
+                    GUILayout.Height(TopHeight));
                 this.Space(10);
                 this.Button(() =>
                 {
                     ShowNotification(new GUIContent("Click And See \nInfo"));
-                }, "Tip", GUIUtil.Height(TopHeight));
+                }, "Tip", GUILayout.Height(TopHeight));
                 GUILayout.Label("", GUILayout.Height(TopHeight));
-                searchField.OnGUI(EditorGUIUtil.GetLastRect());
+                searchField.OnGUI(GUILayoutUtility.GetLastRect());
                 this.Space(10);
-                this.Toggle(ref Tog, GUIUtil.Width(20));
-            }, GUIUtil.Height(TopHeight));
+                this.Toggle(ref Tog, GUILayout.Width(20));
+            }, GUILayout.Height(TopHeight));
 
             mathList.Clear();
             for (int i = 0; i < Skin.Styles.Count; i++)
@@ -91,7 +92,7 @@ namespace IFramework
                 {
                     this.Label(listView.Rows[i][Name].Position, mathList[i].name);
                     this.Button(()=> {
-                        GUIUtil.systemCopyBuffer = mathList[i].name;
+                        GUIUtility.systemCopyBuffer = mathList[i].name;
                     },listView.Rows[i][Btn].Position, Btn);
                     if (Event.current.type == EventType.Repaint)
                         if (Tog)

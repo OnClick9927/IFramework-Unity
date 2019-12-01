@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-04-28
  *Description:    IFramework
@@ -86,14 +86,14 @@ namespace IFramework
             }
         }
 
-        private class IFThreadArgPool : CachePoolInnerPool<IFThreadArg>
+        private class IFThreadArgPool : CacheInnerPool<IFThreadArg>
         {
             protected override IFThreadArg CreatNew(IEventArgs arg, params object[] param)
             {
                 return new IFThreadArg();
             }
         }
-        private class IFThreads :CachePoolInnerPool<IFThread>
+        private class IFThreads :CacheInnerPool<IFThread>
         {
 
             protected override IFThread CreatNew(IEventArgs arg, params object[] param)

@@ -1,11 +1,12 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.11f1
  *Date:           2019-05-04
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using IFramework.GUITool;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -73,7 +74,7 @@ namespace IFramework
         private void OnEnable()
         {
             searchField = new SearchFieldDrawer();
-            searchField.onValueChange = (str) => {
+            searchField.onValueChange += (str) => {
                 input = str;
             };
             StoPath = FrameworkConfig.UtilPath.CombinePath("Built_inIcon/Resources").CombinePath(IFIcons .StoName+ ".asset");
@@ -201,16 +202,16 @@ namespace IFramework
                 {
                      Fresh();
                 }, EditorGUIUtility.IconContent("d_TreeEditor.Refresh"),
-                   GUIUtil.Width(TopHeight),
-                   GUIUtil.Height(TopHeight));
+                   GUILayout.Width(TopHeight),
+                   GUILayout.Height(TopHeight));
                 this.Button(() =>
                 {
                    ShowNotification(new GUIContent("Click And See \nInfo"));
-                }, "Tip", GUIUtil.Height(TopHeight));
+                }, "Tip", GUILayout.Height(TopHeight));
                 GUILayout.Label("",GUILayout.Height(TopHeight));
-                 searchField.OnGUI(EditorGUIUtil.GetLastRect());
+                 searchField.OnGUI(GUILayoutUtility.GetLastRect());
                 this.Space(10);
-            }, GUIUtil.Height(TopHeight));
+            }, GUILayout.Height(TopHeight));
         }
         private SearchFieldDrawer searchField;
 

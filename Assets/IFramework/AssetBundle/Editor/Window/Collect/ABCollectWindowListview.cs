@@ -1,11 +1,12 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.11f1
  *Date:           2019-04-15
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using IFramework.GUITool;
 using System;
 using System.IO;
 using UnityEditor;
@@ -264,7 +265,7 @@ namespace IFramework.AB
                         GUI.enabled = false;
                     }
                     bool s = assetinfo.Selected;
-                    this. Toggle(ref s, new GUIContent(assetinfo.ThumbNail), GUIUtil.Height(16),GUIUtil .Width(40));
+                    this. Toggle(ref s, new GUIContent(assetinfo.ThumbNail), GUILayout.Height(16), GUILayout.Width(40));
                     assetinfo.Selected = s;
                     if (assetinfo.Sub.Count > 0)
                     {

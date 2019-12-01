@@ -1,11 +1,12 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.11f1
  *Date:           2019-04-15
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using IFramework.GUITool;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,16 +21,16 @@ namespace IFramework.AB
             this. Box(position);
             this.DrawArea(() => {
                this.Label("BuildSetting");
-               this.Label("", new GUIStyle("IN Title"),GUIUtil. Height(5));
+               this.Label("", new GUIStyle("IN Title"), GUILayout. Height(5));
                this.Label("Build  Target:");
                this.Label(EditorUserBuildSettings.activeBuildTarget.ToString());
-               this.Label("", new GUIStyle("IN Title"), GUIUtil.Height(5));
+               this.Label("", new GUIStyle("IN Title"), GUILayout.Height(5));
                this.Label("AssetBundle OutPath:");
                this.Label("Assets/../AssetBundles");
-               this.Label("", new GUIStyle("IN Title"), GUIUtil.Height(5));
+               this.Label("", new GUIStyle("IN Title"), GUILayout.Height(5));
                this.Label("Manifest FilePath:");
                this.Label(ABTool.ManifestPath);
-               this.Label("", new GUIStyle("IN Title"), GUIUtil.Height(5));
+               this.Label("", new GUIStyle("IN Title"), GUILayout.Height(5));
                this.Space(10);
                 this.Label("LoadSetting In Editor");
                 ABTool.ActiveBundleMode = !EditorGUILayout.Toggle(new GUIContent("AssetDataBase Load"),!ABTool.ActiveBundleMode);

@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-03-14
  *Description:    IFramework
@@ -40,19 +40,25 @@ namespace IFramework
         }
 
 
-
+        public T Peek()
+        {
+            using (LockWait wait = new LockWait(ref lockParam))
+            {
+                return pool.QueuePeek();
+            }
+        }
+        public T Peek(Predicate<T> p)
+        {
+            using (LockWait wait = new LockWait(ref lockParam))
+            {
+                return pool.Find(p);
+            }
+        }
         public bool Contains(T t)
         {
             using (LockWait wait = new LockWait(ref lockParam))
             {
                 return pool.Contains(t);
-            }
-        }
-        public int IndexOf(T t)
-        {
-            using (LockWait wait = new LockWait(ref lockParam))
-            {
-                return pool.IndexOf(t);
             }
         }
         public void ForEach(Action<T> action)
@@ -68,18 +74,6 @@ namespace IFramework
             {
                 var list = pool.FindAll(p);
                 return list != null && list.Count > 0;
-            }
-        }
-        public T Peek()
-        {
-            using (LockWait wait = new LockWait(ref lockParam))
-            {
-                T t = default(T);
-                if (pool.Count > 0)
-                {
-                    t = pool.QueuePeek();
-                }
-                return t;
             }
         }
 

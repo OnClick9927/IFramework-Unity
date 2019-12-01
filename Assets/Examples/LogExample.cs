@@ -1,22 +1,23 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.11f1
  *Date:           2019-05-20
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using IFramework;
 using UnityEngine;
 
-namespace IFramework.Example
+namespace IFramework_Demo
 {
     internal class LogExample : MonoBehaviour
     {
-        [ContextMenu("Hhh")]
+        [ContextMenu("Log")]
         public void Say()
         {
-            Log.L("sa");
-            Debug.Log("515");
+            Log.L("sa         with IFramework");
+            Debug.Log("515    with unity");
 
         }
         private void Awake()

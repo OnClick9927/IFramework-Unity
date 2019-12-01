@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-05-17
  *Description:    IFramework
@@ -9,13 +9,13 @@
 using UnityEditor;
 using System.IO;
 using UnityEngine;
+using IFramework.GUITool;
 
 namespace IFramework
 {
     [EditorWindowCacheAttribute("LogSeting", "IFramework/LogSeting")]
-    internal partial class RepositionLogWindow : EditorWindow,IRectGUIDrawer,ILayoutGUIDrawer
+     partial class RepositionLogWindow : EditorWindow,IRectGUIDrawer,ILayoutGUIDrawer
     {
-        [MenuItem("IFramework/LogSeting")]
         public static void ShowWindow()
         {
             GetWindow<RepositionLogWindow>();
@@ -30,7 +30,7 @@ namespace IFramework
 
     }
 
-    internal partial class RepositionLogWindow : EditorWindow
+     partial class RepositionLogWindow : EditorWindow
     {
         private LogSetting info;
         private string infoPath;

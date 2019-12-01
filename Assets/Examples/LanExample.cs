@@ -1,13 +1,14 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-09-03
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using IFramework;
 using UnityEngine;
-namespace IFramework.Example
+namespace IFramework_Demo
 {
 	public class LanExample:MonoBehaviour
 	{

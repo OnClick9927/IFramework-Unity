@@ -1,11 +1,12 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-08-29
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using IFramework.GUITool;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -130,7 +131,7 @@ namespace IFramework
                             if ((e.type == EventType.MouseDown /*&& e.clickCount == 2*/) /*|| e.keyCode == KeyCode.F2*/)
                             {
                                 Focused = true;
-                                GUIFocusControl.Focus(FocusID, Focused);
+                                GUIFocusControl.Focus(this);
                                 if (e.type != EventType.Repaint && e.type != EventType.Layout)
                                     Event.current.Use();
                             }

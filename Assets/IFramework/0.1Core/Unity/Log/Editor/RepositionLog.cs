@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-05-17
  *Description:    IFramework
@@ -14,7 +14,7 @@ using UnityEngine;
 using UnityEditor;
 namespace IFramework
 {
-    internal static class RepositionLog
+    class RepositionLog
 	{
         public static string StoName { get { return Log.StoName; } }
         private static LogSetting info;
@@ -60,9 +60,7 @@ namespace IFramework
                         pathline = pathline.Trim();
                         int split_index = pathline.LastIndexOf(":");
                         string path = pathline.Substring(0, split_index);
-                        if (System.IO.File.Exists(path))
-                        if (path.Contains("Assets")) 
-                        if (!Ignore(path))
+                        if (System.IO.File.Exists(path)/* && path.Contains("Assets")*/ && !Ignore(path))
                         {
                             line = Convert.ToInt32(pathline.Substring(split_index + 1));
                             UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(path.ToAbsPath(), line);

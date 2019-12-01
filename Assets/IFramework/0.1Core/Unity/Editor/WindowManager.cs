@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.11f1
  *Date:           2019-09-08
  *Description:    IFramework
@@ -11,12 +11,14 @@ using System.Collections.Generic;
 using UnityEditor;
 using System.Linq;
 using UnityEngine;
+using IFramework.GUITool;
+
 namespace IFramework
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public class EditorWindowCacheAttribute : Attribute
     {
-        public string searchName;
+        public string searchName { get; private set; }
         public string menuPath;
         public EditorWindowCacheAttribute() { }
         public EditorWindowCacheAttribute(string searchName)
@@ -29,7 +31,7 @@ namespace IFramework
             this.menuPath = menuPath;
         }
     }
-    public class EditorWindowUtil
+    class EditorWindowUtil
     {
         public class EditorWindowInfo
         {
@@ -136,7 +138,7 @@ namespace IFramework
         }
         private static void AddDefautEditorWindows()
         {
-            System.Reflection.Assembly assembly = typeof(UnityEditor.EditorWindow).Assembly;
+            System.Reflection.Assembly assembly = typeof(EditorWindow).Assembly;
             typeof(EditorWindow).GetSubTypesInAssemblys().ForEach((type) =>
             {
                 if (type.Namespace != null && type.Namespace.Contains("UnityEditor") && !type.IsAbstract)
@@ -223,8 +225,13 @@ namespace IFramework
             GetWindow<WindowManager>();
 
         }
+        private void OnEnable()
+        {
+            sear = new SearchFieldDrawer() { value = "", };
+            sear.onValueChange += (str) => { search = str; };
+        }
         static string search = "";
-        SearchFieldDrawer sear = new SearchFieldDrawer() { value = "", onValueChange = (str) => { search = str; } };
+        SearchFieldDrawer sear;
         TableViewCalculator table = new TableViewCalculator();
         private const string Name = "Name";
         private const string Find = "Find";

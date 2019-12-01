@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.1f1
  *Date:           2019-03-22
  *Description:    IFramework
@@ -11,32 +11,22 @@ using UnityEngine;
 namespace IFramework
 {
     [Serializable]
-	internal class FrameworkConfigInfo:UnityEngine.ScriptableObject
-	{
-         public string FrameWorkName = "IFramework";
-         public string Author= "OnClick";
-         public string Version;
-         public string FrameWorkPath;
-         public string UnityCorePath;
-         public string EditorCorePath;
-        
-         public string UtilPath;
-         public string EditorPath;
-        
-        
-
-         public string Description;
+    class FrameworkConfigInfo : ScriptableObject
+    {
+        public string FrameWorkPath;
+        public string UnityCorePath;
+        public string EditorCorePath;
+        public string UtilPath;
+        public string EditorPath;
 
 
-        public void OnEnable()
-        {
-            Version = "1.0";
-            Description = FrameWorkName;
-        }
-       
+        public string FrameWorkName;
+        public string Author;
+        public string Version;
+        public string Description;
     }
     [UnityEditor.CustomEditor(typeof(FrameworkConfigInfo))]
-    class FrameworkConfigInfoEditor:UnityEditor.Editor
+    class FrameworkConfigInfoEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

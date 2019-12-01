@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-09-03
  *Description:    IFramework
@@ -14,7 +14,7 @@ namespace IFramework
 	{
         public override void OnInspectorGUI()
         {
-            //base.OnInspectorGUI();
+            base.OnInspectorGUI();
         }
     }
 }

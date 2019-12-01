@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-09-02
  *Description:    IFramework
@@ -14,6 +14,7 @@ using System.Linq;
 using System;
 using System.Text;
 using IFramework.Serialization;
+using IFramework.GUITool;
 
 namespace IFramework
 {
@@ -54,18 +55,60 @@ namespace IFramework
             public static GUIContent Warnning = EditorGUIUtility.IconContent("console.warnicon.sml");
 
         }
+        private const string CreateViewNmae = "CreateView";
+        private const string GroupByKeyNmae = "GroupByKey";
+        private const string GroupByLanNmae = "GroupByLan";
+        private CreateView createView = new CreateView();
+        private GroupByLanView groupByLanView = new GroupByLanView();
+        private GroupByKeyView groupByKeyView = new GroupByKeyView();
+
+        [SerializeField]
+        private bool mask = true;
+        private Color maskColor = new Color(0.2f, 0.2f, 0.2f, 0.2f);
+        [SerializeField]
+        private string tmpLayout;
+        private const float ToolBarHeight = 17;
+        private Rect localPosition { get { return new Rect(Vector2.zero, position.size); } }
+        private SubWinTree sunwin;
+        private ToolBarTree ToolBarTree;
+
+
+        private abstract class LanwindowItem : ILayoutGUIDrawer, IRectGUIDrawer
+        {
+            public static LanWindow window;
+            protected Rect position;
+            
+            protected float TitleHeight { get { return Styles.Title.CalcHeight(titleContent, position.width); } }
+            protected float smallBtnSize = 20;
+            protected float describeWidth = 30;
+            protected virtual GUIContent titleContent { get; }
+            public void OnGUI(Rect position)
+            {
+                this.position = position;
+                position.DrawOutLine(2, Color.black);
+                this.DrawClip(() => {
+                    Rect[] rs = position.HorizontalSplit(TitleHeight);
+                    this.Box(rs[0]);
+                    this.Box(rs[0], titleContent, Styles.Title);
+                    DrawContent(rs[1]);
+                }, position);
+
+            }
+            protected abstract void DrawContent(Rect rect);
+
+
+        }
     }
     public partial class LanWindow : EditorWindow
     {
-        private static LanWindow Instance;
-        private LanGroup LanGroup;
-        private List<LanPair> lanPairs { get { return LanGroup.lanPairs; } }
-        private List<string> lanKeys { get { return LanGroup.Keys; } }
+        private LanGroup lanGroup;
+        private List<LanPair> lanPairs { get { return lanGroup.lanPairs; } }
+        private List<string> lanKeys { get { return lanGroup.Keys; } }
 
         private string stoPath;
         private void OnEnable()
         {
-            Instance = this;
+            LanwindowItem.window = this;
             stoPath = FrameworkConfig.FrameworkPath.CombinePath("Lan/Resources/LanGroup.asset");
             LoadLanGroup();
             this.titleContent = new GUIContent("Lan", EditorGUIUtility.IconContent("d_WelcomeScreen.AssetStoreLogo").image);
@@ -74,52 +117,35 @@ namespace IFramework
         private void LoadLanGroup()
         {
             if (File.Exists(stoPath))
-                LanGroup = ScriptableObj.Load<LanGroup>(stoPath);
+                lanGroup = ScriptableObj.Load<LanGroup>(stoPath);
             else
-                LanGroup = ScriptableObj.Create<LanGroup>(stoPath);
+                lanGroup = ScriptableObj.Create<LanGroup>(stoPath);
             Fresh();
         }
         private void UpdateLanGroup()
         {
-            ScriptableObj.Update(LanGroup);
+            ScriptableObj.Update(lanGroup);
             //LanGroup = ScriptableObj.Load<LanGroup>(stoPath);
             Fresh();
         }
         private void OnDisable()
         {
-            subwinXmlStr = WinTree.Serialize();
-        }
-        private void OnDestroy()
-        {
+            tmpLayout = sunwin.Serialize();
             UpdateLanGroup();
-            Instance = null;
         }
-        private CreateView createView = new CreateView();
-        private GroupByLanView groupByLanView = new GroupByLanView();
-        private GroupByKeyView groupByKeyView = new GroupByKeyView();
 
-
-        [SerializeField]
-        private bool mask = true;
-        private Color maskColor = new Color(0.2f, 0.2f, 0.2f, 0.2f);
-        [SerializeField]
-        private string subwinXmlStr;
-        private const float ToolBarHeight = 17;
-        private Rect localPosition { get { return new Rect(Vector2.zero, position.size); } }
-        private SubWinTree WinTree;
-        private ToolBarTree ToolBarTree;
         private void Views(Rect rect)
         {
             GenericMenu menu = new GenericMenu();
 
-            for (int i = 0; i < WinTree.allLeafCount; i++)
+            for (int i = 0; i < sunwin.allLeafCount; i++)
             {
-                SubWinTree.TreeLeaf leaf = WinTree.allLeafs[i];
-                menu.AddItem(leaf.titleContent, !WinTree.closedLeafs.Contains(leaf), () => {
-                    if (WinTree.closedLeafs.Contains(leaf))
-                        WinTree.DockLeaf(leaf, SubWinTree.DockType.Left);
+                SubWinTree.TreeLeaf leaf = sunwin.allLeafs[i];
+                menu.AddItem(leaf.titleContent, !sunwin.closedLeafs.Contains(leaf), () => {
+                    if (sunwin.closedLeafs.Contains(leaf))
+                        sunwin.DockLeaf(leaf, SubWinTree.DockType.Left);
                     else
-                        WinTree.CloseLeaf(leaf);
+                        sunwin.CloseLeaf(leaf);
                 });
             }
             menu.DropDown(rect);
@@ -127,62 +153,40 @@ namespace IFramework
         }
         private void SubwinInit()
         {
-            WinTree = new SubWinTree();
-            WinTree.repaintEve = Repaint;
-            WinTree.drawCursorEve = (rect, sp) =>
+            sunwin = new SubWinTree();
+            sunwin.repaintEve += Repaint;
+            sunwin.drawCursorEve += (rect, sp) =>
             {
                 if (sp == SplitType.Vertical)
                     EditorGUIUtility.AddCursorRect(rect, MouseCursor.ResizeHorizontal);
                 else
                     EditorGUIUtility.AddCursorRect(rect, MouseCursor.ResizeVertical);
             };
-            if (!string.IsNullOrEmpty(subwinXmlStr))
+            if (string.IsNullOrEmpty(tmpLayout))
             {
-                WinTree.DeSerialize(subwinXmlStr);
-                for (int i = 0; i < WinTree.allLeafCount; i++)
-                {
-                    var leaf = WinTree.allLeafs[i];
-                    if (leaf.userData == "CreateView")
-                    {
-                        leaf.titleContent = new GUIContent("CreateView");
-                        leaf.paintDelegate = createView.OnGUI;
-                    }
-                    if (leaf.userData == "GroupByKey")
-                    {
-                        leaf.titleContent = new GUIContent("GroupByKey");
-                        leaf.paintDelegate = groupByKeyView.OnGUI;
-                    }
-                    if (leaf.userData == "GroupByLan")
-                    {
-                        leaf.titleContent = new GUIContent("GroupByLan");
-                        leaf.paintDelegate = groupByLanView.OnGUI;
-                    }
-                }
-            }
-            else
                 for (int i = 1; i <= 3; i++)
                 {
                     string userdata = i == 1 ? "GroupByLan" : i == 2 ? "GroupByKey" : "CreateView";
-                    SubWinTree.TreeLeaf L = WinTree.CreateLeaf(new GUIContent(userdata));
+                    SubWinTree.TreeLeaf L = sunwin.CreateLeaf(new GUIContent(userdata));
                     L.userData = userdata;
-                    if (i == 1)
-                    {
-                        L.paintDelegate = groupByLanView.OnGUI;
-                        L.minSize = new Vector2(250, 250);
-                    }
-                    if (i == 2)
-                    {
-                        L.paintDelegate = groupByKeyView.OnGUI;
-                        L.minSize = new Vector2(250, 250);
-
-                    }
-                    if (i == 3)
-                    {
-                        L.paintDelegate = createView.OnGUI;
-                        L.minSize = new Vector2(300, 300);
-                    }
-                    WinTree.DockLeaf(L, SubWinTree.DockType.Left);
+                    sunwin.DockLeaf(L, SubWinTree.DockType.Left);
                 }
+            }
+            else
+            {
+                sunwin.DeSerialize(tmpLayout);
+            }
+            sunwin[GroupByKeyNmae].titleContent = new GUIContent(GroupByKeyNmae);
+            sunwin[GroupByLanNmae].titleContent = new GUIContent(GroupByLanNmae);
+            sunwin[CreateViewNmae].titleContent = new GUIContent(CreateViewNmae);
+            sunwin[GroupByKeyNmae].minSize = new Vector2(250, 250);
+            sunwin[GroupByLanNmae].minSize = new Vector2(250, 250);
+            sunwin[CreateViewNmae].minSize = new Vector2(300, 300);
+            sunwin[GroupByKeyNmae].paintDelegate += groupByKeyView.OnGUI;
+            sunwin[GroupByLanNmae].paintDelegate += groupByLanView.OnGUI;
+            sunwin[CreateViewNmae].paintDelegate += createView.OnGUI;
+
+
             ToolBarTree = new ToolBarTree();
             ToolBarTree.DropDownButton(new GUIContent("Views"), Views, 60)
                             .FlexibleSpace()
@@ -190,24 +194,17 @@ namespace IFramework
                             .Delegate((r) => {
                                 maskColor = EditorGUI.ColorField(r, maskColor);
                             }, 80)
-                            .Toggle(new GUIContent("ShowTitle"), (bo) => { WinTree.isShowTitle = bo; }, WinTree.isShowTitle, 60)
-                            .Toggle(new GUIContent("Lock"), (bo) => { WinTree.isLocked = bo; }, WinTree.isLocked, 60);
+                            .Toggle(new GUIContent("Title"), (bo) => { sunwin.isShowTitle = bo; }, sunwin.isShowTitle, 60)
+                            .Toggle(new GUIContent("Lock"), (bo) => { sunwin.isLocked = bo; }, sunwin.isLocked, 60);
 
         }
-        private void DrawToolBar(Rect rect)
-        {
-            ToolBarTree.OnGUI(rect);
-        }
-        private void DrawWindows(Rect rect)
-        {
-            WinTree.OnGUI(rect);
-            this.minSize = WinTree.minSize + new Vector2(0, ToolBarHeight);
-        }
+
         private void OnGUI()
         {
             var rs = localPosition.Zoom(AnchorType.MiddleCenter, -2).HorizontalSplit(ToolBarHeight, 4);
-            DrawToolBar(rs[0]);
-            DrawWindows(rs[1]);
+            ToolBarTree.OnGUI(rs[0]);
+            sunwin.OnGUI(rs[1]);
+            this.minSize = sunwin.minSize + new Vector2(0, ToolBarHeight);
 
             if (mask)
             {
@@ -228,17 +225,17 @@ namespace IFramework
         }
         private void DeletePairsByLan(SystemLanguage lan)
         {
-            lanPairs.RemoveAll((pair) => { return pair.Lan == lan; });
+            lanGroup.DeletePairsByLan(lan);
             UpdateLanGroup();
         }
         private void DeletePairsByKey(string key)
         {
-            lanPairs.RemoveAll((pair) => { return pair.key == key; });
+            lanGroup.DeletePairsByKey(key);
             UpdateLanGroup();
         }
         private void DeleteLanPair(LanPair pair)
         {
-            lanPairs.Remove(pair);
+            lanGroup.DeleteLanPair(pair);
             UpdateLanGroup();
         }
         private void AddLanPair(LanPair pair)
@@ -258,13 +255,12 @@ namespace IFramework
             if (lp == null)
             {
                 lanPairs.Add(tmpPair);
+                UpdateLanGroup();
             }
             else
             {
                 if (lp.Value == tmpPair.Value)
-                {
                     ShowNotification(new GUIContent("Don't Add Same"));
-                }
                 else
                 {
                     if (EditorUtility.DisplayDialog("Warn",
@@ -274,7 +270,6 @@ namespace IFramework
                     }
                 }
             }
-            UpdateLanGroup();
         }
 
         private void AddLanGroupKey(string key)
@@ -306,12 +301,11 @@ namespace IFramework
         {
             lanPairs.Clear();
             lanKeys.Clear();
-            Fresh();
             UpdateLanGroup();
         }
         private void WriteXml(string path)
         {
-            path.WriteText(Xml.ToXmlString(Instance.lanPairs), Encoding.UTF8);
+            path.WriteText(Xml.ToXmlString(lanPairs), Encoding.UTF8);
         }
         private void ReadXml(string path)
         {
@@ -384,40 +378,16 @@ namespace IFramework
             return keyDic.ContainsKey(key);
         }
         [Serializable]
-        private class CreateView : ILayoutGUIDrawer, IRectGUIDrawer
+        private class CreateView : LanwindowItem
         {
             public CreateView()
             {
                 searchField = new SearchFieldDrawer();
-                searchField.onValueChange = (str) => {
+                searchField.onValueChange += (str) => {
                     keySearchStr = str;
                 };
             }
-            private float smallBtnSize = 20;
-            private float describeWidth = 30;
-            private float TitleHeight { get { return Styles.Title.CalcHeight(Contents.CreateViewTitle, position.width); } }
-            private Rect position;
-            public void OnGUI(Rect position)
-            {
-                this.position = position;
-                position.DrawOutLine(2, Color.black);
-                Rect[] rs = position.HorizontalSplit(TitleHeight);
-                this/*.BeginClip(position)*/
-                    .Box(rs[0])
-                    .Box(rs[0], Contents.CreateViewTitle, Styles.Title)
-                    .Pan(() => {
-                        this.BeginArea(rs[1].Zoom(AnchorType.MiddleCenter, -10))
-                            .Pan(Tool)
-                            .Space(5)
-                            .Pan(AddLanPairFunc)
-                            .Space(5)
-                            .Pan(CreateLanKey)
-                            .Space(5)
-                            .Pan(LanGroupKeysView)
-                            .EndArea();
-                    })
-                    /*.EndClip()*/;
-            }
+            protected override GUIContent titleContent { get { return Contents.CreateViewTitle; } }
             [SerializeField] private bool toolFoldon;
             private void Tool()
             {
@@ -429,37 +399,37 @@ namespace IFramework
                         if (!toolFoldon) return;
                         this.BeginHorizontal()
                                       .Button(() => {
-                                          Instance.LoadLanGroup();
+                                          window.LoadLanGroup();
                                       }, "Fresh")
                                       .Button(() => {
-                                          Instance.UpdateLanGroup();
+                                          window.UpdateLanGroup();
                                       }, "Save")
                                       .Button(() => {
-                                          Instance.CleanData();
+                                          window.CleanData();
                                       }, "Clear")
                                  .EndHorizontal()
                                  .BeginHorizontal()
                                      .Button(() => {
                                          string path = EditorUtility.OpenFilePanel("Xml", Application.dataPath, "xml");
                                          if (string.IsNullOrEmpty(path) || !path.EndsWith(".xml")) return;
-                                         Instance.ReadXml(path);
+                                         window.ReadXml(path);
                                      }, "Read Xml")
                                      .Button(() => {
                                          string path = EditorUtility.OpenFilePanel("Xml", Application.dataPath, "xml");
                                          if (string.IsNullOrEmpty(path) || !path.EndsWith(".xml")) return;
-                                         Instance.WriteXml(path);
+                                         window.WriteXml(path);
                                      }, "Write Xml")
                                  .EndHorizontal()
                                  .BeginHorizontal()
                                      .Button(() => {
                                          string path = EditorUtility.OpenFilePanel("Json", Application.dataPath, "json");
                                          if (string.IsNullOrEmpty(path) || !path.EndsWith(".json")) return;
-                                         Instance.ReadJson(path);
+                                         window.ReadJson(path);
                                      }, "Read Json")
                                      .Button(() => {
                                          string path = EditorUtility.OpenFilePanel("Json", Application.dataPath, "json");
                                          if (string.IsNullOrEmpty(path) || !path.EndsWith(".json")) return;
-                                         Instance.WriteJson(path);
+                                         window.WriteJson(path);
                                      }, "Write Json")
                                  .EndHorizontal();
                     });
@@ -478,7 +448,7 @@ namespace IFramework
                                    .TextField(ref tmpKey)
                                    .Button(() =>
                                    {
-                                       Instance.AddLanGroupKey(tmpKey);
+                                       window.AddLanGroupKey(tmpKey);
                                        tmpKey = string.Empty;
                                    }, Contents.OK, GUILayout.Width(describeWidth))
                                   .EEndHorizontal();
@@ -490,7 +460,7 @@ namespace IFramework
             [SerializeField] private int hashID;
             private void AddLanPairFunc()
             {
-                if (Instance.lanKeys.Count == 0) return;
+                if (window.lanKeys.Count == 0) return;
                 Rect rect;
                 this.EBeginHorizontal(out rect, Styles.Fold)
                     .Foldout(ref createLanPairFlodon, "Create LanPair", true)
@@ -498,7 +468,7 @@ namespace IFramework
                     .Pan(() =>
                     {
                         if (!createLanPairFlodon) return;
-                        if (tmpLanPair == null) tmpLanPair = new LanPair() { key = Instance.lanKeys[0] };
+                        if (tmpLanPair == null) tmpLanPair = new LanPair() { key = window.lanKeys[0] };
                         if (hashID == 0) hashID = "CreateView".GetHashCode();
                         this.DrawVertical(() =>
                         {
@@ -512,23 +482,23 @@ namespace IFramework
                                     .Label(EditorGUIUtility.IconContent("editicon.sml"), GUILayout.Width(smallBtnSize))
                                 .EndHorizontal()
                                 .Pan(() => {
-                                    Rect pos = GUIUtil.GetLastRect();
+                                    Rect pos = GUILayoutUtility.GetLastRect();
                                     int ctrlId = GUIUtility.GetControlID(hashID, FocusType.Keyboard, pos);
                                     {
                                         if (DropdownButton(ctrlId, pos, new GUIContent(string.Format("Key: {0}", tmpLanPair.key))))
                                         {
                                             int index = -1;
-                                            for (int i = 0; i < Instance.lanKeys.Count; i++)
+                                            for (int i = 0; i < window.lanKeys.Count; i++)
                                             {
-                                                if (Instance.lanKeys[i] == tmpLanPair.key)
+                                                if (window.lanKeys[i] == tmpLanPair.key)
                                                 {
                                                     index = i; break;
                                                 }
                                             }
-                                            SearchablePopup.Show(pos, Instance.lanKeys.ToArray(), index, (i, str) =>
+                                            SearchablePopup.Show(pos, window.lanKeys.ToArray(), index, (i, str) =>
                                             {
                                                 tmpLanPair.key = str;
-                                                Instance.Repaint();
+                                                window.Repaint();
                                             });
                                         }
                                     }
@@ -541,7 +511,7 @@ namespace IFramework
                                     .FlexibleSpace()
                                     .Button(() => {
                                         //createLanPairFlodon = false;
-                                        Instance.AddLanPair(tmpLanPair);
+                                        window.AddLanPair(tmpLanPair);
                                         //tmpLanPair = null;
                                     }, Contents.OK)
                                 .EndHorizontal();
@@ -581,27 +551,45 @@ namespace IFramework
             private void LanGroupKeysView()
             {
                 this.DrawHorizontal(() => {
-                    this.Foldout(ref keyFoldon, string.Format("Keys  Count: {0}", Instance.lanKeys.Count), true);
+                    this.Foldout(ref keyFoldon, string.Format("Keys  Count: {0}", window.lanKeys.Count), true);
                     this.Label("");
-                  searchField.OnGUI(EditorGUIUtil.GetLastRect());
+                  searchField.OnGUI(GUILayoutUtility.GetLastRect());
                 }, Styles.Fold);
                 if (keyFoldon)
                 {
                     this.DrawScrollView(() => {
-                        Instance.lanKeys.ForEach((key) => {
+                        window.lanKeys.ForEach((key) => {
                             if (key.ToLower().Contains(keySearchStr.ToLower()))
                             {
                                 this.BeginHorizontal(Styles.BG)
                                     .Label(key)
-                                    .Label(Instance.IsKeyInUse(key) ? GUIContent.none : Contents.Warnning, GUILayout.Width(smallBtnSize))
+                                    .Label(window.IsKeyInUse(key) ? GUIContent.none : Contents.Warnning, GUILayout.Width(smallBtnSize))
                                     .Button(() => {  { GUIUtility.systemCopyBuffer = key; ; } }, Contents.CopyBtn, GUILayout.Width(smallBtnSize))
-                                    .Button(() => {  { Instance.DeleteLanKey(key); } }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize))
+                                    .Button(() => {  { window.DeleteLanKey(key); } }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize))
                                     .EndHorizontal();
                             }
                         });
                     }, ref scroll);
                 }
             }
+
+            protected override void DrawContent(Rect rect)
+            {
+                this
+                    .Pan(() =>
+                    {
+                        this.BeginArea(rect.Zoom(AnchorType.MiddleCenter, -10))
+                            .Pan(Tool)
+                            .Space(5)
+                            .Pan(AddLanPairFunc)
+                            .Space(5)
+                            .Pan(CreateLanKey)
+                            .Space(5)
+                            .Pan(LanGroupKeysView)
+                            .EndArea();
+                    });
+            }
+
             private class SearchablePopup : PopupWindowContent
             {
                 public class InnerSearchField : FocusAbleGUIDrawer
@@ -655,7 +643,7 @@ namespace IFramework
                                 if ((e.type == EventType.MouseDown /*&& e.clickCount == 2*/) /*|| e.keyCode == KeyCode.F2*/)
                                 {
                                     Focused = true;
-                                    GUIFocusControl.Focus(FocusID, Focused);
+                                    GUIFocusControl.Focus(this);
                                     if (e.type != EventType.Repaint && e.type != EventType.Layout)
                                         Event.current.Use();
                                 }
@@ -873,43 +861,17 @@ namespace IFramework
             }
         }
         [Serializable]
-        private class GroupByLanView : IRectGUIDrawer, ILayoutGUIDrawer
+        private class GroupByLanView : LanwindowItem
         {
-            private Rect position;
-            private float TitleHeight { get { return Styles.Title.CalcHeight(Contents.GroupByLanViewTitle, position.width); } }
+            protected override GUIContent titleContent { get { return Contents.GroupByLanViewTitle; } }
             public GroupByLanView()
             {
                 SearchField = new SearchFieldDrawer();
-                SearchField.onValueChange = (str) =>
+                SearchField.onValueChange += (str) =>
                 {
                     searchStr = str;
 
                 };
-            }
-            public void OnGUI(Rect position)
-            {
-                this.position = position;
-                position.DrawOutLine(2, Color.black);
-                this.DrawClip(() => {
-                    Rect[] rs = position.HorizontalSplit(TitleHeight);
-                    this.Box(rs[0]);
-                    this.Box(rs[0], Contents.GroupByLanViewTitle, Styles.Title);
-                    Calc();
-                    this.DrawArea(() => {
-                        this.Label("");
-                        SearchField.OnGUI(GUIUtil.GetLastRect());
-                        this.Space(5);
-                        this.DrawScrollView(() => {
-                            items.ForEach((item) => {
-                                if (item.Lan.ToString().ToLower().Contains(searchStr.ToLower()))
-                                {
-                                    item.OnGUI(Rect.zero);
-                                    this.Space(3);
-                                }
-                            });
-                        }, ref scroll);
-                    }, rs[1].Zoom(AnchorType.MiddleCenter, -20));
-                }, position);
             }
             [SerializeField] private Vector2 scroll;
 
@@ -918,16 +880,36 @@ namespace IFramework
 
             private void Calc()
             {
-                while (items.Count < Instance.lanDic.Count) items.Add(new GroupByLanViewItem());
-                while (items.Count > Instance.lanDic.Count) items.RemoveAt(items.Count - 1);
+                while (items.Count < window.lanDic.Count) items.Add(new GroupByLanViewItem());
+                while (items.Count > window.lanDic.Count) items.RemoveAt(items.Count - 1);
                 int index = 0;
-                foreach (var item in Instance.lanDic)
+                foreach (var item in window.lanDic)
                 {
                     items[index].Lan = item.Key;
                     items[index].lanPairs = item.Value;
                     index++;
                 }
             }
+
+            protected override void DrawContent(Rect rect)
+            {
+                Calc();
+                this.DrawArea(() => {
+                    this.Label("");
+                    SearchField.OnGUI(GUILayoutUtility.GetLastRect());
+                    this.Space(5);
+                    this.DrawScrollView(() => {
+                        items.ForEach((item) => {
+                            if (item.Lan.ToString().ToLower().Contains(searchStr.ToLower()))
+                            {
+                                item.OnGUI(Rect.zero);
+                                this.Space(3);
+                            }
+                        });
+                    }, ref scroll);
+                }, rect.Zoom(AnchorType.MiddleCenter, -20));
+            }
+
             [SerializeField]
             private List<GroupByLanViewItem> items = new List<GroupByLanViewItem>();
             [Serializable]
@@ -945,7 +927,7 @@ namespace IFramework
                         this.Label(string.Format("{0}", Lan.ToString(), lanPairs.Count), GUILayout.Width(100));
                         this.EBeginHorizontal(out rect, Styles.Fold, GUILayout.Height(smallBtnSize))
                                 .Foldout(ref foldon, lanPairs.Count.ToString(), true)
-                                .Button(() => { Instance.DeletePairsByLan(Lan); }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize));
+                                .Button(() => { window.DeletePairsByLan(Lan); }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize));
                         this.EEndHorizontal();
 
                     });
@@ -960,7 +942,7 @@ namespace IFramework
                                     this.DrawVertical(() => {
                                         this.BeginHorizontal()
                                                 .FlexibleSpace()
-                                                .Button(() => {  Instance.DeleteLanPair(pair); }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize))
+                                                .Button(() => {  window.DeleteLanPair(pair); }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize))
                                             .EndHorizontal()
                                             .BeginHorizontal()
                                                 .Label(new GUIContent(string.Format("Key  \t{0}", pair.key), pair.key))
@@ -984,41 +966,14 @@ namespace IFramework
             }
         }
         [Serializable]
-        private class GroupByKeyView : IRectGUIDrawer, ILayoutGUIDrawer
+        private class GroupByKeyView : LanwindowItem
         {
-            private float TitleHeight { get { return Styles.Title.CalcHeight(Contents.GroupByKeyViewTitle, position.width); } }
-            private Rect position;
-            public void OnGUI(Rect position)
-            {
-                this.position = position;
-                position.DrawOutLine(2, Color.black);
-
-                this.DrawClip(() => {
-                    Rect[] rs = position.HorizontalSplit(TitleHeight);
-                    this.Box(rs[0]);
-                    this.Box(rs[0], Contents.GroupByKeyViewTitle, Styles.Title);
-                    Calc();
-                    this.DrawArea(() => {
-                        this.Label("");
-                        SearchField.OnGUI(GUIUtil.GetLastRect());
-                        this.Space(5);
-                        this.DrawScrollView(() => {
-                            items.ForEach((item) => {
-                                if (item.key.ToLower().Contains(searchStr.ToLower()))
-                                {
-                                    item.OnGUI(Rect.zero);
-                                    this.Space(3);
-                                }
-                            });
-                        }, ref scroll);
-                    }, rs[1].Zoom(AnchorType.MiddleCenter, -20));
-                }, position);
-            }
+            protected override GUIContent titleContent { get { return Contents.GroupByKeyViewTitle; } }
             [SerializeField] private Vector2 scroll;
             public GroupByKeyView()
             {
                 SearchField = new SearchFieldDrawer();
-                SearchField.onValueChange = (str) =>
+                SearchField.onValueChange += (str) =>
                 {
                     searchStr = str;
                 };
@@ -1027,16 +982,36 @@ namespace IFramework
             [SerializeField] private string searchStr = string.Empty;
             private void Calc()
             {
-                while (items.Count < Instance.keyDic.Count) items.Add(new GroupByKeyViewItem());
-                while (items.Count > Instance.keyDic.Count) items.RemoveAt(items.Count - 1);
+                while (items.Count < window.keyDic.Count) items.Add(new GroupByKeyViewItem());
+                while (items.Count > window.keyDic.Count) items.RemoveAt(items.Count - 1);
                 int index = 0;
-                foreach (var item in Instance.keyDic)
+                foreach (var item in window.keyDic)
                 {
                     items[index].lanPairs = item.Value;
                     items[index].key = item.Key;
                     ++index;
                 }
             }
+
+            protected override void DrawContent(Rect rect)
+            {
+                Calc();
+                this.DrawArea(() => {
+                    this.Label("");
+                    SearchField.OnGUI(GUILayoutUtility.GetLastRect());
+                    this.Space(5);
+                    this.DrawScrollView(() => {
+                        items.ForEach((item) => {
+                            if (item.key.ToLower().Contains(searchStr.ToLower()))
+                            {
+                                item.OnGUI(Rect.zero);
+                                this.Space(3);
+                            }
+                        });
+                    }, ref scroll);
+                }, rect.Zoom(AnchorType.MiddleCenter, -20));
+            }
+
             [SerializeField]
             private List<GroupByKeyViewItem> items = new List<GroupByKeyViewItem>();
 
@@ -1057,7 +1032,7 @@ namespace IFramework
                         this.EBeginHorizontal(out rect, Styles.Fold, GUILayout.Height(smallBtnSize))
                             .Foldout(ref foldon, string.Format("{1}", key, lanPairs.Count), true)
                             .Button(() => {  GUIUtility.systemCopyBuffer = key; }, Contents.CopyBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(16))
-                            .Button(() => {  Instance.DeletePairsByKey(key); }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize));
+                            .Button(() => {  window.DeletePairsByKey(key); }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize));
                         this.EEndHorizontal();
                     });
                     if (foldon)
@@ -1069,7 +1044,7 @@ namespace IFramework
                                     this.DrawVertical(() => {
                                         this.BeginHorizontal()
                                                .FlexibleSpace()
-                                               .Button(() => {Instance.DeleteLanPair(pair); }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize))
+                                               .Button(() => {window.DeleteLanPair(pair); }, string.Empty, Styles.CloseBtn, GUILayout.Width(smallBtnSize), GUILayout.Height(smallBtnSize))
                                             .EndHorizontal()
                                             .BeginHorizontal()
                                                 .Label("Lan", GUILayout.Width(describeWidth));

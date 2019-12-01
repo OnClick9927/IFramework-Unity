@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.1f1
  *Date:           2019-03-23
  *Description:    IFramework
@@ -12,7 +12,6 @@ namespace IFramework
     [Serializable]
 	public class ProjectConfigInfo:UnityEngine.ScriptableObject
 	{
-        public bool IsUseNameSpace;
         public string NameSpace;
         public string UserName;
         public string Version;
@@ -20,9 +19,8 @@ namespace IFramework
         public ProjectConfigInfo()
         {
             UserName = "OnClick";
-            IsUseNameSpace = true;
-            NameSpace = "IFramework";
-            Version = "1.0";
+            NameSpace = "IFramework_Demo";
+            Version = "0.0.1";
             Description = "Description";
         }
     }

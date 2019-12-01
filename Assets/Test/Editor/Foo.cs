@@ -27,7 +27,7 @@ public class Foo : EditorWindow
         string localPath = @"Assets\Test\Editor/Shaderball2.FBX";
         if (!System.IO.File.Exists(prePath))
         {
-            IFEditorUtil.CreatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(localPath), prePath);
+            EditorUtil.CreatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(localPath), prePath);
         }
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prePath);
         IFPreview = new IFPreview(prefab, prefab.GetComponentsInChildren<MeshFilter>(true), prefab.GetComponentsInChildren<Renderer>(true));

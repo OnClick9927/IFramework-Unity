@@ -1,11 +1,12 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-08-01
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using IFramework.GUITool;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -192,7 +193,7 @@ namespace IFramework
 
             Assembly defaultAssembly = AppDomain.CurrentDomain.GetAssemblies()
                             .First(assembly => assembly.GetName().Name == "Assembly-CSharp");
-            Type type = defaultAssembly.GetType(ProjectConfigEditor.NameSpace + "." + EditorPrefs.GetString(ScriptNameKey));
+            Type type = defaultAssembly.GetType(EditorProjectConfig.NameSpace + "." + EditorPrefs.GetString(ScriptNameKey));
             GameObject gameObj = GameObject.Find(EditorPrefs.GetString(GameobjKey));
             if (gameObj == null || type == null || gameObj.GetComponent<ScriptCreater>() == null)
             {
@@ -220,7 +221,7 @@ namespace IFramework
             //serialiedScript.Update();
             if (SC.isCreatePrefab)
             {
-                IFEditorUtil.CreatePrefab(gameObj, SC.prefabPath);
+                EditorUtil.CreatePrefab(gameObj, SC.prefabPath);
             }
 
 
@@ -249,11 +250,11 @@ namespace IFramework
                 EditorPrefs.SetString(GameobjKey, SC.name);
                 EditorPrefs.SetBool(IsCreateKey, true);
 
-                txt = txt.Replace("#SCAuthor#", ProjectConfigEditor.UserName)
-                         .Replace("#SCVERSION#", ProjectConfigEditor.Version)
+                txt = txt.Replace("#SCAuthor#", EditorProjectConfig.UserName)
+                         .Replace("#SCVERSION#", EditorProjectConfig.Version)
                          .Replace("#SCUNITYVERSION#", Application.unityVersion)
                          .Replace("#SCDATE#", DateTime.Now.ToString("yyyy-MM-dd"))
-                         .Replace("#SCNameSpace#", ProjectConfigEditor.NameSpace)
+                         .Replace("#SCNameSpace#", EditorProjectConfig.NameSpace)
                          .Replace("#SCSCRIPTNAME#", Path.GetFileNameWithoutExtension(filePath))
                          .Replace("#SCDescription#", DescriptionStr())
                          .Replace("#SCUsing#", NameSpaceStr(txt));
@@ -275,7 +276,7 @@ namespace IFramework
             }
             private static string DescriptionStr()
             {
-                string res = string.IsNullOrEmpty(SC.description) ? ProjectConfigEditor.Description : SC.description;
+                string res = string.IsNullOrEmpty(SC.description) ? EditorProjectConfig.Description : SC.description;
                 if (!res.Contains("\n"))
                     return res;
                 else

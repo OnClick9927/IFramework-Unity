@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-07-12
  *Description:    IFramework
@@ -10,22 +10,40 @@ using System;
 
 namespace IFramework
 {
-    public abstract class CachePoolInnerPool<V>:ObjectPool<V>
+    public abstract class CacheInnerPool<T>:ObjectPool<T>
     {
         public bool IsSleepPool { get; set; }
     }
     public class CachePool<T> : IDisposable
     {
        
+        public Type Type { get { return typeof(T); } }
+        public bool AutoClear { get; set; }
+        public int SleepCapcity { get; set; }
+
+        protected CacheInnerPool<T> sleepPool;
+        protected CacheInnerPool<T> runningPoool;
+        public virtual CacheInnerPool<T> RunningPoool { get { return runningPoool; }set { runningPoool = value;runningPoool.IsSleepPool = false; } }
+        public virtual CacheInnerPool<T> SleepPool { get { return sleepPool; } set { sleepPool = value; sleepPool.IsSleepPool = true; } }
+
+        public int SleepCount { get { return SleepPool.Count; } }
+        public int RunningCount { get { return RunningPoool.Count; } }
+
+        public event ObjPoolEventDel<T> OnRunningPoolClearObject { add { runningPoool.OnClearObject += value; } remove { runningPoool.OnClearObject -= value; } }
+        public event ObjPoolEventDel<T> OnRunningPoolGetObject { add { runningPoool.OnGetObject += value; } remove { runningPoool.OnGetObject -= value; } }
+        public event ObjPoolEventDel<T> OnRunningPoolSetObject { add { runningPoool.OnSetObject += value; } remove { runningPoool.OnSetObject -= value; } }
+        public event ObjPoolEventDel<T> OnRunningPoolCreateObject { add { runningPoool.OnCreateObject += value; } remove { runningPoool.OnCreateObject -= value; } }
+
         public event ObjPoolEventDel<T> OnClearObject { add { SleepPool.OnClearObject += value; } remove { SleepPool.OnClearObject -= value; } }
         public event ObjPoolEventDel<T> OnGetObject { add { SleepPool.OnGetObject += value; } remove { SleepPool.OnGetObject -= value; } }
         public event ObjPoolEventDel<T> OnSetObject { add { SleepPool.OnSetObject += value; } remove { SleepPool.OnSetObject -= value; } }
         public event ObjPoolEventDel<T> OnCreateObject { add { SleepPool.OnCreateObject += value; } remove { SleepPool.OnCreateObject -= value; } }
-        public CachePool(CachePoolInnerPool<T> runningPoool, CachePoolInnerPool<T> sleepPool) : this(runningPoool, sleepPool, true, 16) { }
-        public CachePool(CachePoolInnerPool<T> runningPoool, CachePoolInnerPool<T> sleepPool, bool autoClear, int cacheCapcity)
+
+        public CachePool(CacheInnerPool<T> runningPoool, CacheInnerPool<T> sleepPool) : this(runningPoool, sleepPool, true, 16) { }
+        public CachePool(CacheInnerPool<T> runningPoool, CacheInnerPool<T> sleepPool, bool autoClear, int sleepCapcity)
         {
-            this.autoClear = autoClear;
-            this.sleepCapcity = cacheCapcity;
+            this.AutoClear = autoClear;
+            this.SleepCapcity = sleepCapcity;
             this.RunningPoool = runningPoool;
             this.SleepPool = sleepPool;
         }
@@ -35,20 +53,6 @@ namespace IFramework
             SleepPool.Dispose();
             RunningPoool.Dispose();
         }
-
-        public Type type { get { return typeof(T); } }
-        private int sleepCapcity;
-        private bool autoClear;
-        public bool AutoClear { get { return autoClear; } set { autoClear = value; } }
-        public int SleepCapcity { get { return sleepCapcity; } set { sleepCapcity = value; } }
-
-        protected CachePoolInnerPool<T> sleepPool;
-        protected CachePoolInnerPool<T> runningPoool;
-        public virtual CachePoolInnerPool<T> RunningPoool { get { return runningPoool; }set { runningPoool = value;runningPoool.IsSleepPool = false; } }
-        public virtual CachePoolInnerPool<T> SleepPool { get { return sleepPool; } set { sleepPool = value; sleepPool.IsSleepPool = true; } }
-
-        public int SleepCount { get { return SleepPool.Count; } }
-        public int RunningCount { get { return RunningPoool.Count; } }
 
         public bool IsRunning(T t) { return RunningPoool.Contains(t); }
         public bool IsSleep(T t) { return SleepPool.Contains(t); }
@@ -81,7 +85,7 @@ namespace IFramework
         }
         private void AutoClean()
         {
-            if (!autoClear) return;
+            if (!AutoClear) return;
             SleepPool.Clear(SleepPool.Count - SleepCapcity);
         }
 
@@ -118,6 +122,15 @@ namespace IFramework
             });
         }
 
+        public void CycleRunningPool(int count)
+        {
+            while (RunningPoool.Count > 0)
+            {
+                T t = RunningPoool.Get();
+                SleepPool.Set(t);
+                AutoClean();
+            }
+        }
 
         public void CycleRunningPool()
         {

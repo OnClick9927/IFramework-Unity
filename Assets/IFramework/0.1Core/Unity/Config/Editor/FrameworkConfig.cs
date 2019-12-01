@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.1f1
  *Date:           2019-03-22
  *Description:    IFramework
@@ -11,8 +11,14 @@ using UnityEditor;
 using System.Linq;
 namespace IFramework
 {
-    public class FrameworkConfig
+    class FrameworkConfig
 	{
+        private const string RelativeUnityCorePath = "0.1Core/Unity";
+        private const string RelativeEditorCorePath = "0.1Core/Unity/Editor";
+        private const string RelativeUtilPath = "UTil";
+        private const string RelativeEditorPath = "UTil/Editor";
+        private static string ConfigName = "FrameWorkInfo.asset";
+
         private static FrameworkConfigInfo info;
         private static FrameworkConfigInfo Info
         {
@@ -22,15 +28,17 @@ namespace IFramework
                 return info; 
             }
         }
+
+        public const string FrameworkName = "IFramework";
+        public const string Author = "OnClick";
+        public const string Version = "0.0.1";
+        public const string Description = FrameworkName;
+
         public static string EditorPath { get { return Info.EditorPath; } }
         public static string FrameworkPath { get { return Info.FrameWorkPath; } }
         public static string UtilPath { get { return Info.UtilPath; } }
         public static string UnityCorePath { get { return Info.UnityCorePath; } }
         public static string EditorCorePath { get { return Info.EditorCorePath; } }
-
-        public static string Version { get { return Info.Version; } }
-        public static string Description { get { return Info.Description; } }
-
 
         private static string ConfigPath;
         private static string GetRightConfigPath()
@@ -53,9 +61,8 @@ namespace IFramework
         private static void SetConfig()
         {
             ConfigPath = GetRightConfigPath();
-            string[] guids = AssetDatabase.FindAssets("t:FrameworkConfigInfo", new string[] { @"Assets" });
-            List<FrameworkConfigInfo> stos=  guids.ToList()
-                .ConvertAll((guid) => { return AssetDatabase.LoadAssetAtPath<FrameworkConfigInfo>(AssetDatabase.GUIDToAssetPath(guid)); });
+            string[] guids = AssetDatabase.FindAssets(string.Format("t:{0}",typeof(FrameworkConfigInfo)) , new string[] { @"Assets" });
+            var stos=  guids.ToList() .ConvertAll((guid) => { return AssetDatabase.LoadAssetAtPath<FrameworkConfigInfo>(AssetDatabase.GUIDToAssetPath(guid)); });
             if (stos.Count == 0 || AssetDatabase.GetAssetPath(stos[0]).ToRegularPath()!= ConfigPath) CreateRightConfig(stos);
             else
             {
@@ -82,16 +89,11 @@ namespace IFramework
             config.UtilPath = FrameWorkPath.CombinePath(RelativeUtilPath).ToRegularPath();
             config.FrameWorkName = FrameworkName;
             config.Author = Author;
+            config.Version = Version;
+            config.Description = Description;
+
             ScriptableObj.Update<FrameworkConfigInfo>(config);
         }
-        private const string RelativeUnityCorePath = "0.1Core/Unity";
-        private const string RelativeEditorCorePath = "0.1Core/Unity/Editor";
-        private const string RelativeUtilPath = "UTil";
-        private const string RelativeEditorPath = "UTil/Editor";
-
-        private static string ConfigName = "FrameWorkInfo.asset";
-        public const string FrameworkName = "IFramework";
-        public const string Author = "OnClick"; 
 
     }
 

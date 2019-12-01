@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.11f1
  *Date:           2019-05-16
  *Description:    IFramework
@@ -10,7 +10,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.GUITool
 {
 	public class FreshToolBar:IRectGUIDrawer,ILayoutGUIDrawer
 	{
@@ -27,20 +27,20 @@ namespace IFramework
 
         public static int OnGUI(Action <bool> action, bool ShowRefresh,Vector2 freshSize, int selected, string[] texts)
         {
-           /* Rect rect =*/ EditorGUILayout.BeginHorizontal(GUIUtil.Height(freshSize.y));
+           /* Rect rect =*/ EditorGUILayout.BeginHorizontal(GUILayout.Height(freshSize.y));
 
 
             GUILayout.Space(10);
             if (ShowRefresh)
                 if (GUILayout.Button(ReFreshContent,
-                   GUIUtil.Width(freshSize.x), GUIUtil.Height(freshSize.y)))
+                   GUILayout.Width(freshSize.x), GUILayout.Height(freshSize.y)))
                 {
                     if (action != null)
                         action(true);
                 }
             else
                 GUILayout.Space(freshSize.x);
-            selected = GUILayout.Toolbar(selected, texts, GUIUtil.Height(freshSize.y));
+            selected = GUILayout.Toolbar(selected, texts, GUILayout.Height(freshSize.y));
 
             GUILayout.Space(10);
             EditorGUILayout.EndHorizontal();

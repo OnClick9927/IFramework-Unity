@@ -1,6 +1,6 @@
 /*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.11f1
  *Date:           2019-05-20
  *Description:    IFramework
@@ -24,7 +24,7 @@ namespace IFramework
         static Log()
         {
             ReadInfo();
-            loger = new DefaultLoger();
+            loger = new UnityLoger();
         }
         public static void ReadInfo()
         {
@@ -93,7 +93,7 @@ namespace IFramework
         void Log(LogType logType, object message, params object[] paras);
         void LogFormat(LogType logType, string format, object message, params object[] paras);
     }
-    internal class DefaultLoger : ILoger
+    public class UnityLoger : ILoger
     {
         public void Log(LogType logType, object message, params object[] paras)
         {
@@ -127,5 +127,59 @@ namespace IFramework
             }
         }
     }
+    public interface ILog { }
+    public static class LogExtension
+    {
+        public static void Log(this string message, int lev = 0, params object[] paras)
+        {
+            IFramework.Log.L(message, lev, paras);
+        }
+        public static void Warning(this string message, int lev = 50, params object[] paras)
+        {
+            IFramework.Log.W(message, lev, paras);
+        }
+        public static void Err(this string message, int lev = 100, params object[] paras)
+        {
+            IFramework.Log.E(message, lev, paras);
+        }
 
+        public static void LogFormat(this string message, string format, int lev = 0, params object[] paras)
+        {
+            IFramework.Log.LF(message, format, lev, paras);
+        }
+        public static void WarningFormat(this string message, string format, int lev = 50, params object[] paras)
+        {
+            IFramework.Log.WF(message, format, lev, paras);
+        }
+        public static void ErrFormat(this string message, string format, int lev = 100, params object[] paras)
+        {
+            IFramework.Log.EF(message, format, lev, paras);
+        }
+
+        public static void Log(this ILog self, object message, int lev = 0, params object[] paras)
+        {
+            IFramework.Log.L(message, lev, paras);
+        }
+        public static void Warning(this ILog self, object message, int lev =50, params object[] paras)
+        {
+            IFramework.Log.W(message, lev, paras);
+        }
+        public static void Err(this ILog self, object message, int lev = 100, params object[] paras)
+        {
+            IFramework.Log.E(message, lev, paras);
+        }
+
+        public static void LogFormat(this ILog self, object message, string format, int lev = 0, params object[] paras)
+        {
+            IFramework.Log.LF(message,format, lev, paras);
+        }
+        public static void WarningFormat(this ILog self, object message, string format, int lev = 50, params object[] paras)
+        {
+            IFramework.Log.WF(message, format, lev, paras);
+        }
+        public static void ErrFormat(this ILog self, object message, string format, int lev = 100, params object[] paras)
+        {
+            IFramework.Log.EF(message, format, lev, paras);
+        }
+    }
 }

@@ -1,12 +1,13 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.11f1
  *Date:           2019-05-05
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
 
+using IFramework.GUITool;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace IFramework
             this.Button(() =>
             {
                 ShowWindow();
-            }, "Open", GUIUtil.Height(25));
+            }, "Open", GUILayout.Height(25));
         }
         private static bool isEnable;
         private void OnDisable()

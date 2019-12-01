@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6e1f334f08c040419c19eef6eccf708, type: 3}
   m_Name: FrameWorkInfo
   m_EditorClassIdentifier: 
-  FrameWorkName: IFramework
-  Author: OnClick
-  Version: 1.0
   FrameWorkPath: Assets/IFramework/
   UnityCorePath: Assets/IFramework/0.1Core/Unity
   EditorCorePath: Assets/IFramework/0.1Core/Unity/Editor
   UtilPath: Assets/IFramework/UTil
   EditorPath: Assets/IFramework/UTil/Editor
+  FrameWorkName: IFramework
+  Author: OnClick
+  Version: 0.0.1
   Description: IFramework

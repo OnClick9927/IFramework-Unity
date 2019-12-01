@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-06-19
  *Description:    IFramework     Source:   https://gist.github.com/Thundernerd/5085ec29819b2960f5ff2ee32ad57cbb

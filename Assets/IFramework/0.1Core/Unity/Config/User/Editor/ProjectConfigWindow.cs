@@ -1,6 +1,6 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        1.0
+ *Version:        0.0.1
  *UnityVersion:   2018.3.1f1
  *Date:           2019-03-23
  *Description:    IFramework
@@ -9,65 +9,48 @@
 using UnityEditor;
 using System.IO;
 using UnityEngine;
+using IFramework.GUITool;
+
 namespace IFramework
 {
-    [EditorWindowCacheAttribute("ProjectConfig", "IFramework/ProjectConfig")]
-    internal partial class ProjectConfigWindow
-	{
-        [MenuItem("IFramework/ProjectConfig")]
+    [EditorWindowCache("ProjectConfig")]
+    partial class ProjectConfigWindow
+    {
         public static void ShowWindow()
         {
             GetWindow<ProjectConfigWindow>(false, "ProSetting", true);
         }
-        private class ProjectSettingView : ILayoutGUIDrawer
-        {
-            public ProjectConfigInfo Info;
-
-            public  void OnGUI()
-            {
-                this.  Space();
-                this. ETextField("UserName",ref Info.UserName);
-                this. ETextField("Version",ref Info.Version);
-               this.Toggle("IsUseNameSpace",ref Info.IsUseNameSpace);
-                if (Info.IsUseNameSpace)
-                {
-                   this. LabelField("NameSpace");
-                    this. TextArea(ref Info.NameSpace);
-                }
-               this.TextArea(ref Info.Description, GUIUtil.Height(100));
-            }
-        }
     }
-    internal partial class ProjectConfigWindow:EditorWindow
+    partial class ProjectConfigWindow : EditorWindow, ILayoutGUIDrawer
     {
-        private ProjectConfigInfo projectSetting;
-        private ProjectSettingView view;
+        private ProjectConfigInfo Info;
         private void OnEnable()
         {
-            if (File.Exists(ProjectConfigEditor.ProjectConfigInfoPath))
-                projectSetting = ScriptableObj.Load<ProjectConfigInfo>(ProjectConfigEditor.ProjectConfigInfoPath);
+            if (File.Exists(EditorProjectConfig.ProjectConfigInfoPath))
+                Info = ScriptableObj.Load<ProjectConfigInfo>(EditorProjectConfig.ProjectConfigInfoPath);
             else
-                projectSetting = ScriptableObj.Create<ProjectConfigInfo>(ProjectConfigEditor.ProjectConfigInfoPath);
-
-            if (view==null)
-            {
-                view = new ProjectSettingView();
-                view.Info = projectSetting;
-            }
+                Info = ScriptableObj.Create<ProjectConfigInfo>(EditorProjectConfig.ProjectConfigInfoPath);
         }
         private void OnDisable()
         {
-            ScriptableObj.Update<ProjectConfigInfo>(projectSetting);
-        }
-        private void OnDestroy()
-        {
-            ScriptableObj.Update<ProjectConfigInfo>(projectSetting);
-        }
-        private void OnGUI()
-        {
-            view.OnGUI();
+            ScriptableObj.Update(Info);
         }
 
-       
+        private void OnGUI()
+        {
+            this.Space()
+                    .ETextField("UserName", ref Info.UserName)
+                    .ETextField("Version", ref Info.Version)
+                    .LabelField("NameSpace")
+                    .TextArea(ref Info.NameSpace)
+                    .TextArea(ref Info.Description, GUILayout.Height(100))
+                    //.FlexibleSpace()
+                    .BeginHorizontal()
+                        .FlexibleSpace()
+                        .Button(() => { ScriptableObj.Update(Info); }, "Save")
+                    .EndHorizontal();
+        }
+
+
     }
 }
