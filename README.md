@@ -11,7 +11,7 @@ Simple Unity Tools
 
     GUICanvas  便捷化设计（layout，rect两种（拖拽/缩放），支持序列化）
 
-![GUI设计窗口](https://images.gitee.com/uploads/images/2019/1208/170437_c3c87cff_2268676.png "GUI设计窗口.png")
+![GUI设计窗口](https://github.com/OnClick9927/IFramework/blob/master/Pics/GUIDesignCanvas_Rect.png?raw=true "GUI设计窗口.png")
 基于GUICanvas的小游戏，支持运行时和编辑器状态
 
 ![GUI小游戏-打地鼠](https://images.gitee.com/uploads/images/2019/1114/001752_4308cb8a_2268676.png "GUI小游戏-打地鼠.png")
