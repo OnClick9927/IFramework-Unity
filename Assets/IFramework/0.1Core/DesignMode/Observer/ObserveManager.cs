@@ -98,10 +98,7 @@ namespace IFramework
 
         public static void Publish<T>(int code, IEventArgs args, params object[] param) where T : IPublisher
         {
-            if (!Instance.observes.ContainsKey(typeof(T)))
-                Log.E("Non Such Type :  " + typeof(T));
-            else
-                Instance.observes[typeof(T)].Publish(null, code, args, param);
+            Publish(typeof(T), code, args, param);
         }
         public static void Publish<T>(T t, int code, IEventArgs args, params object[] param)where T:IPublisher
         {
@@ -109,6 +106,13 @@ namespace IFramework
                 Log.E("Non Such Type :  " + typeof(T));
             else
                 Instance.observes[typeof(T)].Publish(t, code, args, param);
+        }
+        public static void Publish(Type type, int code, IEventArgs args, params object[] param)
+        {
+            if (!Instance.observes.ContainsKey(type))
+                Log.E("Non Such Type :  " + type);
+            else
+                Instance.observes[type].Publish(null, code, args, param);
         }
 
 

@@ -43,7 +43,7 @@ namespace IFramework
             if (!Enable) return;
             if (!LogEnable) return;
             if (LogLevel > lev) return;
-            loger.Log(LogType.Default, message, paras);
+            loger.Log(LogType.Log, message, paras);
         }
         public static void W(object message, int lev = 50, params object[] paras)
         {
@@ -66,7 +66,7 @@ namespace IFramework
             if (!Enable) return;
             if (!LogEnable) return;
             if (LogLevel > lev) return;
-            loger.LogFormat(LogType.Default, format, message, paras);
+            loger.LogFormat(LogType.Log, format, message, paras);
         }
         public static void WF(object message, string format, int lev = 50, params object[] paras)
         {
@@ -84,10 +84,7 @@ namespace IFramework
         }
 
     }
-    public enum LogType
-    {
-        Error, Warning, Default
-    }
+
     public interface ILoger
     {
         void Log(LogType logType, object message, params object[] paras);
@@ -105,7 +102,7 @@ namespace IFramework
                 case LogType.Warning:
                     Debug.LogWarning(message);
                     break;
-                case LogType.Default:
+                case LogType.Log:
                     Debug.Log(message);
                     break;
             }
@@ -121,7 +118,7 @@ namespace IFramework
                 case LogType.Warning:
                     Debug.LogWarningFormat(message as Object, format, paras);
                     break;
-                case LogType.Default:
+                case LogType.Log:
                     Debug.LogFormat(message as Object, format, paras);
                     break;
             }
