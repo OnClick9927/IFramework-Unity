@@ -1,0 +1,15 @@
+/*********************************************************************************
+ *Author:         #FAuthor#
+ *Version:        #FVERSION#
+ *UnityVersion:   #FUNITYVERSION#
+ *Date:           #FDATE#
+ *Description:    #FDescription#
+ *History:        2018.11--
+*********************************************************************************/
+namespace #FNameSpace#
+{
+	public class #FSCRIPTNAME#
+	{
+	
+	}
+}
