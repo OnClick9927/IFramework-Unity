@@ -16,7 +16,7 @@ namespace IFramework
 {
     class RepositionLog
 	{
-        public static string StoName { get { return LogInit.StoName; } }
+        public static string StoName { get { return "LogSetting"; } }
         private static LogSetting info;
         private static LogSetting Info {
             get {

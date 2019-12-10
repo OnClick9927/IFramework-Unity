@@ -11,7 +11,7 @@ using UnityEngine;
 namespace IFramework
 {
     [OnFrameworkInitClass]
-    public static class LogInit
+     static class LogInit
     {
         public const string StoName = "LogSetting";
         static LogInit()
