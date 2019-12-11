@@ -12,19 +12,14 @@ using IFramework.Utility;
 
 namespace IFramework_Demo
 {
-    class TestLife : FrameworkLifeObject
-    {
-        protected override void OnFrameworkDispose()
-        {
-            base.OnFrameworkDispose();
-            Log.L("OnFrameworkDispose");
 
-        }
-        protected override void OnFrameworkInit()
+    public class ExampleFrameworkCoroutine : UnityEngine.MonoBehaviour
+    {
+        void Start()
         {
-            base.OnFrameworkInit();
-            Log.L("OnFrameworkInit");
+            Framework.Reinit();
             Coroutine.StartCoroutine(wait2());
+
         }
         IEnumerator wait()
         {
@@ -49,24 +44,6 @@ namespace IFramework_Demo
             yield return wait();
             Log.L("wait1 end");
         }
-        protected override void OnDispose()
-        {
-            base.OnDispose();
-        }
-        protected override void OnUpdate()
-        {
-        }
-    }
-
-    public class ExampleFrameworkLifeTime : UnityEngine.MonoBehaviour
-    {
-        void Start()
-        {
-            TestLife tt = new TestLife();
-            Framework.Reinit();
-
-        }
-
         // Update is called once per frame
         void Update()
         {
