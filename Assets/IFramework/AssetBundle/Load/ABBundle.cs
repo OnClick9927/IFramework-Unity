@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Object = UnityEngine.Object;
+using IFramework.Utility;
+
 namespace IFramework.AB
 {
     public class ABBundle:Reference

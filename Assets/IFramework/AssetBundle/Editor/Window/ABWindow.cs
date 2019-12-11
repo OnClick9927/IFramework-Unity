@@ -12,10 +12,9 @@ using UnityEditor;
 using UnityEngine;
 namespace IFramework.AB
 {
-    [EditorWindowCache("AssetBundle", "IFramework/AssetBundle Window")]
+    [EditorWindowCache("AssetBundle")]
     internal partial class ABWindow : EditorWindow
     {
-        [MenuItem("IFramework/AssetBundle Window")]
         public static void ShowWindow()
         {
             GetWindow<ABWindow>(false, "AssetBundle", true).minSize=new Vector2(200 + 700, 500);

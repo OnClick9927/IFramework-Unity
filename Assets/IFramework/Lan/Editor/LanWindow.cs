@@ -18,14 +18,10 @@ using IFramework.GUITool;
 
 namespace IFramework
 {
-    [EditorWindowCache("Language", "IFramework/LanWindow")]
+    [EditorWindowCache("IFramework.Language")]
     public partial class LanWindow : EditorWindow
     {
-        [MenuItem("IFramework/LanWindow")]
-        static void ShowWindow()
-        {
-            GetWindow<LanWindow>();
-        }
+
         private class Styles
         {
             public static GUIStyle Title = "IN BigTitle";

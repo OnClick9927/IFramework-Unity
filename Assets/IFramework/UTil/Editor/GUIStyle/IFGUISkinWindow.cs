@@ -13,14 +13,10 @@ using UnityEditor;
 using UnityEngine;
 namespace IFramework
 {
-    [EditorWindowCache("GUIStyle", "IFramework/Tool/IFGUISkinWindow")]
+    [EditorWindowCache("GUIStyle")]
     public partial class IFGUISkinWindow : EditorWindow
     {
-        [MenuItem("IFramework/Tool/IFGUISkinWindow")]
-        public static void SHowWindow()
-        {
-            GetWindow<IFGUISkinWindow>();
-        }
+
 
     }
 

@@ -14,10 +14,9 @@ using UnityEngine;
 
 namespace IFramework
 {
-    [EditorWindowCache("EditorIcon", "IFramework/Tool/IFEditorIconWindow")]
+    [EditorWindowCache("EditorIcon")]
     internal partial class IFEditorIconWindow : EditorWindow
     {
-        [MenuItem("IFramework/Tool/IFEditorIconWindow")]
         public static void ShowWindow()
         {
             GetWindow<IFEditorIconWindow>();

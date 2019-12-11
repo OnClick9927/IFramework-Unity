@@ -12,16 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 677964c2dacd2814f8af8c85b9fccd6d, type: 3}
   m_Name: LanGroup
   m_EditorClassIdentifier: 
-  lanPairs:
-  - Lan: 23
-    key: d
-    Value: dsa
-  - Lan: 0
-    key: d
-    Value: dasdas
-  - Lan: 0
-    key: a
-    Value: DSADdsadas
-  Keys:
-  - d
-  - a
+  lanPairs: []
+  Keys: []

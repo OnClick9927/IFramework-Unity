@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b429f9e961bdc74ea5fa848fe91e6b0, type: 3}
+  m_Name: LogSetting
+  m_EditorClassIdentifier: 
+  Infos:
+  - Name: LogInit.cs
+    Path: Assets/IFramework/0.1Core/Log/LogInit.cs
+    Text: {fileID: 11500000, guid: bc0f3793220f4c84486ae7ca880deeb4, type: 3}
+  - Name: FrameworkEditorCheck.cs
+    Path: Assets/IFramework/0.1Core/Config/Editor/FrameworkEditorCheck.cs
+    Text: {fileID: 11500000, guid: ce208a289ca1cd640b3b1897e42dee1b, type: 3}
+  LogLevel: 0
+  WarnningLevel: 0
+  ErrLevel: 0
+  Enable: 1
+  LogEnable: 1
+  WarnningEnable: 1
+  ErrEnable: 1

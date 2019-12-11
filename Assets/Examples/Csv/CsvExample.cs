@@ -7,13 +7,13 @@
  *History:        2018.11--
 *********************************************************************************/
 using IFramework;
-using IFramework.Serialization;
+using IFramework.Serialization.Csv;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace IFramework_Demo
 {
-	public class CsvExample:MonoBehaviour
+    public class CsvExample:MonoBehaviour
 	{
         class Man
         {
