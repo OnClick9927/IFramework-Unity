@@ -8,15 +8,13 @@
 *********************************************************************************/
 namespace IFramework
 {
-	public class ObserveExtension_Mono
+	public static class ObserveExtension_Mono
 	{
-        public static void DelayPublish<T>(T t, int code, IEventArgs args, params object[] param) where T : IPublisher
+        public static T DelayPublish<T>(this T t, int code, IEventArgs args, params object[] param) where T : IPublisher
         {
             Loom.RunOnMainThread(() => ObserveManager.Publish<T>(t, code, args, param));
+            return t;
         }
-        public static void DelayPublish<T>(int code, IEventArgs args, params object[] param) where T : IPublisher
-        {
-            Loom.RunOnMainThread(() => ObserveManager.Publish<T>(code, args, param));
-        }
+
     }
 }
