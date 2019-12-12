@@ -15,15 +15,18 @@ namespace IFramework.AB
 	{
         void Start()
         {
+            // 初始化，判断是否初始化成功。
             if (!ABAssets.Init())
             {
                 Debug.LogError("Assets.Initialize falied.");
             }
+            // 协程加载资源
             StartCoroutine(Load());
         }
         [SerializeField] string assetPath = "Assets/Examples/ABExample/Logo.prefab";
         IEnumerator Load()
         {
+            // 异步加载 用于加载 内存较大资源。
             var asset = ABAssets.LoadAsync<GameObject>(assetPath);
 
             if (asset != null)
@@ -37,6 +40,7 @@ namespace IFramework.AB
                 if (prefab != null)
                 {
                     var go = Instantiate(prefab) as GameObject;
+                    //登记 加载的资源 ，方便在 调用销毁方法时释放。
                     ReleaseAssetOnDestroy.Register(go, asset);
                     GameObject.Destroy(go, 10);
                 }
@@ -44,6 +48,7 @@ namespace IFramework.AB
 
             yield return new WaitForSeconds(11);
 
+            //同步加载资源
             asset = ABAssets.Load<GameObject>(assetPath);
             if (asset != null)
             {
