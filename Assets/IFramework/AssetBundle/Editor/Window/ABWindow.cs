@@ -31,6 +31,7 @@ namespace IFramework.AB
         private Rect viewRect;
 
         private ABWindowTop Top;
+        //待解决
         internal ABBuildWindow BuildWindow;
         internal ABCollectWindow CollectWindow;
         private string CollectInfoPath;
