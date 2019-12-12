@@ -15,13 +15,15 @@ namespace IFramework_Demo
 {
     public class CsvExample:MonoBehaviour
 	{
+        // 用于建表的 类。三个字段：表达 一个表的 字段：也就是 列。
         class Man
         {
+            
             [CsvIgnore]
-            public int age;
-            [CsvColumnName("性别")]
+            public int age;             //被忽视的列
+            [CsvColumnName("性别")]         // 为列取别名
             public string sex;
-            public string Name;
+            public string Name;             //正常的列名
         }
         string path;
         private void Awake()
