@@ -6,7 +6,6 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
-using IFramework.Pool;
 using System;
 using System.Collections.Generic;
 namespace IFramework
