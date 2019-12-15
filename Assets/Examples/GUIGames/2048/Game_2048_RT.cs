@@ -12,18 +12,18 @@ using System.Xml;
 using UnityEngine;
 namespace IFramework_Demo.GUIGames
 {
+    [RequireComponent(typeof(GUICanvasComponet))]
 	public class Game_2048_RT:MonoBehaviour
 	{
-        GUICanvas guiCanvas;
+        GUICanvasComponet comp { get { return GetComponent<GUICanvasComponet>(); } }
+        GUICanvas guiCanvas { get { return comp.guiCanvas; } }
         private int[,] arr = new int[4, 4];
         private int Score = 0;
+
         private void OnEnable()
         {
-            XmlDocument doc = new XmlDocument();
-           TextAsset txt= Resources.Load<TextAsset>("Game_2048");
-            doc.LoadXml(txt.text);
-            guiCanvas = new GUICanvas();
-            guiCanvas.DeSerialize(doc.DocumentElement);
+            TextAsset txt = Resources.Load<TextAsset>("Game_2048");
+            comp.LoadCanvas(txt);
             guiCanvas.Find<Button>("ImageArea/up/up").OnClick = UpClick;
             guiCanvas.Find<Button>("ImageArea/down/left").OnClick = LeftClick;
             guiCanvas.Find<Button>("ImageArea/down/down").OnClick = DownClick;
@@ -31,16 +31,7 @@ namespace IFramework_Demo.GUIGames
             guiCanvas.Find<Button>("btn/reset").OnClick = Reset;
             Reset();
         }
-        private void OnGUI()
-        {
-            //guiCanvas.CanvasRect = new Rect(Vector2.zero, position.size);
-            FreshView();
-            guiCanvas.OnGUI();
 
-            float val = (float)Time.realtimeSinceStartup % 1f;
-            guiCanvas.Find<Horizontal>("Horizontal").color = new Color(val, val, val, val);
-            guiCanvas.Find<Button>("btn/reset").rotateAngle = ((float)Time.realtimeSinceStartup * 20) % 360;
-        }
         private void Reset()
         {
             for (int i = 0; i < size; i++)
@@ -206,5 +197,14 @@ namespace IFramework_Demo.GUIGames
                 }
             }
         }
+        private void Update()
+        {
+            FreshView();
+
+            float val = (float)Time.realtimeSinceStartup % 1f;
+            guiCanvas.Find<Horizontal>("Horizontal").color = new Color(val, val, val, val);
+            guiCanvas.Find<Button>("btn/reset").rotateAngle = ((float)Time.realtimeSinceStartup * 20) % 360;
+        }
+
     }
 }

@@ -15,7 +15,8 @@ using UnityEngine;
 using IFramework;
 namespace IFramework_Demo.GUIGames
 {
-	public class Game_HitMice_RT:MonoBehaviour
+    [RequireComponent(typeof(GUICanvasComponet))]
+    public class Game_HitMice_RT:MonoBehaviour
 	{
         private class BtnMice
         {
@@ -81,15 +82,14 @@ namespace IFramework_Demo.GUIGames
             }
         }
         List<BtnMice> btns = new List<BtnMice>();
-        GUICanvas guiCanvas;
+        GUICanvasComponet comp { get { return GetComponent<GUICanvasComponet>(); } }
+        GUICanvas guiCanvas { get { return comp.guiCanvas; } }
         private void Start()
         {
             btns.Clear();
-            XmlDocument doc = new XmlDocument();
             TextAsset txt = Resources.Load<TextAsset>("Game_HitMice");
-            doc.LoadXml(txt.text);
-            guiCanvas = new GUICanvas();
-            guiCanvas.DeSerialize(doc.DocumentElement);
+            comp.LoadCanvas(txt);
+            guiCanvas.canvasRect = new Rect(Vector2.one * 0, new Vector2(Screen.width, Screen.height));
 
             Texture2D hited = guiCanvas.Find<ImageLabel>("hited").image;
             Texture2D Show = guiCanvas.Find<ImageLabel>("chutou").image;
@@ -209,6 +209,8 @@ namespace IFramework_Demo.GUIGames
         private void Update()
         {
             Trick();
+            float val = (float)Time.realtimeSinceStartup % 1f;
+            guiCanvas.Find<Horizontal>("BG/top").color = new Color(val, val, val, val);
         }
         private void Trick()
         {
@@ -231,15 +233,6 @@ namespace IFramework_Demo.GUIGames
             }
 
         }
-        private void OnGUI()
-        {
-            //float val = (float)Time.realtimeSinceStartup % 1f;
-            //guiCanvas.Find<Horizontal>("BG/top").color = new Color(val, val, val, val);
-            guiCanvas.canvasRect = new Rect(Vector2.one*0, new Vector2(Screen.width, Screen.height));
-            //this.maxSize = ;
 
-            guiCanvas.OnGUI();
-
-        }
     }
 }
