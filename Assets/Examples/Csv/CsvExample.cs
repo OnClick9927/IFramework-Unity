@@ -5,6 +5,7 @@
  *Date:           2019-09-08
  *Description:    IFramework
  *History:        2018.11--
+ *Mender：         Qkuang
 *********************************************************************************/
 using IFramework;
 using IFramework.Serialization.Csv;

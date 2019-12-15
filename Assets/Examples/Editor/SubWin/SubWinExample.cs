@@ -18,10 +18,10 @@ namespace IFramework_Demo
     public partial class SubWinExample: EditorWindow,ILayoutGUIDrawer
     {
         [SerializeField]
-        private string tmpLayout;
-        private const float ToolBarHeight = 17;
-        private Rect localPosition { get { return new Rect(Vector2.zero, position.size); } }
-        private SubWinTree WinTree;
+        private string tmpLayout;           //暂时布局，貌似以字符方式存储。
+        private const float ToolBarHeight = 17;         //常量 工具条的高度
+        private Rect localPosition { get { return new Rect(Vector2.zero, position.size); } }    // 根据当前窗口的大小，和原点构建一 Rect
+        private SubWinTree WinTree;                     
         private ToolBarTree ToolBarTree;
         private string XmlPath= "Assets/Examples/Editor/SubWin/Trees.xml";
     }

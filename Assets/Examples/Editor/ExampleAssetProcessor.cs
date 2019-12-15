@@ -10,6 +10,8 @@ using UnityEditor;
 
 namespace IFramework
 {
+    
+    // 继承后，会有四个回调函数：创建资源写入磁盘时、删除资源、保存资源、移动资源时
 	public class ExampleAssetProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool logEnable;
