@@ -39,7 +39,10 @@ namespace IFramework_Demo
                 new CsvRow(),
                 new CsvExplainer());
             var cc = r.Get<Man>();
-            Log.E(cc.Count);
+            foreach (var c in cc)
+            {
+                Log.L(string.Format("Age {0}   Sex  {1}  Name   {2}", c.age, c.sex, c.Name));
+            }
             r.Dispose();
         }
         void Write() {

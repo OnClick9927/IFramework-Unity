@@ -26,7 +26,7 @@ namespace IFramework_Demo
                 Log.L("13213213");
             }
         }
-        [Inject("123")]
+        [Inject]
         static INNN nnn;
         private void Awake()
         {

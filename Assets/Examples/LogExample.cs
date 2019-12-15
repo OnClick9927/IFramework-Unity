@@ -11,11 +11,19 @@ using UnityEngine;
 
 namespace IFramework_Demo
 {
-    internal class LogExample : MonoBehaviour
+    internal class LogExample : MonoBehaviour,ILog
     {
-        [ContextMenu("Log")]
+        [ContextMenu("Log ")]
         public void Say()
         {
+            string world = "Hello  World";
+            //Log.L(world);
+            //world.Log();
+            //this.Log(world);
+            //Log.W(world);
+            //Log.E(world);
+
+
             Log.L("sa         with IFramework");
             Debug.Log("515    with unity");
 

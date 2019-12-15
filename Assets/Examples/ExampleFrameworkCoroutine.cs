@@ -24,8 +24,8 @@ namespace IFramework_Demo
         }
         IEnumerator wait()
         {
-            Log.L(Framework.DeltaTime);
-            Log.L(Framework.TimeSinceInit);
+            //Log.L(Framework.DeltaTime);
+            //Log.L(Framework.TimeSinceInit);
             yield return new WaitForSeconds(2);
 
         }
