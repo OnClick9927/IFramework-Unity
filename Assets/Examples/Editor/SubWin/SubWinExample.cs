@@ -5,6 +5,7 @@
  *Date:           2019-12-07
  *Description:    Description的
  *History:        2019-12-07--
+ *Appender：        算了，放弃了。此类用于 扩展编辑器了。
 *********************************************************************************/
 using System.Xml;
 using IFramework;
@@ -27,6 +28,7 @@ namespace IFramework_Demo
     }
     public partial class SubWinExample 
     {
+        // 存储布局xml ，保证指定路径有xml文件，并拥有 “Trees”树干。
         private void CheckLayoutXML()
         {
             if (!System.IO.File.Exists(XmlPath))
@@ -41,6 +43,7 @@ namespace IFramework_Demo
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(XmlPath);
+                // 返回匹配的第一个 节点。并转化为“元素”   
                 XmlElement root = doc.SelectSingleNode("Trees") as XmlElement;
                 if (root == null)
                 {
@@ -60,9 +63,11 @@ namespace IFramework_Demo
         private void Init()
         {
             WinTree = new SubWinTree();
-            WinTree.repaintEve += Repaint;
+            WinTree.repaintEve += Repaint;          // 注册 子窗口-树 的重绘事件。 += editorWindos 的重绘函数。 相当于做了个封装。
+                //注册 窗口 光标事件。
             WinTree.drawCursorEve += (rect, sp) =>
             {
+                // 子窗口-树 垂直分布时：
                 if (sp == SplitType.Vertical)
                     EditorGUIUtility.AddCursorRect(rect, MouseCursor.ResizeHorizontal);
                 else
