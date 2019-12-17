@@ -13,9 +13,8 @@ namespace IFramework
 {
     [MonoSingletonPath("IFramework/UIManager")]
     [HelpURL("https://gitee.com/OnClick9927/Learning___IFramework")]
-    public class UIManager : MonoBehaviour, ISingleton
+    public class UIManager : MonoSingletonPropertyClass<UIManager>
     {
-        private static UIManager Instance { get { return MonoSingletonProperty<UIManager>.Instance; } }
         public delegate UIPanel LoadDel(Type type, string path, string name, UIPanelLayer layer, UIEventArgs arg);
         private List<LoadDel> UILoader;
         public static int LoaderCount { get { return Instance.UILoader.Count; } }
@@ -217,7 +216,7 @@ namespace IFramework
             }
             ui.transform.LocalIdentity();
         }
-        void ISingleton.OnSingletonInit()
+        protected override void OnSingletonInit()
         {
             UIRoot = Instantiate(Resources.Load<GameObject>("UIRoot")).transform;
             UIRoot.name = "UIRoot";
@@ -241,7 +240,7 @@ namespace IFramework
             UILoader = new List<LoadDel>();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             panelDic.Clear();
             UIStack.Clear();

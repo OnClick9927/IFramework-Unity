@@ -20,9 +20,9 @@ namespace IFramework
     }
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public class XLuaLoaderAttribute : Attribute { }
-    public class XLuaEnvironment :MonoBehaviour,ISingleton
+    public class XLuaEnvironment :MonoSingletonPropertyClass<XLuaEnvironment>
 	{
-        void ISingleton.OnSingletonInit()
+       protected override void OnSingletonInit()
         {
             Disposed = false;
             LuaEnv = new LuaEnv();
@@ -35,7 +35,7 @@ namespace IFramework
             });
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (OnDispose != null) OnDispose();
             tables.ForEach((table) =>
@@ -56,7 +56,6 @@ namespace IFramework
             Dispose();
         }
         private LuaEnv LuaEnv;
-        private static XLuaEnvironment  Instance { get { return MonoSingletonProperty<XLuaEnvironment >.Instance; } }
         private List<LuaTable> tables;
         public static LuaTable Global { get { return Instance.LuaEnv.Global; } }
         private static float LastGCTime;

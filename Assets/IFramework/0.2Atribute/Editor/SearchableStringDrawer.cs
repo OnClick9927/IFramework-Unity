@@ -37,7 +37,7 @@ namespace IFramework
             SearchableStringAttribute sr = this.attribute as SearchableStringAttribute;
             object parent = GetParentObjectOfProperty(property.propertyPath, property.serializedObject.targetObject);
 
-           string[] array = parent.ReflectField<string[]>(sr.searchArray);
+            string[] array = parent.GetType().GetField(sr.searchArray).GetValue(parent) as string[];
 
             if (array == null || array.Length==0)
             {
