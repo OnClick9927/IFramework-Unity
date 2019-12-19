@@ -17,6 +17,7 @@ namespace IFramework.AB
 {
     internal class ABBuildCollect
 	{
+        public static event Func<List<ABBuildCollecter>> onLoadBuilders;
         private static Dictionary<string, List<string>> dps = new Dictionary<string, List<string>>();
         private static List<ABBuildCollecter> collecters = new List<ABBuildCollecter>();
 
@@ -46,7 +47,7 @@ namespace IFramework.AB
         }
         private static void LoadBuilders()
         {
-            collecters.AddRange(ABWindow.Instance.LoadCollecter());
+            collecters.AddRange(onLoadBuilders());
         }
         private static void CollectDependences()
         {
