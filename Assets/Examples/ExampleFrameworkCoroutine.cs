@@ -8,7 +8,6 @@
 *********************************************************************************/
 using System.Collections;
 using IFramework;
-using IFramework.Utility;
 
 namespace IFramework_Demo
 {
@@ -17,15 +16,17 @@ namespace IFramework_Demo
     {
         void Start()
         {
-            Framework.Reinit();
-            Coroutine.StartCoroutine(wait2());
+            Framework.Init();
+            CoroutineMoudle mou = new CoroutineMoudle();
+            mou.StartCoroutine(wait2());
+            Framework.update += mou.Update;
 
         }
         IEnumerator wait()
         {
-            Log.L("wait Go");
+            //Log.L(Framework.DeltaTime);
+            //Log.L(Framework.TimeSinceInit);
             yield return new WaitForSeconds(2);
-            Log.L("wait end");
 
         }
         IEnumerator wait1()
@@ -40,13 +41,15 @@ namespace IFramework_Demo
             Log.L("wait2 Go");
             yield return wait1();
             Log.L("wait2 end");
-            Log.L("wait1 Go");
+            Log.L("wait2 Go");
             yield return wait();
-            Log.L("wait1 end");
+            Log.L("wait2 end");
         }
         // Update is called once per frame
         void Update()
         {
+
+
             Framework.Update();
         }
         private void OnDestroy()

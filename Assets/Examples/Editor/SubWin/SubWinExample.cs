@@ -158,7 +158,7 @@ namespace IFramework_Demo
 
                 this.TextField(ref Name)
                     .Button(()=> {
-                        if (!Name.IsNullOrEmpty())
+                        if (!string.IsNullOrEmpty(Name))
                         {
                             element.AppendChild(Tree.Serialize(element.OwnerDocument, Name));
                             element.OwnerDocument.Save(path);

@@ -1,20 +1,23 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
  *Version:        0.0.1
- *UnityVersion:   2018.3.1f1
- *Date:           2019-03-27
+ *UnityVersion:   2018.3.11f1
+ *Date:           2019-12-16
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
-namespace IFramework
+using IFramework;
+namespace IFramework_Demo
 {
-    public class SingleLinkedNode<T>
-    {
-        public T data;
-        public SingleLinkedNode<T> next;
-        public SingleLinkedNode(T data)
+	public class SingletonExample
+	{
+        public class CS_single : Singleton<CS_single>
         {
-            this.data = data;
+
+        }
+        public class Mono_single : MonoSingleton<Mono_single>
+        {
+
         }
     }
 }
