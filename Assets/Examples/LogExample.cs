@@ -22,8 +22,6 @@ namespace IFramework_Demo
             //this.Log(world);
             //Log.W(world);
             //Log.E(world);
-
-
             Log.L("sa         with IFramework");
             Debug.Log("515    with unity");
 
