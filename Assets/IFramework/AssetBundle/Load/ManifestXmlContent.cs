@@ -11,12 +11,12 @@ using System;
 namespace IFramework.AB
 {
     [Serializable]
-    public class ABManifestContent
+    public class ManifestXmlContent
     {
         public string assetBundleName;
         public string[] assetNames;
-        public ABManifestContent() { }
-        public ABManifestContent(string assetBundleName, string[] assetNames)
+        public ManifestXmlContent() { }
+        public ManifestXmlContent(string assetBundleName, string[] assetNames)
         {
             this.assetNames = assetNames;
             this.assetBundleName = assetBundleName;

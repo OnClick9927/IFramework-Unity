@@ -16,11 +16,10 @@ namespace IFramework.AB
 {
 	public class ABTool
 	{
-        public static string ManifestPath = "Assets/Manifest.Xml";
+        public const string ManifestPath = "Assets/Manifest.Xml";
         public const string AssetBundlesOutputDirName = "AssetBundles";
-        //public static string CollectPath = "Assets/Form.txt";
-
-        public static string AssetBundleOutPutPath = AssetBundlesOutputDirName.CombinePath(ABTool.CurrentPlatformName);
+        public const string MainAssetBundleBuildName = "help";
+        public static string AssetBundleOutPutPath = AssetBundlesOutputDirName.CombinePath(CurrentPlatformName);
         public static string CurrentPlatformName
         {
             get
@@ -60,7 +59,6 @@ namespace IFramework.AB
                 return "OSX";
             return null;
         }
-        public static string AssetBundleManifestPath = AssetBundlesOutputDirName.CombinePath(new string[] { ABTool.CurrentPlatformName, ABTool.CurrentPlatformName + ".manifest" });
         private static int activeBundleMode = -1;
         public static bool ActiveBundleMode
         {

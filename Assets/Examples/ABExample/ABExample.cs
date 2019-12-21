@@ -8,18 +8,23 @@
 *********************************************************************************/
 using System.Collections;
 using UnityEngine;
-
-namespace IFramework.AB
+using IFramework.AB;
+namespace IFramework_Demo
 {
 	public class ABExample:MonoBehaviour
 	{
         void Start()
         {
-            if (!ABAssets.Init())
+            //if (ABAssets.Init())
+            //{
+            //    StartCoroutine(Load());
+
+            //}
+            ABAssets.InitAsync(() =>
             {
-                Debug.LogError("Assets.Initialize falied.");
-            }
-            StartCoroutine(Load());
+                StartCoroutine(Load());
+            });
+
         }
         [SerializeField] string assetPath = "Assets/Examples/ABExample/Logo.prefab";
         IEnumerator Load()
@@ -33,7 +38,7 @@ namespace IFramework.AB
                     yield return 0;
                 }
 
-                var prefab = asset.Asset;
+                var prefab = asset.asset;
                 if (prefab != null)
                 {
                     var go = Instantiate(prefab) as GameObject;
@@ -47,7 +52,7 @@ namespace IFramework.AB
             asset = ABAssets.Load<GameObject>(assetPath);
             if (asset != null)
             {
-                var prefab = asset.Asset;
+                var prefab = asset.asset;
                 if (prefab != null)
                 {
                     var go = Instantiate(prefab) as GameObject;
