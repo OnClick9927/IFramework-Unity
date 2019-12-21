@@ -15,31 +15,32 @@ namespace IFramework_Demo
     {
         void Start()
         {
+
             int[,] arr = new int[10, 10]
             {
+              { 1,1,1,1,1,1,0,0,1,1},
+              { 1,1,1,1,1,1,0,0,1,1},
+              { 1,1,1,1,1,1,0,0,1,1},
+              { 1,1,1,1,1,1,0,0,1,1},
+              { 1,1,1,1,1,1,0,0,1,1},
+              { 0,0,0,0,0,1,0,0,1,1},
+              { 0,0,0,0,0,1,0,0,1,1},
+              { 1,1,1,1,1,1,1,1,1,1},
               { 1,1,1,1,1,0,1,1,1,1},
-              { 1,1,1,1,1,0,1,1,1,1},
-              { 1,1,1,1,1,1,1,1,1,1},
-              { 1,1,1,1,1,1,1,1,1,1},
-              { 1,1,1,1,1,1,1,1,1,1},
-              { 1,1,1,1,1,1,1,1,1,1},
-              { 1,1,1,1,1,1,1,1,1,1},
-              { 1,1,1,1,1,1,1,1,1,1},
-              { 1,1,1,1,1,1,1,1,1,1},
               { 1,1,1,1,1,0,1,1,1,1},
             };
             AStarMap2X map = new AStarMap2X();
-            map.ReadMap((val) =>
+            map.ReadMap((val) => 
             {
                 if (val == 1)
                     return AStarNodeType.Walkable;
                 return AStarNodeType.Wall;
-            },arr);
+            },arr,false);
             AStarSeacher<AStarNode2X, AStarMap2X> sear = new AStarSeacher<AStarNode2X, AStarMap2X>();
             sear.LoadMap(map);
             try
             {
-                AStarNode2X[] result = sear.Search(map[0, 0], map[9, 9]);
+                AStarNode2X[] result = sear.Search(map[0, 0], map[3, 8]);
                 foreach (var item in result)
                 {
                     Log.L(item.X + " " + item.Y);
