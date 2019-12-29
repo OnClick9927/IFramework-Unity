@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-16"?>
+<ABEditorInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <DirCollect>
+    <DirCollectItems>
+      <ABDirCollectItem>
+        <CollectType>DirName</CollectType>
+        <SearchPath>Assets/Examples/ABExample</SearchPath>
+        <subAsset>
+          <isOpen>true</isOpen>
+          <path>Assets/Examples/ABExample</path>
+          <name>ABExample</name>
+          <fileType>Folder</fileType>
+          <SubFiles>
+            <ABSubFile>
+              <isOpen>false</isOpen>
+              <path>Assets/Examples/ABExample/ABExample.cs</path>
+              <name>ABExample</name>
+              <fileType>InValidFile</fileType>
+              <SubFiles />
+              <Selected>false</Selected>
+            </ABSubFile>
+            <ABSubFile>
+              <isOpen>false</isOpen>
+              <path>Assets/Examples/ABExample/Logo.prefab</path>
+              <name>Logo</name>
+              <fileType>ValidFile</fileType>
+              <SubFiles />
+              <Selected>true</Selected>
+            </ABSubFile>
+            <ABSubFile>
+              <isOpen>false</isOpen>
+              <path>Assets/Examples/ABExample/tx.png</path>
+              <name>tx</name>
+              <fileType>ValidFile</fileType>
+              <SubFiles />
+              <Selected>true</Selected>
+            </ABSubFile>
+            <ABSubFile>
+              <isOpen>false</isOpen>
+              <path>Assets/Examples/ABExample/UnityLogo.png</path>
+              <name>UnityLogo</name>
+              <fileType>ValidFile</fileType>
+              <SubFiles />
+              <Selected>true</Selected>
+            </ABSubFile>
+          </SubFiles>
+          <Selected>true</Selected>
+        </subAsset>
+      </ABDirCollectItem>
+    </DirCollectItems>
+  </DirCollect>
+  <ABBuiidInfo>
+    <Dependences>
+      <ABDeprndence>
+        <AssetPath>Assets/Manifest.Xml</AssetPath>
+        <BundleName>.</BundleName>
+        <Size>0 B</Size>
+        <FileLength>0</FileLength>
+        <AssetBundles>
+          <string>help</string>
+        </AssetBundles>
+      </ABDeprndence>
+      <ABDeprndence>
+        <AssetPath>Assets/Examples/ABExample/UnityLogo.png</AssetPath>
+        <BundleName>logo.</BundleName>
+        <Size>69.63 KB</Size>
+        <FileLength>71306</FileLength>
+        <AssetBundles>
+          <string>shared/assets/examples/abexample_1</string>
+        </AssetBundles>
+      </ABDeprndence>
+      <ABDeprndence>
+        <AssetPath>Assets/Examples/ABExample/Logo.prefab</AssetPath>
+        <BundleName>logo.</BundleName>
+        <Size>2.24 KB</Size>
+        <FileLength>2290</FileLength>
+        <AssetBundles>
+          <string>assets/examples/abexample_2</string>
+        </AssetBundles>
+      </ABDeprndence>
+      <ABDeprndence>
+        <AssetPath>Assets/Examples/ABExample/tx.png</AssetPath>
+        <BundleName>.</BundleName>
+        <Size>695 B</Size>
+        <FileLength>695</FileLength>
+        <AssetBundles>
+          <string>assets/examples/abexample_2</string>
+        </AssetBundles>
+      </ABDeprndence>
+    </Dependences>
+    <AssetbundleBuilds>
+      <AssetBundleBuild_Class>
+        <assetBundleName>assets/examples/abexample_2</assetBundleName>
+        <assetNames>
+          <string>Assets/Examples/ABExample/Logo.prefab</string>
+          <string>Assets/Examples/ABExample/tx.png</string>
+        </assetNames>
+        <addressableNames />
+        <CrossRefence>false</CrossRefence>
+        <FileLength>2985</FileLength>
+        <Size>2.92 KB</Size>
+      </AssetBundleBuild_Class>
+      <AssetBundleBuild_Class>
+        <assetBundleName>shared/assets/examples/abexample_1</assetBundleName>
+        <assetNames>
+          <string>Assets/Examples/ABExample/UnityLogo.png</string>
+        </assetNames>
+        <addressableNames />
+        <CrossRefence>false</CrossRefence>
+        <FileLength>71306</FileLength>
+        <Size>69.63 KB</Size>
+      </AssetBundleBuild_Class>
+      <AssetBundleBuild_Class>
+        <assetBundleName>help</assetBundleName>
+        <assetNames>
+          <string>Assets/Manifest.Xml</string>
+        </assetNames>
+        <addressableNames />
+        <CrossRefence>false</CrossRefence>
+        <FileLength>0</FileLength>
+        <Size>0 B</Size>
+      </AssetBundleBuild_Class>
+    </AssetbundleBuilds>
+  </ABBuiidInfo>
+</ABEditorInfo>

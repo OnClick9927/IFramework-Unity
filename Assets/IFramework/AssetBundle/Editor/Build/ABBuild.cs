@@ -7,29 +7,29 @@
  *History:        2018.11--
 *********************************************************************************/
 using IFramework.Serialization;
-using System.Collections.Generic;
+using System.Collections.Generic; 
 using System.IO;
 using UnityEditor;
 
 namespace IFramework.AB
 {
-    internal class ABBuild
-	{
-        
+    class ABBuild
+    {
+
         public static void BuildManifest(string path, List<AssetBundleBuild> builds)
         {
             if (File.Exists(path)) File.Delete(path);
-            List<ABManifestContent> contents = new List<ABManifestContent>();
+            List<ManifestXmlContent> contents = new List<ManifestXmlContent>();
             foreach (var item in builds)
             {
-                contents.Add(new ABManifestContent(item.assetBundleName, item.assetNames));
+                contents.Add(new ManifestXmlContent(item.assetBundleName, item.assetNames));
             }
-            string txt = Xml.ToXmlString<List<ABManifestContent>>(contents);
+            string txt = Xml.ToXmlString<List<ManifestXmlContent>>(contents);
             File.WriteAllText(path, txt);
             AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
             AssetDatabase.Refresh();
         }
-       
+
         public static void BuildAssetBundles(List<AssetBundleBuild> builds, BuildTarget buildTarget)
         {
             if (!Directory.Exists(ABTool.AssetBundleOutPutPath))
@@ -89,7 +89,7 @@ namespace IFramework.AB
                 return "/iOS";
             }
             return null;
-          
+
 
         }
 
@@ -97,7 +97,7 @@ namespace IFramework.AB
         {
             if (!Directory.Exists(outputPath))
                 Directory.CreateDirectory(outputPath);
-            var destination = Path.Combine(outputPath,ABTool.AssetBundlesOutputDirName);
+            var destination = Path.Combine(outputPath, ABTool.AssetBundlesOutputDirName);
             if (Directory.Exists(destination))
                 FileUtil.DeleteFileOrDirectory(outputPath);
 
@@ -107,7 +107,7 @@ namespace IFramework.AB
         public static void DeleteBundleFile()
         {
             Log.L(ABTool.AssetBundleOutPutPath);
-            Directory.Delete(ABTool.AssetBundleOutPutPath,true);
+            Directory.Delete(ABTool.AssetBundleOutPutPath, true);
         }
     }
 }

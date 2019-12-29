@@ -35,7 +35,7 @@ namespace IFramework
         {
             var list = new ReorderableList(property.serializedObject, property, draggable, displayHeader, displayAddButton, displayRemoveButton);
 
-            list.drawElementCallback = DrawElement(list, Calc(list, cols), space);
+            list.drawElementCallback = DrawElement(list, cols, space);
             list.drawHeaderCallback = DrawHeader(list, Calc(list, cols), space);
 
             return list;
@@ -45,7 +45,7 @@ namespace IFramework
             return (rect, index, isActive, isFocused) =>
             {
                 var property = list.serializedProperty;
-                var columns = cols;
+                var columns = Calc(list,cols);
                 var layouts = CalcWidth(columns, rect, space);
                 rect.height = EditorGUIUtility.singleLineHeight;
                 for (var j = 0; j < columns.Count; j++)
@@ -56,8 +56,12 @@ namespace IFramework
                     //Log.L(c.Width + "  " + layouts[j]);
 
                     var p = property.GetArrayElementAtIndex(index).FindPropertyRelative(c.PropertyName);
-                    EditorGUI.PropertyField(rect, p, GUIContent.none);
-                    rect.x += rect.width + space;
+                    //if (p!=null)
+                    {
+                        EditorGUI.PropertyField(rect, p, GUIContent.none);
+                        rect.x += rect.width + space;
+                    }
+
                 }
             };
         }

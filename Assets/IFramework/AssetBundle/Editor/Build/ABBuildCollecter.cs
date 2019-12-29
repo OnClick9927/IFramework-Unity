@@ -12,7 +12,7 @@ using UnityEditor;
 
 namespace IFramework.AB
 {
-    internal abstract class ABBuildCollecter
+    abstract class ABBuildCollecter
     {
         public string searchPath;
         public string bundleName;
@@ -25,7 +25,8 @@ namespace IFramework.AB
         public abstract string GetAssetBundleName(string assetPath);
         public List<string> MeetFiles = new List<string>();
     }
-    internal class CollectByABName : ABBuildCollecter
+
+    class CollectByABName : ABBuildCollecter
     {
         public CollectByABName() { }
         public CollectByABName(string path,string assetBundleName) : base(path)
@@ -52,8 +53,7 @@ namespace IFramework.AB
             ABBuildCollect.collectedAssets.AddRange(files);
         }
     }
-
-    internal class CollectByScenes : ABBuildCollecter
+    class CollectByScenes : ABBuildCollecter
     {
         public CollectByScenes() { }
         public CollectByScenes(string path) : base(path) { }
@@ -77,7 +77,7 @@ namespace IFramework.AB
             }
         }
     }
-    internal class CollectByDirName : ABBuildCollecter
+    class CollectByDirName : ABBuildCollecter
     {
         public CollectByDirName() { }
         public CollectByDirName(string path) : base(path) { }
@@ -115,8 +115,7 @@ namespace IFramework.AB
             }
         }
     }
-
-    internal class CollectByFileName : ABBuildCollecter
+    class CollectByFileName : ABBuildCollecter
     {
         public CollectByFileName() { }
         public CollectByFileName(string path) : base(path) { }
