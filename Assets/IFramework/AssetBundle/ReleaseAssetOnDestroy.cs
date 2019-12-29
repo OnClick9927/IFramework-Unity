@@ -11,9 +11,9 @@ namespace IFramework.AB
 {
 	public class ReleaseAssetOnDestroy:MonoBehaviour
 	{
-        public ABAsset asset;
+        public Asset asset;
 
-        public static ReleaseAssetOnDestroy Register(GameObject go, ABAsset asset)
+        public static ReleaseAssetOnDestroy Register(GameObject go, Asset asset)
         {
             ReleaseAssetOnDestroy component = go.GetComponent<ReleaseAssetOnDestroy>();
             if (component == null)
