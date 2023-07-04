@@ -1,0 +1,86 @@
+
+
+---@class UIObject:LuaObject
+UIObject = class("UIObject", LuaObject)
+
+------------------------------------以下是绑定ui事件-------------------------------
+
+function UIObject:BindSlider(Slider, func, ...)
+    local handle = Handler(func, self, ...)
+    Slider.onValueChanged:AddListener(handle)
+end
+
+function UIObject:UnBindSlider(Slider)
+    Slider.onValueChanged:RemoveAllListeners()
+    Slider.onValueChanged:Invoke()
+end
+
+function UIObject:BindToggle(Toggle, func, ...)
+    local handle = Handler(func, self, ...)
+    Toggle.onValueChanged:AddListener(handle)
+end
+
+function UIObject:UnBindToggle(Toggle)
+    Toggle.onValueChanged:RemoveAllListeners()
+    Toggle.onValueChanged:Invoke()
+end
+
+function UIObject:BindInputField(InputField, func, ...)
+    local handle = Handler(func, self, ...)
+    InputField.onValueChanged:AddListener(handle)
+end
+
+function UIObject:UnBindInputField(InputField)
+    InputField.onValueChanged:RemoveAllListeners()
+    InputField.onValueChanged:Invoke()
+end
+
+function UIObject:BindOnEndEdit(InputField, func, ...)
+    local handle = Handler(func, self, ...)
+    InputField.onEndEdit:AddListener(handle)
+end
+
+function UIObject:UnBindOnEndEdit(InputField)
+    InputField.onEndEdit:RemoveAllListeners()
+    InputField.onEndEdit:Invoke()
+end
+
+function UIObject:BindOnValidateInput(InputField, func, ...)
+    local handle = Handler(func, self, ...)
+    InputField.onValidateInput = handle
+end
+
+function UIObject:UnBindOnValidateInput(InputField)
+    InputField.onValidateInput = nil
+end
+
+function UIObject:BindButton(btn, func, ...)
+    local handle = Handler(func, self, ...)
+    btn.onClick:AddListener(handle)
+end
+
+function UIObject:UnBindButton(btn)
+    btn.onClick:RemoveAllListeners()
+    btn.onClick:Invoke()
+end
+
+------------------------------------以下是设置数值-------------------------------
+function UIObject:SetText(text, str)
+    text.text = str
+end
+
+function UIObject:SetImage(image, sprite)
+    image.sprite = sprite
+end
+
+function UIObject:SetToggle(toggle, isOn)
+    toggle.isOn = isOn
+end
+
+function UIObject:SetSlider(slider, value)
+    slider.value = value
+end
+
+function UIObject:SetInputField(inputField, str)
+    inputField.text = str
+end

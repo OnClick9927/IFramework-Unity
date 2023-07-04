@@ -1,0 +1,6 @@
+---@class UIView_MVC:UIView
+UIView_MVC = class("UIView_MVC", UIView)
+function UIView_MVC:ctor(panel)
+    self.panel = panel
+    self:SetGameObject(self.panel.gameObject)
+end

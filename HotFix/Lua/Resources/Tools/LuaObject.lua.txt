@@ -1,0 +1,20 @@
+---@class LuaObject:Unit
+LuaObject = class("LuaObject")
+function LuaObject:SetGameObject(gameObject)
+    self.gameObject = gameObject.gameObject
+    self.transform = gameObject.transform
+end
+
+function LuaObject:GetComponent(path, type)
+    local transform = self.transform:Find(path)
+    if not transform then
+        error("can't find transfom with " .. path .. " in panel " .. self.gameObject.name)
+    end
+    return transform:GetComponent(type) or transform:GetComponentInChildren(type, true)
+end
+
+function LuaObject:SetActive(active)
+    self.gameObject:SetActive(active)
+end
+
+return LuaObject

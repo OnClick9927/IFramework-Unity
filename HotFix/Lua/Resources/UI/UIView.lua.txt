@@ -1,0 +1,9 @@
+---@class UIView:UIObject
+UIView = class("UIView", UIObject)
+function UIView:OnLoad() end
+
+function UIView:OnShow() end
+
+function UIView:OnHide() end
+
+function UIView:OnClose() end

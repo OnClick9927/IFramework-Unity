@@ -1,0 +1,65 @@
+CS = CS
+typeof = typeof
+require("Tools.Base")
+require("Tools.Log")
+Json = require("Tools.Json")
+require("Tools.EventSystem")
+require("Tools.LuaTask")
+require("Tools.LoopScroll")
+require("Tools.ObservableObject")
+require("Tools.LuaObject")
+require("UI.index")
+LifeTimeEvent = EventSystem()
+LifeTimeEventType = {
+    Update = 1,
+    Dispose = 2,
+    FixedUpdate = 3,
+    LateUpdate = 4,
+    ApplicationFocus = 5,
+    ApplicationPause = 6,
+}
+------------------------------------下方无需调用-------------------------------------------
+local function Update()
+    LifeTimeEvent:Publish(LifeTimeEventType.Update)
+end
+
+local function FixUpdate()
+    LifeTimeEvent:Publish(LifeTimeEventType.FixedUpdate)
+end
+
+local function LateUpdate()
+    LifeTimeEvent:Publish(LifeTimeEventType.LateUpdate)
+end
+
+local function OnApplicationFocus(focus)
+    LifeTimeEvent:Publish(LifeTimeEventType.ApplicationFocus, focus)
+end
+
+local function OnApplicationPause(pause)
+    LifeTimeEvent:Publish(LifeTimeEventType.ApplicationPause, pause)
+end
+
+local Launcher = StaticUsing("IFramework.Launcher")
+
+function Awake()
+    require("GlobalDefine")
+    Lock_G()
+    Launcher.BindUpdate(Update)
+    Launcher.BindFixedUpdate(FixUpdate)
+    Launcher.BindLateUpdate(LateUpdate)
+    Launcher.BindOnApplicationFocus(OnApplicationFocus)
+    Launcher.BindOnApplicationPause(OnApplicationPause)
+
+    require("FixCsharp")
+    require("GameLogic")
+end
+
+function OnDispose()
+    LifeTimeEvent:Publish(LifeTimeEventType.Dispose)
+    LifeTimeEvent:Clear()
+    Launcher.UnBindFixedUpdate(FixUpdate)
+    Launcher.UnBindLateUpdate(LateUpdate)
+    Launcher.UnBindOnApplicationFocus(OnApplicationFocus)
+    Launcher.UnBindOnApplicationPause(OnApplicationPause)
+    Launcher.UnBindUpdate(Update)
+end

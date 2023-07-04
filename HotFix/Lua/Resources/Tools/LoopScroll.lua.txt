@@ -1,0 +1,53 @@
+---@param self LoopScroll
+---@param gameObject UnityEngine.GameObject
+---@param index number
+local function FreshView(self, gameObject, index)
+    self.renderers[index] = self.renderers[index] or self.renderType(gameObject)
+    local renderer = self.renderers[index]
+    renderer:SetData(self.datas[index])
+end
+
+---@class LoopScrollRenderer 循环列表渲染器
+LoopScrollRenderer = class("LoopScrollRenderer")
+---设置数据，刷新界面
+---@param data table|userdata
+function LoopScrollRenderer:SetData(data) end
+
+---@class LoopScroll 循环列表
+LoopScroll = class("LoopScroll")
+
+---@param loop IFramework.UI.LoopScrollRect
+---@param renderType LoopScrollRenderer
+---@param prefab UnityEngine.GameObject
+function LoopScroll:ctor(loop, renderType, prefab)
+    self.loop = loop
+    ---@type LoopScrollRenderer[]
+    self.renderers = {}
+    self.renderType = renderType
+    if prefab then
+        self.loop:SetItem(prefab)
+    end
+    self.loop:SetFresh(FreshView)
+end
+
+---设置数据
+---@param datas table|userdata
+function LoopScroll:SetData(datas)
+    local count = #datas
+    self.datas = datas
+    self.loop:SetCount(count)
+end
+
+---滑动到
+---@param index number
+function LoopScroll:ScrollTo(index)
+    self.loop:ScrollTo(index)
+end
+
+---释放
+function LoopScroll:Dispose()
+    self.renderers = nil
+    self.datas = nil
+    self.loop = nil
+    self.renderType = nil
+end

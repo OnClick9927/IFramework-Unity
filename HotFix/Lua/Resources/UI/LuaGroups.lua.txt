@@ -1,0 +1,74 @@
+local __CSGroups = StaticUsing("IFramework.Hotfix.Lua.LuaGroups")
+---@class LuaGroups:Unit
+LuaGroups = class("LuaGroups")
+function LuaGroups:ctor()
+    self.onDispose = Handler(self.OnDispose, self)
+    self.onSubscribe = Handler(self.OnSubscribe, self)
+    self.onUnSubscribe = Handler(self.OnUnSubscribe, self)
+    self.onShow = Handler(self.OnShow, self)
+    self.onHide = Handler(self.OnHide, self)
+    self.onClose = Handler(self.OnClose, self)
+    self.onLoad = Handler(self.OnLoad, self)
+end
+
+--- @param ... table[] 自动生成的map
+--- @return IFramework.Hotfix.Lua.LuaGroups
+function LuaGroups:SetMap(...)
+    local tmp = { ... }
+    local map = {}
+    for key, _ in pairs(tmp) do
+        for key, value in pairs(_) do
+            table.insert(map, value)
+        end
+    end
+    if map == nil then
+        error("map could not be null ")
+        return
+    end
+    self.CS_instance = __CSGroups()
+    self.CS_instance:onDispose("+", self.onDispose)
+    self.CS_instance:onSubscribe("+", self.onSubscribe)
+    self.CS_instance:onUnSubscribe("+", self.onUnSubscribe)
+    self.CS_instance:onLoad("+", self.onLoad)
+    self.CS_instance:onShow("+", self.onShow)
+    self.CS_instance:onHide("+", self.onHide)
+    self.CS_instance:onClose("+", self.onClose)
+    self.map = map
+    return self.CS_instance
+end
+
+function LuaGroups:OnDispose()
+    self.CS_instance:onDispose("-", self.onDispose)
+    self.CS_instance:onSubscribe("-", self.onSubscribe)
+    self.CS_instance:onUnSubscribe("-", self.onUnSubscribe)
+    self.CS_instance:onLoad("-", self.onLoad)
+    self.CS_instance:onShow("-", self.onShow)
+    self.CS_instance:onHide("-", self.onHide)
+    self.CS_instance:onClose("-", self.onClose)
+    self.CS_instance = nil
+    self.map = nil
+end
+
+function LuaGroups:OnSubscribe(path, panel) end
+
+function LuaGroups:OnUnSubscribe(path) end
+
+---@return UIView
+function LuaGroups:FindView(path) end
+
+function LuaGroups:OnLoad(path)
+    local view = self:FindView(path)
+    view:OnLoad()
+end
+
+function LuaGroups:OnShow(path)
+    self:FindView(path):OnShow()
+end
+
+function LuaGroups:OnHide(path)
+    self:FindView(path):OnHide()
+end
+
+function LuaGroups:OnClose(path)
+    self:FindView(path):OnClose()
+end
