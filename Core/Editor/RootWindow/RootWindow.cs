@@ -26,7 +26,7 @@ namespace IFramework
         private Dictionary<string, Type> windowtabs = new Dictionary<string, Type>();
         private string showkey = "";
 
-        [MenuItem("Tools/IFramework %#i")]
+        [MenuItem("Tools/IFramework/Window %#i")]
         static void ShowWindow()
         {
             GetWindow<RootWindow>();

@@ -7,8 +7,11 @@
  *History:        2018.11--
 *********************************************************************************/
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using UnityEditor;
+using UnityEditorInternal;
 
 namespace IFramework
 {
@@ -65,6 +68,26 @@ namespace IFramework
         public static void OpenFolder(string folder)
         {
             EditorUtility.OpenWithDefaultApp(folder);
+        }
+        [MenuItem("Tools/IFramework/UpdateCS")]
+        public static void UpdateCS()
+        {
+
+            var path = AssetDatabase.FindAssets("t:script Launcher")
+                      .ToList()
+                      .ConvertAll(x => AssetDatabase.GUIDToAssetPath(x))
+                      .Find(x =>
+                      {
+                          var script = AssetDatabase.LoadAssetAtPath<MonoScript>(x);
+                          if (script == null) return false;
+                          var cls = AssetDatabase.LoadAssetAtPath<MonoScript>(x).GetClass();
+                          return cls == typeof(Launcher);
+                      });
+            if (string.IsNullOrEmpty(path)) return;
+            path = path.CombinePath("../.CS/UpdateCS.bat").ToAbsPath();
+            var startInfo = new ProcessStartInfo(path);
+            startInfo.WorkingDirectory = Path.GetDirectoryName(path);
+            Process.Start(startInfo);
         }
     }
 }

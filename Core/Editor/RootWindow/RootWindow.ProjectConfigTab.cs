@@ -56,13 +56,7 @@ namespace IFramework
                 EditorTools.ProjectConfig.Info.logIgnoreFiles[index] = str;
                 EditorTools.ProjectConfig.Save();
             }
-            private void OpenFolderGUI(string name, string path)
-            {
-                if (GUILayout.Button(name))
-                {
-                    EditorTools.OpenFolder(path);
-                }
-            }
+
             Vector2 scroll;
             private void Sys()
             {
