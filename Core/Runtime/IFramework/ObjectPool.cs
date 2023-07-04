@@ -34,15 +34,14 @@ namespace IFramework
         /// </summary>
         protected override void OnDispose()
         {
-            Clear(null);
+            Clear();
         }
 
         /// <summary>
         /// 获取
         /// </summary>
-        /// <param name="arg"></param>
         /// <returns></returns>
-        public virtual T Get(IEventArgs arg = null)
+        public virtual T Get()
         {
             lock (para)
             {
@@ -53,38 +52,26 @@ namespace IFramework
                 }
                 else
                 {
-                    t = CreateNew(arg);
-                    OnCreate(t, arg);
+                    t = CreateNew();
+                    OnCreate(t);
                 }
-                OnGet(t, arg);
+                OnGet(t);
                 return t;
             }
         }
-        /// <summary>
-        /// 回收
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="args"></param>
-        public void Set(object obj, IEventArgs args)
-        {
-            if (obj is T)
-            {
-                Set((T)obj, args);
-            }
-        }
+
         /// <summary>
         /// 回收
         /// </summary>
         /// <param name="t"></param>
-        /// <param name="arg"></param>
         /// <returns></returns>
-        public virtual bool Set(T t, IEventArgs arg = null)
+        public virtual bool Set(T t)
         {
             lock (para)
             {
                 if (!pool.Contains(t))
                 {
-                    if (OnSet(t, arg))
+                    if (OnSet(t))
                     {
                         pool.Enqueue(t);
                     }
@@ -101,15 +88,14 @@ namespace IFramework
         /// <summary>
         /// 清除
         /// </summary>
-        /// <param name="arg"></param>
-        public void Clear(IEventArgs arg = null)
+        public void Clear()
         {
             lock (para)
             {
                 while (pool.Count > 0)
                 {
                     var t = pool.Dequeue();
-                    OnClear(t, arg);
+                    OnClear(t);
                     IDisposable dispose = t as IDisposable;
                     if (dispose != null)
                         dispose.Dispose();
@@ -120,8 +106,7 @@ namespace IFramework
         /// 清除
         /// </summary>
         /// <param name="count"></param>
-        /// <param name="arg"></param>
-        public void Clear(int count, IEventArgs arg = null)
+        public void Clear(int count)
         {
             lock (para)
             {
@@ -129,29 +114,26 @@ namespace IFramework
                 while (pool.Count > count)
                 {
                     var t = pool.Dequeue();
-                    OnClear(t, arg);
+                    OnClear(t);
                 }
             }
         }
         /// <summary>
         /// 创建一个新对象
         /// </summary>
-        /// <param name="arg"></param>
         /// <returns></returns>
-        protected abstract T CreateNew(IEventArgs arg);
+        protected abstract T CreateNew();
         /// <summary>
         /// 数据被清除时
         /// </summary>
         /// <param name="t"></param>
-        /// <param name="arg"></param>
-        protected virtual void OnClear(T t, IEventArgs arg) { }
+        protected virtual void OnClear(T t) { }
         /// <summary>
         /// 数据被回收时，返回true可以回收
         /// </summary>
         /// <param name="t"></param>
-        /// <param name="arg"></param>
         /// <returns></returns>
-        protected virtual bool OnSet(T t, IEventArgs arg)
+        protected virtual bool OnSet(T t)
         {
             return true;
         }
@@ -159,13 +141,11 @@ namespace IFramework
         /// 数据被获取时
         /// </summary>
         /// <param name="t"></param>
-        /// <param name="arg"></param>
-        protected virtual void OnGet(T t, IEventArgs arg) { }
+        protected virtual void OnGet(T t) { }
         /// <summary>
         /// 数据被创建时
         /// </summary>
         /// <param name="t"></param>
-        /// <param name="arg"></param>
-        protected virtual void OnCreate(T t, IEventArgs arg) { }
+        protected virtual void OnCreate(T t) { }
     }
 }

@@ -10,7 +10,6 @@ namespace IFramework
     /// </summary>
     public class Modules : Unit, IModules
     {
-
         private object _lock = new object();
         private Dictionary<Type, Dictionary<string, Module>> _dic;
 
@@ -27,7 +26,8 @@ namespace IFramework
         public Module CreateModule(Type type, string name = Module.defaultName, int priority = 0)
         {
             var mou = Module.CreatInstance(type, name, priority);
-            mou.Bind(this);
+            if (SubscribeModule(mou))
+                mou.binded = true;
             return mou;
         }
         /// <summary>
@@ -102,7 +102,6 @@ namespace IFramework
         /// <summary>
         /// Ctor
         /// </summary>
-        /// <param name="env"></param>
         public Modules()
         {
             _dic = new Dictionary<Type, Dictionary<string, Module>>();
@@ -133,6 +132,7 @@ namespace IFramework
                 for (int i = 0; i < count; i++)
                 {
                     var item = _modules.Pop();
+                    UnSubscribeBindModule(item);
                     item.Dispose();
                 }
                 _updateModules.Clear();
@@ -160,7 +160,7 @@ namespace IFramework
             }
         }
 
-        internal bool SubscribeModule(Module moudle)
+        private bool SubscribeModule(Module moudle)
         {
             lock (_lock)
             {
@@ -185,35 +185,34 @@ namespace IFramework
 
 
         }
-        internal bool UnSubscribeBindModule(Module moudle)
+        private bool UnSubscribeBindModule(Module moudle)
         {
-            lock (_lock)
+            if (!moudle.binded) return false;
+            moudle.binded = false;
+            Type type = moudle.GetType();
+            if (!_dic.ContainsKey(type))
             {
-                Type type = moudle.GetType();
-                if (!_dic.ContainsKey(type))
+                Log.E(string.Format("01,Have Not Bind Module | Type {0}  Name {1}", type, moudle.name));
+                return false;
+            }
+            else
+            {
+                var list = _dic[type];
+
+                if (!list.ContainsKey(moudle.name))
                 {
-                    Log.E(string.Format("01,Have Not Bind Module | Type {0}  Name {1}", type, moudle.name));
+                    Log.E(string.Format("02,Have Not Bind Module | Type {0}  Name {1}", type, moudle.name));
                     return false;
                 }
                 else
                 {
-                    var list = _dic[type];
-
-                    if (!list.ContainsKey(moudle.name))
+                    _dic[type].Remove(moudle.name);
+                    if (_queue.Contains(moudle))
                     {
-                        Log.E(string.Format("02,Have Not Bind Module | Type {0}  Name {1}", type, moudle.name));
-                        return false;
+                        _queue.Remove(moudle);
+                        SyncUpdateList();
                     }
-                    else
-                    {
-                        _dic[type].Remove(moudle.name);
-                        if (_queue.Contains(moudle))
-                        {
-                            _queue.Remove(moudle);
-                            SyncUpdateList();
-                        }
-                        return true;
-                    }
+                    return true;
                 }
             }
 

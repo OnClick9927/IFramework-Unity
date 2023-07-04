@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 
 namespace IFramework
 {
@@ -12,6 +11,33 @@ namespace IFramework
         /// 默认名字
         /// </summary>
         public const string defaultName = "default";
+
+
+        private bool _binded;
+        private int _priority;
+
+        /// <summary>
+        /// 优先级（越大释放越早释放,越小越先 update）
+        /// </summary>
+        public int priority { get { return _priority; } }
+
+        /// <summary>
+        /// 是否绑定了
+        /// </summary>
+        public bool binded { get { return _binded; } internal set { _binded = value; } }
+
+        /// <summary>
+        /// 名字
+        /// </summary>
+        public string name { get; set; }
+
+
+
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        protected abstract void Awake();
+
         /// <summary>
         /// 阻止 New
         /// </summary>
@@ -62,75 +88,9 @@ namespace IFramework
             return CreatInstance(typeof(T), name, priority) as T;
         }
 
-        /// <summary>
-        /// 绑定模块容器
-        /// </summary>
-        /// <param name="container"></param>
-        public void Bind(IModules container)
-        {
-            if (this._container != null)
-            {
-                Log.E(string.Format("Have Bind One Container chunck: You Can UnBind First"));
-                return;
-            }
 
-            if ((container as Modules).SubscribeModule(this))
-            {
-                this._binded = true;
-                this._container = container;
-            }
 
-        }
-        /// <summary>
-        /// 解除绑定模块容器
-        /// </summary>
-        /// <param name="dispose"></param>
-        public void UnBind(bool dispose = true)
-        {
-            if (!binded) return;
-            if (binded && this._container != null)
-            {
-                (this._container as Modules).UnSubscribeBindModule(this);
-                this._binded = false;
-                this._container = null;
-            }
-            if (dispose)
-                Dispose();
-        }
 
-        private IModules _container;
-        private bool _binded;
-        private int _priority;
-
-        /// <summary>
-        /// 优先级（越大释放越早释放,越小越先 update）
-        /// </summary>
-        public int priority { get { return _priority; } }
-
-        /// <summary>
-        /// 是否绑定了
-        /// </summary>
-        public bool binded { get { return _binded; } }
-        /// <summary>
-        /// 模块所处的容器
-        /// </summary>
-        public IModules container { get { return _container; } }
-        /// <summary>
-        /// 名字
-        /// </summary>
-        public string name { get; set; }
-        /// <summary>
-        /// 释放
-        /// </summary>
-        public override void Dispose()
-        {
-            UnBind(false);
-            base.Dispose();
-        }
-        /// <summary>
-        /// 初始化
-        /// </summary>
-        protected abstract void Awake();
 
     }
 }
