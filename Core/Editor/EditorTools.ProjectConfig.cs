@@ -87,7 +87,7 @@ namespace IFramework
                 public List<string> logIgnoreFiles = new List<string>();
                 public string projectPath = "Assets/Project";
                 public string Version { get { return PlayerSettings.bundleVersion; } set { PlayerSettings.bundleVersion = value; } }
-                public string NameSpace { get { return PlayerSettings.productName; } set { PlayerSettings.productName = value; } }
+                public string NameSpace = "IFramework";
                 public string UserName { get; private set; }
 
                 public static ProjectConfigInfo Load()

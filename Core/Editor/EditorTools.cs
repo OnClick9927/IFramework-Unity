@@ -59,11 +59,11 @@ namespace IFramework
 
         public static void SaveToPrefs<T>(T value, string key, bool unique = true)
         {
-            Prefs.SetObject<T, T>(key, value, unique);
+            Prefs.SetObject(value.GetType(),key, value, unique);
         }
         public static T GetFromPrefs<T>(string key, bool unique = true)
         {
-            return Prefs.GetObject<T, T>(key, unique);
+            return Prefs.GetObject<T>(typeof(T),key, unique);
         }
         public static void OpenFolder(string folder)
         {

@@ -9,17 +9,15 @@
 
 using System.Text;
 using System;
-using UnityEditor.IMGUI.Controls;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
-using System.Linq;
 
 namespace IFramework.UI
 {
     public partial class UIMoudleWindow
     {
-        public class GenItemCodeCS : UIMoudleWindowTab
+        public class GenItemCodeCS : UIGenCode<GameObject>
         {
             public enum ItemType
             {
@@ -28,128 +26,46 @@ namespace IFramework.UI
                 UIObject,
             }
             public override string name => "CS/Gen_item_Code_CS";
-             private FloderField FloderField;
+            protected string designScriptName { get { return $"{viewName}.Design.cs"; } }
+            protected override string viewScriptName { get { return $"{viewName}.cs"; } }
+
 
             [SerializeField] private ItemType _type;
-            [SerializeField] private string UIdir = "";
-            [SerializeField] private GameObject gameobject;
-            [SerializeField] private TreeViewState state = new TreeViewState();
-            private ScriptCreaterFieldsDrawer fields;
-            private ScriptCreater creater = new ScriptCreater();
-            private string panelName { get { return gameobject.name; } }
-            private string viewName { get { return $"{panelName}View"; } }
-            public override void OnEnable()
+            protected override GameObject gameobject => panel;
+
+
+            protected override void OnFindDirSuccess()
+            {
+                string txt = File.ReadAllText(UIdir.CombinePath(designScriptName));
+                if (txt.Contains($": {typeof(UIObjectView)}"))
+                    _type = ItemType.UIObject;
+                if (txt.Contains($": {typeof(GameObjectView)}"))
+                    _type = ItemType.GameObject;
+                if (txt.Contains($": {typeof(UIItemView)}"))
+                    _type = ItemType.UIItem;
+            }
+
+            protected override void LoadLastData()
             {
                 var last = EditorTools.GetFromPrefs<GenItemCodeCS>(name);
                 if (last != null)
                 {
-                    this.gameobject = last.gameobject;
+                    this.panel = last.gameobject;
                     this.UIdir = last.UIdir;
                     this.state = last.state;
                     this._type = last._type;
                 }
-                this.FloderField = new FloderField(UIdir);
-                fields = new ScriptCreaterFieldsDrawer(creater, state);
-                SetViewData();
             }
-            public override void OnDisable()
+            protected override void Draw()
             {
-                EditorTools.SaveToPrefs(this, name);
-            }
-            public override void OnHierarchyChanged()
-            {
-                creater.ColllectMarks();
-            }
-            public override void OnGUI()
-            {
-                if (EditorApplication.isCompiling)
-                {
-                    GUILayout.Label("Editor is Compiling");
-                    GUILayout.Label("please wait");
-                    return;
-                }
-                if (GUILayout.Button("Gen"))
-                {
-                    if (gameobject == null)
-                    {
-                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("Select UI Panel"));
-                        return;
-                    }
-                    if (string.IsNullOrEmpty(UIdir))
-                    {
-                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
-                        return;
-                    }
-                    WriteView();
-                    AssetDatabase.Refresh();
-                }
-                GUILayout.Space(5);
-
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label("Panel Directory", GUIStyles.toolbar);
-                    GUILayout.Space(20);
-
-                    FloderField.OnGUI(EditorGUILayout.GetControlRect());
-                    UIdir = FloderField.path;
-                    GUILayout.EndHorizontal();
-                }
                 _type = (ItemType)EditorGUILayout.EnumPopup("Type", _type);
-
-
-                EditorGUI.BeginChangeCheck();
-
-                gameobject = EditorGUILayout.ObjectField("GameObject", gameobject, typeof(GameObject), false) as GameObject;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SetViewData();
-                }
-                GUILayout.Space(10);
-                fields.OnGUI();
             }
-            private void SetViewData()
+          
+
+            protected override void WriteView()
             {
-
-                if (gameobject != null)
-                {
-                    creater.SetGameObject(gameobject.gameObject);
-                    FindDir();
-                }
-                else
-                {
-                    creater.SetGameObject(null);
-                    FloderField.SetPath(string.Empty);
-                }
-            }
-            private void FindDir()
-            {
-                string total = $"{viewName}.cs";
-                string find = AssetDatabase.GetAllAssetPaths().ToList().Find(x => x.EndsWith(total));
-                if (string.IsNullOrEmpty(find))
-                {
-                    FloderField.SetPath(string.Empty);
-                }
-                else
-                {
-                    FloderField.SetPath(find.Replace(total, "").ToAssetsPath());
-
-                    string designPath = FloderField.path.CombinePath($"{viewName}.Design.cs");
-                    string txt = File.ReadAllText(designPath);
-                    if (txt.Contains($": {typeof(UIObjectView)}"))
-                        _type = ItemType.UIObject;
-                    if (txt.Contains($": {typeof(GameObjectView)}"))
-                        _type = ItemType.GameObject;
-                    if (txt.Contains($": {typeof(UIItemView)}"))
-                        _type = ItemType.UIItem;
-                }
-            }
-
-
-
-            private void WriteView()
-            {
-                string designPath = UIdir.CombinePath($"{viewName}.Design.cs");
-                string path = UIdir.CombinePath($"{viewName}.cs");
+                string designPath = UIdir.CombinePath(designScriptName);
+                string path = UIdir.CombinePath(viewScriptName);
 
                 WriteTxt(designPath, viewDesignScriptOrigin().ToUnixLineEndings(),
                 (str) =>
@@ -274,6 +190,10 @@ namespace IFramework.UI
             "\t}\n" +
             "}";
             }
+
+      
+
+        
         }
     }
 }

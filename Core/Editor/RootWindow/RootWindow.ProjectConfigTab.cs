@@ -25,7 +25,7 @@ namespace IFramework
             {
                 public static GUIContent Name = new GUIContent("UserName", "Project Author's Name");
                 public static GUIContent Version = new GUIContent("Version", "Version of Project");
-                public static GUIContent Namespace = new GUIContent("NameSpace_ProductName", "Script's Namespace and ProductName");
+                public static GUIContent Namespace = new GUIContent("NameSpace", "Script's Namespace");
                 public static string logset = "LogSetting in Editor mode";
                 public static string enable = "Enable";
                 public static string logenable = "Log Enable";

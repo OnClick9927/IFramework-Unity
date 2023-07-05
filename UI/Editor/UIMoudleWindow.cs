@@ -38,6 +38,7 @@ namespace IFramework.UI
             collect = JsonUtility.FromJson<PanelPathCollect>(File.ReadAllText(UICollectPath));
             //menu = new MenuTree();
             _tabs = typeof(UIMoudleWindowTab).GetSubTypesInAssemblys()
+                .Where(x=>!x.IsAbstract)
                                      .ToList()
                                      .ConvertAll((type) => { return Activator.CreateInstance(type) as UIMoudleWindowTab; })
                                      .ToDictionary((tab) => { return tab.name; });

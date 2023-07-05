@@ -14,7 +14,7 @@ namespace IFramework.UI
         public abstract class UIMoudleWindowTab
         {
             public abstract string name { get; }
-            public virtual void OnGUI() { }
+            public abstract void OnGUI();
             public virtual void OnEnable() { }
             public virtual void OnDisable() { }
             public virtual void OnHierarchyChanged() { }

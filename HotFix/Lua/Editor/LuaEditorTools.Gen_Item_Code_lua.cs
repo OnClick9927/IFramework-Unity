@@ -7,14 +7,12 @@
  *History:        2018.11--
 *********************************************************************************/
 using UnityEditor;
-using IFramework;
 using UnityEngine;
 using System.Linq;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using IFramework.UI;
-using UnityEditor.IMGUI.Controls;
 
 namespace IFramework.Hotfix.Lua
 {
@@ -22,7 +20,7 @@ namespace IFramework.Hotfix.Lua
     {
         [Serializable]
 
-        class Gen_Item_Code_lua : UIMoudleWindow.UIMoudleWindowTab
+        class Gen_Item_Code_lua : UIMoudleWindow.UIGenCode<GameObject>
         {
             public enum ItemType
             {
@@ -32,132 +30,52 @@ namespace IFramework.Hotfix.Lua
             }
             private const string key = "Gen_Item_Code_lua";
             public override string name => "Lua/Gen_Item_Code_lua";
-            [SerializeField] private string workFolder;
-            [SerializeField] private GameObject panel;
-            [SerializeField] private ItemType _type;
-            [SerializeField] private TreeViewState state = new TreeViewState();
+            protected override GameObject gameobject => panel.gameObject;
 
-            private ScriptCreater creater = new ScriptCreater();
-            private ScriptCreaterFieldsDrawer fields;
-            private LuaFloderField FloderField;
-            private string luaPath
+            protected override string viewScriptName => $"{panelName}.lua.txt";
+            [SerializeField] private ItemType _type;
+
+  
+            protected override void OnFindDirSuccess()
             {
-                get
+                string txt = File.ReadAllText(UIdir.CombinePath(viewScriptName));
+                var names = Enum.GetNames(typeof(ItemType));
+                foreach (var item in names)
                 {
-                    if (panel == null)
+                    if (txt.Contains($": {item}"))
                     {
-                        return null;
+                        _type = (ItemType)Enum.Parse(typeof(ItemType), item);
+                        break;
                     }
-                    return workFolder.CombinePath($"{panelName}.lua.txt");
                 }
             }
-            private string panelName => panel == null ? "" : panel.name;
 
-            public override void OnEnable()
+            protected override void LoadLastData()
             {
                 var last = EditorTools.GetFromPrefs<Gen_Item_Code_lua>(key);
                 if (last != null)
                 {
-                    this.workFolder = last.workFolder;
+                    this.UIdir = last.UIdir;
                     this.panel = last.panel;
                     this._type = last._type;
                     this.state = last.state;
                 }
-                FloderField = new LuaFloderField();
-                FloderField.SetPath(workFolder);
-                fields = new ScriptCreaterFieldsDrawer(creater, state);
-                SetViewData();
+            }
 
-            }
-            public override void OnHierarchyChanged()
+            protected override void WriteView()
             {
-                creater.ColllectMarks();
+                CreateView(UIdir.CombinePath(viewScriptName));
             }
-            public override void OnDisable()
-            {
-                EditorTools.SaveToPrefs(this,key);
-            }
-            public override void OnGUI()
-            {
-                if (EditorApplication.isCompiling)
-                {
-                    GUILayout.Label("Editor is Compiling\nplease wait");
-                    return;
-                }
 
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label("Directory", GUIStyles.Get("toolbar"));
-                    GUILayout.Space(20);
-                    FloderField.OnGUI(EditorGUILayout.GetControlRect());
-                    if (FloderField.leagal)
-                        workFolder = FloderField.path;
-                    else
-                        FloderField.SetPath(workFolder);
-                    GUILayout.EndHorizontal();
-                }
+   
+            protected override void Draw()
+            {
                 _type = (ItemType)EditorGUILayout.EnumPopup("Type", _type);
 
-                EditorGUI.BeginChangeCheck();
-                panel = EditorGUILayout.ObjectField("GameObject", panel, typeof(GameObject), true) as GameObject;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SetViewData();
-                }
-                EditorGUILayout.LabelField("GenPath", luaPath);
-                fields.OnGUI();
-
-                if (GUILayout.Button("Gen"))
-                {
-                    if (panel == null) EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Panel "));
-                    else
-                    {
-                        string err;
-                        if (!creater.FieldCheck(out err)) EditorUtility.DisplayDialog("Err", err, "ok");
-                        else
-                        {
-                            CreateView(luaPath);
-                            AssetDatabase.Refresh();
-                        }
-                    }
-                }
             }
-            private void FindDir()
-            {
-                string total = $"{panelName}.lua.txt";
-                string find = AssetDatabase.GetAllAssetPaths().ToList().Find(x => x.EndsWith(total));
-                if (string.IsNullOrEmpty(find))
-                {
-                    FloderField.SetPath(string.Empty);
-                }
-                else
-                {
-                    FloderField.SetPath(find.Replace(total, "").ToAssetsPath());
-                    string txt = File.ReadAllText(luaPath);
-                    var names = Enum.GetNames(typeof(ItemType));
-                    foreach (var item in names)
-                    {
-                        if (txt.Contains($": {item}"))
-                        {
-                            _type = (ItemType)Enum.Parse(typeof(ItemType), item);
-                            break;
-                        }
-                    }
-                }
-            }
-            private void SetViewData()
-            {
-                if (panel != null)
-                {
-                    creater.SetGameObject(panel.gameObject);
-                    FindDir();
-                }
-                else
-                {
-                    creater.SetGameObject(null);
-                    FloderField.SetPath(string.Empty);
-                }
-            }
+  
+ 
+   
 
             private string StaticUse()
             {
@@ -277,6 +195,8 @@ MVC_GenCodeView_Lua.ViewFeildFlag + "\n" +
 "\t}\n" +
 "end\n\n";
             }
+
+        
             static string vSource
             {
                 get
@@ -308,6 +228,7 @@ MVC_GenCodeView_Lua.ViewFeildFlag + "\n" +
 
                 }
             }
+
 
         }
 

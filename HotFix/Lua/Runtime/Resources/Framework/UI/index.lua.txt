@@ -1,0 +1,7 @@
+require("Framework.UI.UIObject")
+require("Framework.UI.UIView")
+require("Framework.UI.LuaGroups")
+require("Framework.UI.Item.UIItem")
+require("Framework.UI.Item.UIItemPool")
+require("Framework.UI.MVC.LuaGroups_MVC")
+require("Framework.UI.MVC.UIView_MVC")

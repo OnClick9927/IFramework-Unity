@@ -1,14 +1,12 @@
 CS = CS
 typeof = typeof
-require("Tools.Base")
-require("Tools.Log")
-Json = require("Tools.Json")
-require("Tools.EventSystem")
-require("Tools.LuaTask")
-require("Tools.LoopScroll")
-require("Tools.ObservableObject")
-require("Tools.LuaObject")
-require("UI.index")
+require("Framework.Tools.Base")
+require("Framework.Tools.Log")
+require("Framework.Tools.EventSystem")
+require("Framework.Tools.LuaTask")
+require("Framework.Tools.LuaObject")
+require("Framework.UI.index")
+Json = require("Framework.Tools.Json")
 LifeTimeEvent = EventSystem()
 LifeTimeEventType = {
     Update = 1,

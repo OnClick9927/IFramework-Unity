@@ -6,34 +6,31 @@
  *Description:    Description
  *History:        2022-08-03--
 *********************************************************************************/
-using UnityEditor;
-using IFramework;
 using UnityEngine;
 using System;
 using System.IO;
 using static IFramework.UI.UIMoudleWindow;
-using static IFramework.EditorTools;
 using System.Text;
-using System.Linq;
-using UnityEditor.IMGUI.Controls;
 
 namespace IFramework.UI.MVC
 {
     public partial class UIMoudleWindow
     {
         [Serializable]
-        public class MVC_GenCodeView : UIMoudleWindowTab
+        public class MVC_GenCodeView : UIGenCode<UIPanel>
         {
             public override string name { get { return "CS/MVC_Gen_CS"; } }
-            [SerializeField] private string UIdir = "";
-            [SerializeField] private UIPanel panel;
-            [SerializeField] private FloderField FloderField;
-            [SerializeField] private TreeViewState state = new TreeViewState();
-            private ScriptCreaterFieldsDrawer fields;
-            private ScriptCreater creater = new ScriptCreater();
-            private string panelName { get { return panel.name; } }
-            private string viewName { get { return $"{panelName}View"; } }
-            public override void OnEnable()
+
+            protected override GameObject gameobject => panel.gameObject;
+            protected string designScriptName { get { return $"{viewName}.Design.cs"; } }
+            protected override string viewScriptName { get { return $"{viewName}.cs"; } }
+
+            protected override void OnFindDirSuccess()
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override void LoadLastData()
             {
                 var last = EditorTools.GetFromPrefs<MVC_GenCodeView>(name);
                 if (last != null)
@@ -42,97 +39,12 @@ namespace IFramework.UI.MVC
                     this.UIdir = last.UIdir;
                     this.state = last.state;
                 }
-                this.FloderField = new FloderField(UIdir);
-                fields = new ScriptCreaterFieldsDrawer(creater, state);
-                SetViewData();
             }
-            public override void OnDisable()
+    
+            protected override void WriteView()
             {
-                EditorTools.SaveToPrefs(this, name);
-            }
-            public override void OnHierarchyChanged()
-            {
-                creater.ColllectMarks();
-            }
-            public override void OnGUI()
-            {
-                if (EditorApplication.isCompiling)
-                {
-                    GUILayout.Label("Editor is Compiling");
-                    GUILayout.Label("please wait");
-                    return;
-                }
-                if (GUILayout.Button("Gen"))
-                {
-                    if (panel == null)
-                    {
-                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("Select UI Panel"));
-                        return;
-                    }
-                    if (string.IsNullOrEmpty(UIdir))
-                    {
-                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
-                        return;
-                    }
-                    WriteView();
-                    AssetDatabase.Refresh();
-                }
-                GUILayout.Space(5);
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label("Panel Directory", GUIStyles.toolbar);
-                    GUILayout.Space(20);
-
-                    FloderField.OnGUI(EditorGUILayout.GetControlRect());
-                    UIdir = FloderField.path;
-                    GUILayout.EndHorizontal();
-                }
-
-
-                EditorGUI.BeginChangeCheck();
-
-                panel = EditorGUILayout.ObjectField("UIPanel", panel, typeof(UIPanel), false) as UIPanel;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SetViewData();
-                }
-                GUILayout.Space(10);
-                fields.OnGUI();
-            }
-            private void SetViewData()
-            {
-
-                if (panel != null)
-                {
-                    creater.SetGameObject(panel.gameObject);
-                    FindDir();
-                }
-                else
-                {
-                    creater.SetGameObject(null);
-                    FloderField.SetPath(string.Empty);
-                }
-            }
-            private void FindDir()
-            {
-                string total = $"{viewName}.cs";
-                string find = AssetDatabase.GetAllAssetPaths().ToList().Find(x => x.EndsWith(total));
-                if (string.IsNullOrEmpty(find))
-                {
-                    FloderField.SetPath(string.Empty);
-                }
-                else
-                {
-                    FloderField.SetPath(find.Replace(total, "").ToAssetsPath());
-                }
-            }
-
-
-
-            private void WriteView()
-            {
-                string designPath = UIdir.CombinePath($"{viewName}.Design.cs");
-                string path = UIdir.CombinePath($"{viewName}.cs");
+                string designPath = UIdir.CombinePath(designScriptName);
+                string path = UIdir.CombinePath(viewScriptName);
 
                 WriteTxt(designPath, viewDesignScriptOrigin,
                 (str) =>
@@ -196,6 +108,9 @@ namespace IFramework.UI.MVC
                 File.WriteAllText(writePath, source, System.Text.Encoding.UTF8);
             }
 
+   
+
+        
 
             private const string head = "/*********************************************************************************\n" +
             " *Author:         #User#\n" +

@@ -16,17 +16,17 @@ namespace IFramework.Hotfix.Lua
 		{
             module.Subscribe(this);
 #if UNITY_EDITOR
-            module.DoString("require 'UpdateFunctions'");
+            module.DoString("require 'Framework.UpdateFunctions'");
 #endif
 
-            module.DoString("require 'Main'" +
+            module.DoString("require 'Framework.Main'" +
 			                 " Awake()");
             this.module = module;
         }
 
 		public void LuaDispose()
 		{
-            module.DoString("require 'Main'" +
+            module.DoString("require 'Framework.Main'" +
 			                 "OnDispose()");
             module.UnSubscribe(this);
 
