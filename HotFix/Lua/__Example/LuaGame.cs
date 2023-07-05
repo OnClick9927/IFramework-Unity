@@ -7,7 +7,6 @@
  *History:        2018.11--
 *********************************************************************************/
 using UnityEngine;
-using WooAsset;
 
 namespace IFramework.Hotfix.Lua
 {
@@ -20,25 +19,18 @@ namespace IFramework.Hotfix.Lua
         public byte[] load(ref string path)
         {
             if (path.EndsWith(".lua"))
-            {
                 path = path.Replace(".lua", "");
-            }
             path = path.Replace(".", "/");
             string filepath = $"{path}.lua";
             var textAsset = Resources.Load<TextAsset>(filepath);
             if (textAsset != null)
                 return textAsset.bytes;
             filepath = projectScriptsPath.CombinePath(filepath + ".txt").ToAssetsPath();
-            var handle = Assets.LoadAssetAsync(filepath);
-            textAsset = handle.GetAsset<TextAsset>();
-            while (!handle.isDone)
-            {
-
-            }
-            if (textAsset == null) return null;
-            var bytes = textAsset.bytes;
-            Assets.Release(handle);
-            return bytes;
+#if UNITY_EDITOR
+            var handle = UnityEditor.AssetDatabase.LoadAssetAtPath<TextAsset>(filepath);
+            return handle.bytes;
+#endif
+            return null;
         }
     }
 
@@ -55,25 +47,10 @@ namespace IFramework.Hotfix.Lua
         {
 
         }
-        public async override void Startup()
-        {
-            await Assets.InitAsync();
-
-            string[] paths = new string[]
-            {
-                "Assets/Project/Lua/FixCsharp.lua.txt",
-                "Assets/Project/Lua/GameLogic.lua.txt",
-                "Assets/Project/Lua/GlobalDefine.lua.txt",
-            };
-            await Assets.PrepareAssets(paths);
-            StartLua();
-        }
-        private void StartLua()
+        public override void Startup()
         {
             unityModules.Lua.AddLoader(new AssetsLoader());
             new XluaMain(unityModules.Lua);
         }
-
-
     }
 }
