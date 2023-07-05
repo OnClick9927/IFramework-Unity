@@ -175,9 +175,7 @@ namespace IFramework.UI
                         labelRect.x += item.depth * depthIndentWidth + depthIndentWidth;
                         labelRect.width -= labelRect.x;
                     }
-                    GUI.enabled = item.children == null || item.children.Count == 0;
                     GUI.Label(labelRect, item.displayName, "BoldLabel");
-                    GUI.enabled = true;
                 }
                 public void Select(string path)
                 {

@@ -129,20 +129,6 @@ namespace IFramework.UI
         {
             menu.OnGUI(obj);
         }
-        public static void CS_BuildPanelNames()
-        {
-            Collect();
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("public class PanelNames");
-            sb.AppendLine("{");
-            foreach (var data in collect.datas)
-            {
-                sb.AppendLine($"\t public static string {data.name} = \"{data.path}\";");
-            }
-            sb.AppendLine("}");
-            File.WriteAllText(cs_path, sb.ToString());
-            AssetDatabase.Refresh();
-        }
 
 
 
@@ -155,8 +141,8 @@ namespace IFramework.UI
         }
         private void OnGUI()
         {
-            var rs = EditorTools.RectEx.HorizontalSplit(new Rect(Vector2.zero,position.size),20);
-            Tool(rs[0]);
+            var rs = EditorTools.RectEx.HorizontalSplit(new Rect(Vector2.zero,position.size),5);
+            //Tool(rs[0]);
             sp.OnGUI(rs[1]);
 
         }
