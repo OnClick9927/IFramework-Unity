@@ -8,9 +8,7 @@
 *********************************************************************************/
 using UnityEngine;
 using System;
-using System.IO;
 using static IFramework.UI.UIMoudleWindow;
-using System.Text;
 
 namespace IFramework.UI.MVC
 {
@@ -40,88 +38,16 @@ namespace IFramework.UI.MVC
                     this.state = last.state;
                 }
             }
-    
+
             protected override void WriteView()
             {
-                string designPath = UIdir.CombinePath(designScriptName);
-                string path = UIdir.CombinePath(viewScriptName);
 
-                WriteTxt(designPath, viewDesignScriptOrigin,
-                (str) =>
-                {
-                    string field;
-                    string find;
-                    Fields(out field, out find);
-                    return str.Replace("#PanelType#", panelName)
-                    .Replace("#field#", field)
-                    .Replace("#findfield#", find)
-                    .Replace(".Design", "");
-                });
-
-                if (!File.Exists(path))
-                {
-                    WriteTxt(path, viewScriptOrigin, null);
-                }
-            }
-
-
-
-            private void Fields(out string field, out string find)
-            {
-                var marks = creater.GetMarks();
-
-
-                StringBuilder f = new StringBuilder();
-                StringBuilder functionField = new StringBuilder();
-                if (marks != null)
-                {
-                    string root_path = creater.gameObject.transform.GetPath();
-
-                    for (int i = 0; i < marks.Count; i++)
-                    {
-                        string fieldType = marks[i].fieldType;
-                        string fieldName = marks[i].fieldName;
-
-                        string path = marks[i].transform.GetPath();
-
-                        path = path.Remove(0, root_path.Length + 1);
-                        f.AppendLine($"\t\tprivate {fieldType} {fieldName};");
-                        functionField.AppendLine($"\t\t\t{fieldName} = transform.Find(\"{path}\").GetComponent<{fieldType}>();");
-                    }
-                }
-                field = f.ToString();
-                find = functionField.ToString();
+                GenItemCodeCS.Write(creater, UIdir.CombinePath(viewScriptName), UIdir.CombinePath(designScriptName),
+                   viewDesignScriptOrigin, viewScriptOrigin);
 
             }
 
-
-            private static void WriteTxt(string writePath, string source, Func<string, string> func)
-            {
-                source = source.Replace("#User#", EditorTools.ProjectConfig.UserName)
-                         .Replace("#UserSCRIPTNAME#", Path.GetFileNameWithoutExtension(writePath))
-                           .Replace("#UserNameSpace#", EditorTools.ProjectConfig.NameSpace)
-                           .Replace("#UserVERSION#", EditorTools.ProjectConfig.Version)
-                           .Replace("#UserUNITYVERSION#", Application.unityVersion)
-                           .Replace("#UserDATE#", DateTime.Now.ToString("yyyy-MM-dd")).ToUnixLineEndings();
-                if (func != null)
-                    source = func.Invoke(source);
-                File.WriteAllText(writePath, source, System.Text.Encoding.UTF8);
-            }
-
-   
-
-        
-
-            private const string head = "/*********************************************************************************\n" +
-            " *Author:         #User#\n" +
-            " *Version:        #UserVERSION#\n" +
-            " *UnityVersion:   #UserUNITYVERSION#\n" +
-            " *Date:           #UserDATE#\n" +
-            "*********************************************************************************/\n";
-
-
-
-            private const string viewDesignScriptOrigin = head +
+            private const string viewDesignScriptOrigin = GenItemCodeCS.head +
             "namespace #UserNameSpace#\n" +
             "{\n" +
             "\tpublic partial class #UserSCRIPTNAME# : IFramework.UI.MVC.UIView \n" +
@@ -133,7 +59,7 @@ namespace IFramework.UI.MVC
             "\t\t}\n" +
             "\t}\n" +
             "}";
-            private const string viewScriptOrigin = head +
+            private const string viewScriptOrigin = GenItemCodeCS.head +
             "namespace #UserNameSpace#\n" +
             "{\n" +
             "\tpublic partial class #UserSCRIPTNAME#\n" +

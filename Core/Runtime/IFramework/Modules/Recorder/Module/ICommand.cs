@@ -3,7 +3,7 @@
     /// <summary>
     /// 命令
     /// </summary>
-    public interface ICommand:IEventArgs
+    public interface ICommand
     {
         /// <summary>
         /// 处理

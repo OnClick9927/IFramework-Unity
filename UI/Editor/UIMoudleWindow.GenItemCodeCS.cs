@@ -60,20 +60,27 @@ namespace IFramework.UI
             {
                 _type = (ItemType)EditorGUILayout.EnumPopup("Type", _type);
             }
-          
+
 
             protected override void WriteView()
             {
-                string designPath = UIdir.CombinePath(designScriptName);
-                string path = UIdir.CombinePath(viewScriptName);
+                Write(creater, UIdir.CombinePath(viewScriptName), UIdir.CombinePath(designScriptName),
+                    viewDesignScriptOrigin(), ViewTxt());
+            }
 
-                WriteTxt(designPath, viewDesignScriptOrigin().ToUnixLineEndings(),
+            public static void Write(ScriptCreater creater, string path, string designPath,
+                string viewDesign, string view)
+            {
+
+
+                WriteTxt(designPath, viewDesign.ToUnixLineEndings(),
                 (str) =>
                 {
                     string field;
                     string find;
-                    Fields(out field, out find);
-                    return str.Replace("#PanelType#", panelName)
+                    Fields(creater, out field, out find);
+                    return str
+                    //.Replace("#PanelType#", panelName)
                     .Replace("#field#", field)
                     .Replace("#findfield#", find)
                     .Replace(".Design", "");
@@ -81,13 +88,11 @@ namespace IFramework.UI
 
                 if (!File.Exists(path))
                 {
-                    WriteTxt(path, ViewTxt(), null);
+                    WriteTxt(path, view, null);
                 }
             }
 
-
-
-            private void Fields(out string field, out string find)
+            private static void Fields(ScriptCreater creater, out string field, out string find)
             {
                 var marks = creater.GetMarks();
 
@@ -123,14 +128,14 @@ namespace IFramework.UI
                            .Replace("#UserNameSpace#", EditorTools.ProjectConfig.NameSpace)
                            .Replace("#UserVERSION#", EditorTools.ProjectConfig.Version)
                            .Replace("#UserUNITYVERSION#", Application.unityVersion)
-                           .Replace("#UserDATE#", DateTime.Now.ToString("yyyy-MM-dd")).ToUnixLineEndings();
+                           .Replace("#UserDATE#", DateTime.Now.ToString("yyyy-MM-dd"));
                 if (func != null)
                     source = func.Invoke(source);
-                File.WriteAllText(writePath, source, System.Text.Encoding.UTF8);
+                File.WriteAllText(writePath, source.ToUnixLineEndings(), Encoding.UTF8);
             }
 
 
-            private const string head = "/*********************************************************************************\n" +
+            public const string head = "/*********************************************************************************\n" +
             " *Author:         #User#\n" +
             " *Version:        #UserVERSION#\n" +
             " *UnityVersion:   #UserUNITYVERSION#\n" +
@@ -191,9 +196,9 @@ namespace IFramework.UI
             "}";
             }
 
-      
 
-        
+
+
         }
     }
 }

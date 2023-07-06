@@ -41,60 +41,15 @@ namespace IFramework.Hotfix.Lua
 
             protected override void WriteView()
             {
-                CreateView(UIdir.CombinePath(viewScriptName));
-            }
-
-            private void CreateView(string path)
-            {
+                string path = UIdir.CombinePath(viewScriptName);
                 if (File.Exists(path))
-                {
-                    var target = string.Format("function {0}View:OnLoad()", panelName);
-                    var txt = File.ReadAllText(path);
-                    int start = txt.IndexOf(target);
-                    start = txt.IndexOf("self.Controls", start);
-                    int depth = 0;
-                    int end = -1;
-                    for (int i = start + 1; i < txt.Length; i++)
-                    {
-                        char data = txt[i];
-                        if (data == '{')
-                        {
-                            if (depth == 0)
-                                start = i;
-                            depth++;
-                        }
-                        else if (data == '}')
-                            depth--;
-                        else
-                        {
-                            continue;
-                        }
-                        if (depth == 0)
-                        {
-                            end = i;
-                            break;
-                        }
-                    }
-                    if (end == -1) return;
-                    txt = txt.Remove(start, end - start + 1);
-                    string fs = $"{{\n {Fields()}\n\t}}";
-                    txt = txt.Insert(start, fs);
-                    var flag = "---ViewUseFlag";
-                    start = txt.IndexOf(flag);
-                    end = txt.IndexOf(flag, start + flag.Length);
-                    txt = txt.Remove(start, end - start);
-                    File.WriteAllText(path, txt.Insert(start, $"{flag}\n {StaticUse()}\n"));
-                }
+                    UpdateLua(creater, $"function {viewName}:OnLoad()", path);
                 else
-                {
+                    WriteLua(creater, path, viewName, vSource);
 
-                    string result = vSource.Replace("#PanelName#", panelName)
-                        .Replace(ViewUseFlag, StaticUse())
-                            .Replace(ViewFeildFlag, Fields());
-                    File.WriteAllText(path, result.ToUnixLineEndings());
-                }
             }
-            private string StaticUse()
+
+            static string StaticUse(ScriptCreater creater)
             {
                 List<string> usings = new List<string>();
                 var marks = creater.GetMarks();
@@ -117,7 +72,7 @@ namespace IFramework.Hotfix.Lua
                 }
                 return use;
             }
-            private string Fields()
+            static string Fields(ScriptCreater creater)
             {
                 var marks = creater.GetMarks();
 
@@ -134,18 +89,67 @@ namespace IFramework.Hotfix.Lua
 
                         string path = marks[i].transform.GetPath();
                         path = path.Remove(0, root_path.Length + 1);
-                        f += "\t\t---@type " + fieldType + "\n";
-                        f += string.Format("\t\t{0} = self:GetComponent(\"{1}\", typeof({2})),{3}", fieldName, path, type, i == marks.Count - 1 ? "" : "\n");
+                        var end = i == marks.Count - 1 ? "" : "\n";
+                        f += $"\t\t---@type {fieldType}\n";
+                        f += $"\t\t{fieldName} = self:GetComponent(\"{path}\", typeof({type})),{end}";
                     }
                 }
 
                 return f;
             }
 
-     
+            public static void WriteLua(ScriptCreater creater, string path, string viewName, string source)
+            {
+                string result = source.Replace(ViewNameFlag, viewName)
+                .Replace(ViewUseFlag, StaticUse(creater))
+                .Replace(ViewFeildFlag, Fields(creater));
+                File.WriteAllText(path, result.ToUnixLineEndings());
+            }
+            public static void UpdateLua(ScriptCreater creater, string target, string path)
+            {
+                string txt = File.ReadAllText(path);
+                int start = txt.IndexOf(target);
+                int end = -1;
+                start = txt.IndexOf("self.Controls", start);
+                int depth = 0;
+                for (int i = start + 1; i < txt.Length; i++)
+                {
+                    char data = txt[i];
+                    if (data == '{')
+                    {
+                        if (depth == 0)
+                            start = i;
+                        depth++;
+                    }
+                    else if (data == '}')
+                        depth--;
+                    else
+                    {
+                        continue;
+                    }
+                    if (depth == 0)
+                    {
+                        end = i;
+                        break;
+                    }
+                }
 
+                if (end == -1) return;
+                txt = txt.Remove(start, end - start + 1);
+                string fs = $"{{\n {Fields(creater)}\n\t}}";
+                txt = txt.Insert(start, fs);
+                start = txt.IndexOf(ViewUseFlagFT);
+                end = txt.IndexOf(ViewUseFlagFT, start + ViewUseFlagFT.Length);
+                txt = txt.Remove(start, end - start);
+                File.WriteAllText(path, txt.Insert(start, $"{ViewUseFlagFT}\n{StaticUse(creater)}\n"));
+            }
+
+
+            public const string ViewUseFlagFT = "---ViewUseFlag";
             public const string ViewUseFlag = "--using";
             public const string ViewFeildFlag = "--Find";
+            public const string ViewNameFlag = "#ViewName#";
+
             public static string head = "--*********************************************************************************\n" +
               "--Author:         " + EditorTools.ProjectConfig.UserName + "\n" +
               "--Version:        " + EditorTools.ProjectConfig.Version + "\n" +
@@ -153,25 +157,24 @@ namespace IFramework.Hotfix.Lua
               "--Date:           " + DateTime.Now.ToString("yyyy-MM-dd") + "\n" +
               "--*********************************************************************************\n";
             static string vSource = head + "\n" +
-             "---ViewUseFlag\n" +
-             ViewUseFlag + "\n\n" +
-             "---ViewUseFlag\n" +
-              "---@class #PanelName#View : UIView_MVC" + "\n" +
-             "local #PanelName#View = class(\"#PanelName#View\",UIView_MVC)\n\n" +
-             "function #PanelName#View:OnLoad()\n" +
+             $"{ViewUseFlagFT}\n" +
+             $"{ViewUseFlag}\n\n" +
+             $"{ViewUseFlagFT}\n" +
+              $"---@class {ViewNameFlag} : UIView_MVC" + "\n" +
+             $"local {ViewNameFlag} = class(\"{ViewNameFlag}\",UIView_MVC)\n\n" +
+             $"function {ViewNameFlag}:OnLoad()\n" +
              "\tself.Controls = {\n" +
-              ViewFeildFlag + "\n\t}\n" +
-              "\t--BindUIEvent\n\n" +
+              ViewFeildFlag + "\n\t}\n\n" +
              "end\n\n" +
-             "function #PanelName#View:OnShow()\n\n" +
+             $"function {ViewNameFlag}:OnShow()\n\n" +
              "end\n\n" +
-             "function #PanelName#View:OnHide()\n\n" +
+             $"function {ViewNameFlag}:OnHide()\n\n" +
              "end\n\n" +
-             "function #PanelName#View:OnClose()\n" +
+             $"function {ViewNameFlag}:OnClose()\n" +
              "\tself.Controls = nil\n" +
              "end\n\n" +
 
-             "return " + "#PanelName#View";
+             $"return {ViewNameFlag}";
 
 
 
