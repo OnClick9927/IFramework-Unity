@@ -9,17 +9,16 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using static IFramework.EditorTools;
 
 namespace IFramework
 {
     [Serializable]
-    public class SplitView
+    class SplitView
     {
-
         public bool vertical = true;
         public float split = 200;
         public float minSize = 100;
-        public event Action<Rect> fistPan, secondPan;
         public event Action onBeginResize;
         public event Action onEndResize;
         public bool dragging
@@ -48,20 +47,14 @@ namespace IFramework
             }
         }
         private bool _resizing;
-
+        private Rect position;
+        public Rect[] rects { get { return RectEx.Split(position, vertical, split, 4); } }
         public void OnGUI(Rect position)
         {
-            var rs = EditorTools.RectEx.Split(position, vertical, split, 4);
-            var mid = EditorTools.RectEx.SplitRect(position, vertical, split, 4);
-            if (fistPan != null)
-            {
-                fistPan(rs[0]);
-            }
-            if (secondPan != null)
-            {
-                secondPan(rs[1]);
-            }
-            EditorGUI.DrawRect(EditorTools.RectEx.Zoom(mid, TextAnchor.MiddleCenter, -2), Color.gray);
+            this.position = position;
+            var mid = RectEx.SplitRect(position, vertical, split, 10);
+
+            EditorGUI.DrawRect(RectEx.Zoom(mid, TextAnchor.MiddleCenter, -8), Color.gray);
             Event e = Event.current;
             if (mid.Contains(e.mousePosition))
             {
@@ -89,6 +82,7 @@ namespace IFramework
                         split = Mathf.Clamp(split, minSize, vertical ? position.width - minSize : position.height - minSize);
 
                         e.Use();
+
                     }
                     break;
                 case EventType.MouseUp:

@@ -62,8 +62,7 @@ namespace IFramework.UI
             {
                 menu.Select(_name);
             }
-            sp.fistPan += Sp_fistPan;
-            sp.secondPan += Sp_secondPan;
+
 
        
 
@@ -112,25 +111,7 @@ namespace IFramework.UI
             AssetDatabase.Refresh();
         }
 
-        private void Sp_secondPan(Rect obj)
-        {
-            if (!_tabs.ContainsKey(_name)) return;
-            GUILayout.BeginArea(obj);
-            {
-                GUILayout.Space(10);
-                _tabs[_name].OnGUI();
-                GUILayout.Space(10);
-
-            }
-            GUILayout.EndArea();
-        }
-
-        private void Sp_fistPan(Rect obj)
-        {
-            menu.OnGUI(obj);
-        }
-
-
+     
 
         private void OnDisable()
         {
@@ -144,6 +125,16 @@ namespace IFramework.UI
             var rs = EditorTools.RectEx.HorizontalSplit(new Rect(Vector2.zero,position.size),5);
             //Tool(rs[0]);
             sp.OnGUI(rs[1]);
+            menu.OnGUI(sp.rects[0]);
+            if (!_tabs.ContainsKey(_name)) return;
+            GUILayout.BeginArea(sp.rects[1]);
+            {
+                GUILayout.Space(10);
+                _tabs[_name].OnGUI();
+                GUILayout.Space(10);
+
+            }
+            GUILayout.EndArea();
 
         }
         private void Tool(Rect position)

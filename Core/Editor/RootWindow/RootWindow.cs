@@ -38,8 +38,6 @@ namespace IFramework
             this.minSize = new Vector2(700, 400);
             _searchField = new UnityEditor.IMGUI.Controls.SearchField();
             _split = new SplitView();
-            _split.fistPan += menu.OnGUI;
-            _split.secondPan += ContentGUI;
             var list = typeof(UserOptionTab).GetSubTypesInAssemblys().ToList();
             list.RemoveAll(t => t.IsAbstract);
 
@@ -86,6 +84,8 @@ namespace IFramework
             Tool(rs[0]);
             var r2 = EditorTools.RectEx.Zoom(rs[1], TextAnchor.UpperCenter, -10);
             _split.OnGUI(r2);
+            menu.OnGUI(_split.rects[0]);
+            ContentGUI(_split.rects[1]);
         }
 
         private void Tool(Rect position)
