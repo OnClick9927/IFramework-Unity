@@ -64,7 +64,7 @@ namespace IFramework.UI.MVC
 
         }
 
-        public bool Subscribe(string path, UIPanel panel)
+        bool IGroups.Subscribe(string path, UIPanel panel)
         {
             var _view = FindView(path);
             if (_view != null)
@@ -83,7 +83,7 @@ namespace IFramework.UI.MVC
             return true;
         }
 
-        public bool UnSubscribe(string path)
+        bool IGroups.UnSubscribe(string path)
         {
             var group = FindView(path);
             if (group != null)

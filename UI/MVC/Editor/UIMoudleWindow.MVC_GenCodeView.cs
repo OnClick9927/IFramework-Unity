@@ -25,7 +25,7 @@ namespace IFramework.UI.MVC
 
             protected override void OnFindDirSuccess()
             {
-                throw new NotImplementedException();
+               
             }
 
             protected override void LoadLastData()
