@@ -86,12 +86,21 @@ namespace IFramework.Hotfix.Lua
                         string fieldType = marks[i].fieldType;
                         string fieldName = marks[i].fieldName;
                         string type = marks[i].fieldType.Split('.').Last();
+                        if (marks[i].gameObject == creater.gameObject)
+                        { 
+                            var end = i == marks.Count - 1 ? "" : "\n";
+                            f += $"\t\t---@type {fieldType}\n";
+                            f += $"\t\t{fieldName} = self:GetComponent(\"\", typeof({type})),{end}";
+                        }
+                        else
+                        {
 
-                        string path = marks[i].transform.GetPath();
-                        path = path.Remove(0, root_path.Length + 1);
-                        var end = i == marks.Count - 1 ? "" : "\n";
-                        f += $"\t\t---@type {fieldType}\n";
-                        f += $"\t\t{fieldName} = self:GetComponent(\"{path}\", typeof({type})),{end}";
+                            string path = marks[i].transform.GetPath();
+                            path = path.Remove(0, root_path.Length + 1);
+                            var end = i == marks.Count - 1 ? "" : "\n";
+                            f += $"\t\t---@type {fieldType}\n";
+                            f += $"\t\t{fieldName} = self:GetComponent(\"{path}\", typeof({type})),{end}";
+                        }
                     }
                 }
 

@@ -107,12 +107,20 @@ namespace IFramework.UI
                     {
                         string fieldType = marks[i].fieldType;
                         string fieldName = marks[i].fieldName;
+                        if (marks[i].gameObject == creater.gameObject)
+                        {
+                            f.AppendLine($"\t\tprivate {fieldType} {fieldName};");
+                            functionField.AppendLine($"\t\t\t{fieldName} = transform.GetComponent<{fieldType}>();");
+                        }
+                        else
+                        {
+                            string path = marks[i].transform.GetPath();
 
-                        string path = marks[i].transform.GetPath();
+                            path = path.Remove(0, root_path.Length + 1);
+                            f.AppendLine($"\t\tprivate {fieldType} {fieldName};");
+                            functionField.AppendLine($"\t\t\t{fieldName} = transform.Find(\"{path}\").GetComponent<{fieldType}>();");
+                        }
 
-                        path = path.Remove(0, root_path.Length + 1);
-                        f.AppendLine($"\t\tprivate {fieldType} {fieldName};");
-                        functionField.AppendLine($"\t\t\t{fieldName} = transform.Find(\"{path}\").GetComponent<{fieldType}>();");
                     }
                 }
                 field = f.ToString();
