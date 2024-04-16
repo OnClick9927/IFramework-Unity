@@ -15,7 +15,7 @@ namespace IFramework.UI
     {
         public class ItemPool : UIAsyncOperation
         {
-            private Queue<UIItemOperation> pool => new Queue<UIItemOperation>();
+            private Queue<UIItemOperation> pool = new Queue<UIItemOperation>();
 
 
             private UIModule module;

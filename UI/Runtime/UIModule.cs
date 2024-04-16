@@ -25,10 +25,10 @@ namespace IFramework.UI
         private Dictionary<string, RectTransform> _layers;
         private Queue<LoadPanelAsyncOperation> asyncLoadQueue;
         private ItemsPool _itemPool;
-        private List<UIPanel> _orderHelp = new List<UIPanel>();
         private Dictionary<string, UIPanel> panels = new Dictionary<string, UIPanel>();
         private Empty4Raycast raycast;
         private bool _loading = false;
+        private IUIDelegate del;
 
         protected override void Awake()
         {
@@ -72,9 +72,7 @@ namespace IFramework.UI
         private void CreateLayers()
         {
             foreach (UILayer item in Enum.GetValues(typeof(UILayer)))
-            {
-                var rect = CreateLayer(item.ToString());
-            }
+                CreateLayer(item.ToString());
             var items = CreateLayer(item_layer);
             CanvasGroup group = items.gameObject.AddComponent<CanvasGroup>();
             group.alpha = 0f;
@@ -90,35 +88,25 @@ namespace IFramework.UI
         private void SetOrder(string path, UIPanel panel)
         {
             UILayer layer = GetPanelLayer(path);
-            int order = GetPanelLayerOrder(path);
             if (!_panelOrders.ContainsKey(layer))
                 _panelOrders.Add(layer, new List<UIPanel>());
             var list = _panelOrders[layer];
-            _orderHelp.Clear();
+            if (list.Contains(panel)) return;
+            int order = GetPanelLayerOrder(path);
 
-            for (int i = list.Count - 1; i >= 0; i--)
+            for (int i = 0; i < list.Count; i++)
             {
-                UIPanel _tmp = list[i];
-                _orderHelp.Add(_tmp);
-            }
-            if (_orderHelp.Contains(panel)) return;
-            _orderHelp.Sort((a, b) => { return GetPanelLayerOrder(a.path) - GetPanelLayerOrder(b.path); });
-            int sbindex = 0;
-            bool bigExist = false;
-            for (int i = 0; i < _orderHelp.Count; i++)
-            {
-                if (GetPanelLayerOrder(_orderHelp[i].path) > order)
+                if (GetPanelLayerOrder(list[i].GetPath()) > order)
                 {
-                    sbindex = _orderHelp[i].transform.GetSiblingIndex();
-                    bigExist = true;
-                    break;
+                    var sbindex = list[i].GetSiblingIndex();
+                    panel.SetSiblingIndex(sbindex);
+                    list.Insert(sbindex, panel);
+                    return;
                 }
             }
-            if (bigExist)
-            {
-                panel.transform.SetSiblingIndex(sbindex);
-            }
             list.Add(panel);
+            if (del != null)
+                del.OnLayerTopChange(layer, panel);
         }
         private void DestroyPanel(string path, UIPanel panel)
         {
@@ -145,10 +133,8 @@ namespace IFramework.UI
         {
             if (ui != null)
             {
-                ui = UnityEngine.Object.Instantiate(ui, GetLayerRectTransform(GetPanelLayer(path).ToString()));
-                string panelName = System.IO.Path.GetFileNameWithoutExtension(path);
-                ui.path = path;
-                ui.name = panelName;
+                ui = ui.Clone(GetLayerRectTransform(GetPanelLayer(path).ToString()));
+                ui.SetPath(path);
                 SetOrder(path, ui);
                 panels.Add(path, ui);
                 _groups.Subscribe(path, ui);
@@ -278,19 +264,13 @@ namespace IFramework.UI
         /// 设置加载器
         /// </summary>
         /// <param name="asset"></param>
-        public void SetAsset(UIAsset asset)
-        {
-            _asset = asset;
-        }
+        public void SetAsset(UIAsset asset) => _asset = asset;
         /// <summary>
         /// 设置ui组管理器
         /// </summary>
         /// <param name="groups"></param>
-        public void SetGroups(IGroups groups)
-        {
-            this._groups = groups;
-        }
-
+        public void SetGroups(IGroups groups) => this._groups = groups;
+        public void SetUIDelegate(IUIDelegate del) => this.del = del;
 
         /// <summary>
         /// 展示一个界面

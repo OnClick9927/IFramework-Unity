@@ -7,12 +7,9 @@
  *History:        2018.11--
 *********************************************************************************/
 using UnityEditor;
-using IFramework;
 using System;
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.UIElements;
-using System.Threading.Tasks;
 
 #pragma warning disable
 namespace IFramework

@@ -20,9 +20,19 @@ namespace IFramework
 
         class FormatProjectScript
         {
-            const string key = "FormatUserScript";
-            private static string cs = EditorTools.projectMemoryPath.CombinePath("UserCSharpScript.txt");
-            private static string newScriptName = "newScript.cs";
+
+            [System.Serializable]
+            private class KEY
+            {
+                public bool on;
+
+                public const string key = "FormatUserScript";
+                public KEY(bool on)
+                {
+                    this.on = on;
+                }
+            }
+
             private static void Head(StreamWriter sw)
             {
                 sw.WriteLine("/*********************************************************************************");
@@ -39,8 +49,9 @@ namespace IFramework
 
             }
 
-            private static void CS()
+            private static void CS(string cs)
             {
+
                 if (File.Exists(cs)) return;
                 using (FileStream fs = new FileStream(cs, FileMode.Create, FileAccess.Write))
                 {
@@ -66,16 +77,19 @@ namespace IFramework
             [MenuItem("Assets/Create/FormatCSharpScript", priority = -1000)]
             public static void Create2()
             {
-                CS();
+                string cs = EditorTools.projectMemoryPath.CombinePath("UserCSharpScript.txt");
+                string newScriptName = "newScript.cs";
+                CS(cs);
                 ProjectWindowUtil.CreateScriptAssetFromTemplateFile(cs, newScriptName);
-                EditorPrefs.SetBool(key, true);
+                EditorTools.SaveToPrefs(new KEY(true), KEY.key);
 
             }
             private class FormatUserScriptProcessor : UnityEditor.AssetModificationProcessor
             {
                 public static void OnWillCreateAsset(string metaPath)
                 {
-                    if (!EditorPrefs.GetBool(key, false)) return;
+                    var key = EditorTools.GetFromPrefs<KEY>(KEY.key);
+                    if (key == null || key.on == false) return;
 
                     string filePath = metaPath.Replace(".meta", "");
                     if (!filePath.EndsWith(".cs")) return;
@@ -92,7 +106,7 @@ namespace IFramework
                              .Replace("#UserDATE#", DateTime.Now.ToString("yyyy-MM-dd")).ToUnixLineEndings();
 
                     File.WriteAllText(realPath, txt, Encoding.UTF8);
-                    EditorPrefs.SetBool(key, false);
+                    EditorTools.SaveToPrefs(new KEY(false), KEY.key);
                     AssetDatabase.Refresh();
                 }
             }

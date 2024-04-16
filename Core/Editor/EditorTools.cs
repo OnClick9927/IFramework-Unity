@@ -11,59 +11,58 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditorInternal;
 
 namespace IFramework
 {
     [InitializeOnLoad]
     partial class EditorTools
     {
+        static void CreateDirectories(List<string> directorys)
+        {
+            foreach (var path in directorys)
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+        }
         static EditorTools()
         {
-            ScriptEnvCheck();
             var directorys = new List<string>()
             {
                 EditorTools.projectMemoryPath,
-                EditorTools.projectMemoryPath_unique,
+            };
+            CreateDirectories(directorys);
+
+            AssetDatabase.Refresh();
+            Log.loger = new UnityLogger();
+            Log.enable_L = ProjectConfig.enable_L;
+            Log.enable_W = ProjectConfig.enable_W;
+            Log.enable_E = ProjectConfig.enable_E;
+            Log.enable = ProjectConfig.enable;
+            directorys = new List<string>()
+            {
                 EditorTools.projectPath,
                 EditorTools.projectConfigPath,
                 EditorTools.projectScriptPath,
             };
-            foreach (var path in directorys)
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
+            CreateDirectories(directorys);
             AssetDatabase.Refresh();
+
         }
 
 
-        public const string projectMemoryPath = "Assets/Editor";
-        public const string projectMemoryPath_unique = "Assets/Editor/Unique";
+        public const string projectMemoryPath = "Assets/Editor/IFramework";
 
         public static string projectPath => ProjectConfig.projectPath;
         public static string projectConfigPath { get { return projectPath.CombinePath("Configs"); } }
         public static string projectScriptPath { get { return projectPath.CombinePath("Scripts"); } }
-        private static void ScriptEnvCheck()
-        {
-#if UNITY_2018_1_OR_NEWER
-            PlayerSettings.allowUnsafeCode = true;
-#else
-            string  path = UnityEngine.Application.dataPath.CombinePath("mcs.rsp");
-            string content = "-unsafe";
-            if (File.Exists(path) && path.ReadText(System.Text.Encoding.Default) == content) return;
-                path.WriteText(content, System.Text.Encoding.Default); 
-            AssetDatabase.Refresh();
-            EditorTools.Quit();
-#endif
-        }
 
 
         public static void SaveToPrefs<T>(T value, string key, bool unique = true)
         {
-            Prefs.SetObject(value.GetType(),key, value, unique);
+            Prefs.SetObject(value.GetType(), key, value, unique);
         }
         public static T GetFromPrefs<T>(string key, bool unique = true)
         {
-            return Prefs.GetObject<T>(typeof(T),key, unique);
+            return Prefs.GetObject<T>(typeof(T), key, unique);
         }
         public static void OpenFolder(string folder)
         {

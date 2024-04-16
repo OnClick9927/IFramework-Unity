@@ -20,7 +20,6 @@ namespace IFramework
     public static partial class EditorTools
     {
 
-        [InitializeOnLoad]
         public static class ProjectConfig
         {
             //用正则来匹配对应的文件名和行号
@@ -133,15 +132,6 @@ namespace IFramework
             }
 
 
-
-            static ProjectConfig()
-            {
-                Log.loger = new UnityLogger();
-                Log.enable_L = ProjectConfig.enable_L;
-                Log.enable_W = ProjectConfig.enable_W;
-                Log.enable_E = ProjectConfig.enable_E;
-                Log.enable = ProjectConfig.enable;
-            }
 
 
         }
