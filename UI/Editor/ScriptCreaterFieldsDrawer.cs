@@ -232,7 +232,6 @@ namespace IFramework.UI
                 state = new TreeViewState();
             }
             _tree = new Tree(state);
-
         }
 
 

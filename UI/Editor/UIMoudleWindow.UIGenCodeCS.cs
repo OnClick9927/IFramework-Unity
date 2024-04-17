@@ -12,21 +12,22 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 
 namespace IFramework.UI
 {
     public partial class UIMoudleWindow
     {
-        public class GenItemCodeCS : UIGenCode<GameObject>
+        public class UIGenCodeCS : UIGenCode<GameObject>
         {
             public enum ItemType
             {
                 UIItem,
                 GameObject,
                 UIObject,
+                MVCView
             }
-            public override string name => "CS/Gen_item_Code_CS";
-            protected string designScriptName { get { return $"{viewName}.Design.cs"; } }
+            public override string name => "CS";
             protected override string viewScriptName { get { return $"{viewName}.cs"; } }
 
 
@@ -36,18 +37,20 @@ namespace IFramework.UI
 
             protected override void OnFindDirSuccess()
             {
-                string txt = File.ReadAllText(UIdir.CombinePath(designScriptName));
+                string txt = File.ReadAllText(scriptPath);
                 if (txt.Contains($": {typeof(UIObjectView)}"))
                     _type = ItemType.UIObject;
                 if (txt.Contains($": {typeof(GameObjectView)}"))
                     _type = ItemType.GameObject;
                 if (txt.Contains($": {typeof(UIItemView)}"))
                     _type = ItemType.UIItem;
+                if (txt.Contains($": {typeof(IFramework.UI.MVC.UIView)}"))
+                    _type = ItemType.MVCView;
             }
 
             protected override void LoadLastData()
             {
-                var last = EditorTools.GetFromPrefs<GenItemCodeCS>(name);
+                var last = EditorTools.GetFromPrefs<UIGenCodeCS>(name);
                 if (last != null)
                 {
                     this.panel = last.gameobject;
@@ -56,40 +59,101 @@ namespace IFramework.UI
                     this._type = last._type;
                 }
             }
+            private static void CS_BuildPanelNames()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("public class PanelNames");
+                sb.AppendLine("{");
+                foreach (var data in collect.datas)
+                {
+                    sb.AppendLine($"\t public static string {data.name} = \"{data.path}\";");
+                }
+                sb.AppendLine("}");
+                File.WriteAllText(cs_path, sb.ToString());
+                AssetDatabase.Refresh();
+            }
             protected override void Draw()
             {
+ 
                 _type = (ItemType)EditorGUILayout.EnumPopup("Type", _type);
             }
-
+            public override void OnGUI()
+            {
+                base.OnGUI();
+                if (GUILayout.Button("Build Panel Names"))
+                {
+                    Collect();
+                    CS_BuildPanelNames();
+                }
+            }
 
             protected override void WriteView()
             {
-                Write(creater, UIdir.CombinePath(viewScriptName), UIdir.CombinePath(designScriptName),
-                    viewDesignScriptOrigin(), ViewTxt());
+
+                Write(creater, scriptPath, viewDesignScriptOrigin());
             }
 
-            public static void Write(ScriptCreater creater, string path, string designPath,
-                string viewDesign, string view)
+            public static void Write(ScriptCreater creater, string path, string origin)
             {
-
-
-                WriteTxt(designPath, viewDesign.ToUnixLineEndings(),
-                (str) =>
+                if (File.Exists(path))
                 {
-                    string field;
-                    string find;
-                    Fields(creater, out field, out find);
-                    return str
-                    //.Replace("#PanelType#", panelName)
-                    .Replace("#field#", field)
-                    .Replace("#findfield#", find)
-                    .Replace(".Design", "");
-                });
+                    var all = File.ReadAllLines(path).ToList();
+                    int cs, ce, fe, fs;
+                    cs = ce = fs = fe = 0;
+                    for (int i = 0; i < all.Count; i++)
+                    {
+                        if (all[i].Contains(FieldsStart))
+                            fs = i;
+                        if (all[i].Contains(FieldsEnd))
+                            fe = i;
+                        if (all[i].Contains(InitComponentsStart))
+                            cs = i;
+                        if (all[i].Contains(InitComponentsEnd))
+                        {
+                            ce = i; break;
+                        }
+                    }
 
-                if (!File.Exists(path))
-                {
-                    WriteTxt(path, view, null);
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < all.Count; i++)
+                    {
+                        if (i < fs)
+                            sb.AppendLine(all[i]);
+                        else if (i == fs)
+                        {
+                            sb.AppendLine(all[i]);
+
+                            sb.AppendLine(Field);
+                        }
+                        else if (i < fe) { }
+                        else if (i < cs)
+                            sb.AppendLine(all[i]);
+
+                        else if (i == cs)
+                        {
+                            sb.AppendLine(all[i]);
+                            sb.AppendLine(FindField);
+                        }
+
+                        else if (i < ce) { }
+                        else
+                            sb.AppendLine(all[i]);
+
+                    }
+                    origin = sb.ToString();
                 }
+                WriteTxt(path, origin.ToUnixLineEndings(),
+                   (str) =>
+                   {
+                       string field;
+                       string find;
+                       Fields(creater, out field, out find);
+                       return str
+                       //.Replace("#PanelType#", panelName)
+                       .Replace(Field, field)
+                       .Replace(FindField, find);
+                   });
+
             }
 
             private static void Fields(ScriptCreater creater, out string field, out string find)
@@ -150,28 +214,45 @@ namespace IFramework.UI
             " *Date:           #UserDATE#\n" +
             "*********************************************************************************/\n";
 
+            public const string InitComponentsStart = "InitComponentsStart";
+            public const string InitComponentsEnd = "InitComponentsEnd";
+            public const string FieldsStart = "FieldsStart";
+            public const string FieldsEnd = "FieldsEnd";
+            public const string Field = "#field#";
+            public const string FindField = "#findfield#";
+            private const string UIItem = "#UIItem#";
+
 
             private string ViewTxt()
             {
-                string add = "";
                 if (_type == ItemType.UIItem)
                 {
-                    add = "" +
- "\t\tprotected override void OnGet()\n" +
- "\t\t{\n" +
- "\t\t}\n" +
-"\t\tpublic override void OnSet()\n" +
-"\t\t{\n" +
-"\t\t}\n";
-                }
-                return head +
- "namespace #UserNameSpace#\n" +
- "{\n" +
- $"\tpublic partial class #UserSCRIPTNAME# \n" +
- "\t{\n" + add +
 
- "\t}\n" +
- "}";
+                    return "\t\tprotected override void OnGet()\n" +
+                     "\t\t{\n" +
+                     "\t\t}\n" +
+                    "\t\tpublic override void OnSet()\n" +
+                    "\t\t{\n" +
+                    "\t\t}\n";
+                }
+                if (_type == ItemType.MVCView)
+                    return "\t\tprotected override void OnLoad()\n" +
+            "\t\t{\n" +
+
+            "\t\t}\n" +
+            "\n" +
+            "\t\tprotected override void OnShow()\n" +
+            "\t\t{\n" +
+            "\t\t}\n" +
+            "\n" +
+             "\t\tprotected override void OnHide()\n" +
+            "\t\t{\n" +
+            "\t\t}\n" +
+            "\n" +
+            "\t\tprotected override void OnClose()\n" +
+            "\t\t{\n" +
+            "\t\t}\n";
+                return string.Empty;
             }
             private string viewDesignScriptOrigin()
             {
@@ -187,21 +268,31 @@ namespace IFramework.UI
                     case ItemType.UIObject:
                         pa = typeof(UIObjectView);
                         break;
+                    case ItemType.MVCView:
+                        pa = typeof(IFramework.UI.MVC.UIView);
+                        break;
                     default:
                         break;
                 }
-                return head +
+                string target = head +
             "namespace #UserNameSpace#\n" +
             "{\n" +
-            $"\tpublic partial class #UserSCRIPTNAME# : {pa.FullName} \n" +
+            $"\tpublic class #UserSCRIPTNAME# : {pa.FullName} \n" +
             "\t{\n" +
-             "#field#\n" +
+             $"//{FieldsStart}\n" +
+             $"{Field}\n" +
+             $"//{FieldsEnd}\n" +
+
             "\t\tprotected override void InitComponents()\n" +
             "\t\t{\n" +
-            "#findfield#\n" +
+             $"\t\t//{InitComponentsStart}\n" +
+            $"{FindField}\n" +
+            $"\t\t//{InitComponentsEnd}\n" +
             "\t\t}\n" +
+            UIItem +
             "\t}\n" +
             "}";
+                return target.Replace(UIItem, ViewTxt());
             }
 
 

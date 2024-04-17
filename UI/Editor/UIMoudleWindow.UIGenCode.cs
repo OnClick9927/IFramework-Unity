@@ -11,6 +11,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEditor;
 using UnityEngine;
 using System.Linq;
+using System.IO;
 
 namespace IFramework.UI
 {
@@ -29,6 +30,8 @@ namespace IFramework.UI
             protected string panelName { get { return panel.name; } }
             protected string viewName { get { return $"{panelName}View"; } }
             protected abstract string viewScriptName { get; }
+            protected virtual string scriptPath { get { return UIdir.CombinePath(viewScriptName); } }
+
 
             protected ScriptCreater creater = new ScriptCreater();
             public override void OnEnable()
@@ -87,21 +90,6 @@ namespace IFramework.UI
                     GUILayout.Label("please wait");
                     return;
                 }
-                if (GUILayout.Button("Gen"))
-                {
-                    if (gameobject == null)
-                    {
-                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("Select UI Panel"));
-                        return;
-                    }
-                    if (string.IsNullOrEmpty(UIdir))
-                    {
-                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
-                        return;
-                    }
-                    WriteView();
-                    AssetDatabase.Refresh();
-                }
                 GUILayout.Space(5);
 
                 GUILayout.BeginHorizontal();
@@ -120,8 +108,41 @@ namespace IFramework.UI
                 {
                     SetViewData();
                 }
-                GUILayout.Space(10);
+                GUILayout.Space(5);
                 fields.OnGUI();
+                GUILayout.Space(5);
+                GUILayout.BeginHorizontal();
+                {
+
+                    GUI.enabled = gameobject && File.Exists(scriptPath);
+                    if (GUILayout.Button("Ping Script"))
+                    {
+                        if (gameobject && File.Exists(scriptPath))
+                        {
+                            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(scriptPath));
+                        }
+                    }
+                    GUI.enabled = true;
+                    GUILayout.Space(5);
+
+                    if (GUILayout.Button("Gen"))
+                    {
+                        if (gameobject == null)
+                        {
+                            EditorWindow.focusedWindow.ShowNotification(new GUIContent("Select UI Panel"));
+                            return;
+                        }
+                        if (string.IsNullOrEmpty(UIdir))
+                        {
+                            EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
+                            return;
+                        }
+                        WriteView();
+                        AssetDatabase.Refresh();
+                    }
+                }
+                GUILayout.EndHorizontal();
+
             }
         }
     }

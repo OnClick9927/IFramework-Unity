@@ -11,10 +11,8 @@ using UnityEngine;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using IFramework;
 
 using System.IO;
-using System.Text;
 
 namespace IFramework.UI
 {
