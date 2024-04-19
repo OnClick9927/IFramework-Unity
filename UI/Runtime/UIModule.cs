@@ -110,7 +110,20 @@ namespace IFramework.UI
         }
         private void DestroyPanel(string path, UIPanel panel)
         {
-            _panelOrders[GetPanelLayer(path)].Remove(panel);
+            var layer = GetPanelLayer(path);
+            var list = _panelOrders[layer];
+            int last = list.Count - 1;
+            UIPanel top = list[last];
+            UIPanel nextTop = null;
+            if (top == panel)
+            {
+                last--;
+                if (last >= 0)
+                    nextTop = list[last];
+                if (del != null)
+                    del.OnLayerTopChange(layer, nextTop);
+            }
+            list.Remove(panel);
             _asset.DestoryPanel(panel.gameObject);
         }
         private UILayer GetPanelLayer(string path)
