@@ -146,7 +146,7 @@ namespace IFramework.UI
         {
             if (ui != null)
             {
-                ui = ui.Clone(GetLayerRectTransform(GetPanelLayer(path).ToString()));
+                //ui = ui.Clone(GetLayerRectTransform(GetPanelLayer(path).ToString()));
                 ui.SetPath(path);
                 SetOrder(path, ui);
                 panels.Add(path, ui);
@@ -200,7 +200,9 @@ namespace IFramework.UI
                 throw new Exception("Please Set IGroups First");
             if (_asset == null)
                 throw new Exception("Please Set UILoader First");
-            var result = _asset.LoadPanel(path);
+            RectTransform parent = GetLayerRectTransform(GetPanelLayer(path).ToString());
+            
+            var result = _asset.LoadPanel(parent,path);
             if (result != null)
             {
                 UILoadComplete(result, path, callback);
@@ -210,6 +212,7 @@ namespace IFramework.UI
                 LoadPanelAsyncOperation op = new LoadPanelAsyncOperation();
                 op.callback = callback;
                 op.path = path;
+                op.parent = parent;
                 if (_asset.LoadPanelAsync(path, op))
                 {
                     _loading = true;

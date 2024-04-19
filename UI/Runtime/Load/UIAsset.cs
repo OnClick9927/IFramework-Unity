@@ -22,9 +22,9 @@ namespace IFramework.UI
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public abstract UIPanel LoadPanel(string name);
+        public abstract UIPanel LoadPanel(RectTransform parent,string name);
 
-        public abstract bool LoadPanelAsync(string name, LoadPanelAsyncOperation op);
+        public abstract bool LoadPanelAsync(string path, LoadPanelAsyncOperation op);
 
         public abstract bool LoadItemAsync(string path, LoadItemAsyncOperation op);
 

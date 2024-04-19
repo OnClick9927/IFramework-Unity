@@ -30,6 +30,6 @@ namespace IFramework.UI
         {
             _lastState = type;
         }
-        public UIPanel Clone(Transform parent) => UnityEngine.Object.Instantiate(this, parent);
+        //public UIPanel Clone(Transform parent) => UnityEngine.Object.Instantiate(this, parent);
     }
 }

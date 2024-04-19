@@ -8,6 +8,7 @@
 *********************************************************************************/
 
 using System;
+using UnityEngine;
 
 namespace IFramework.UI
 {
@@ -15,6 +16,7 @@ namespace IFramework.UI
     {
         public Action<string, UIPanel> callback;
         public string path;
+        public RectTransform parent;
         public new void SetToDefault()
         {
             base.SetToDefault();
