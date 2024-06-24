@@ -123,12 +123,12 @@ namespace IFramework.UI
 
             if (top != layer_top)
                 if (del != null)
-                    del.OnLayerTopChange(layer, top.GetPath());
+                    del.OnLayerTopChange(layer, top?.GetPath());
 
             if (top_visible != layer_top_visible)
             {
                 if (del != null)
-                    del.OnLayerTopVisibleChange(layer, top_visible.GetPath());
+                    del.OnLayerTopVisibleChange(layer, top_visible?.GetPath());
             }
             layer_top = null;
             layer_top_visible = null;
