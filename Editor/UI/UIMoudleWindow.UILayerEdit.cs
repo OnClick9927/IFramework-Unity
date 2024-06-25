@@ -108,7 +108,7 @@ namespace IFramework.UI
                             {
                                 if (IsExpanded(i))
                                 {
-                                    findList.Sort((x, y) => { return x.order > y.order ? 1 : -1; });
+                                    findList.Sort((x, y) => { return x.order >= y.order ? 1 : -1; });
                                     for (int j = 0; j < findList.Count; j++)
                                     {
                                         var find = findList[j];
@@ -139,7 +139,7 @@ namespace IFramework.UI
                             var findList = datas.FindAll(x => x.layer == (UILayer)Enum.Parse(typeof(UILayer), layerNames[i]));
                             if (findList.Count > 0)
                             {
-                                findList.Sort((x, y) => { return x.order > y.order ? 1 : -1; });
+                                findList.Sort((x, y) => { return x.order >= y.order ? 1 : -1; });
                                 for (int j = 0; j < findList.Count; j++)
                                 {
                                     var find = findList[j];
@@ -232,7 +232,7 @@ namespace IFramework.UI
                     List<Data> last = datas.FindAll(x => x.layer == layer);
                     int lastCount = last.Count;
 
-                    last.Sort((x, y) => { return x.order > y.order ? 1 : -1; });
+                    last.Sort((x, y) => { return x.order >= y.order ? 1 : -1; });
                     if (data.layer == layer)
                     {
                         last.Remove(data);
