@@ -221,7 +221,8 @@ namespace IFramework.UI
             " *Version:        #UserVERSION#\n" +
             " *UnityVersion:   #UserUNITYVERSION#\n" +
             " *Date:           #UserDATE#\n" +
-            "*********************************************************************************/\n";
+            "*********************************************************************************/\n" +
+                "using static IFramework.UI.UnityEventHelper;\r\n";
 
             public const string InitComponentsStart = "InitComponentsStart";
             public const string InitComponentsEnd = "InitComponentsEnd";

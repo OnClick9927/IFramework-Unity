@@ -10,10 +10,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityEngine.UI;
-
 namespace IFramework.UI
 {
-    public class UIObjectHelper
+    public class UnityEventHelper
     {
         public abstract class UIEventEntity : IDisposable
         {
