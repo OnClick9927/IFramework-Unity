@@ -19,7 +19,7 @@ namespace IFramework.UI
     public partial class UIModuleWindow
     {
         private TreeViewState layer_state = new TreeViewState();
-        public class UILayerEdit : UIMoudleWindowTab
+        public class UILayerEdit : UIModuleWindowTab
         {
             private class LayerView : TreeView
             {
@@ -50,6 +50,13 @@ namespace IFramework.UI
                           new MultiColumnHeaderState.Column()
                         {
                             headerContent=EditorGUIUtility.IconContent("Folder Icon"),
+                            minWidth=30,
+                            maxWidth=30,
+                            width=30,
+                        },
+                               new MultiColumnHeaderState.Column()
+                        {
+                            headerContent=EditorGUIUtility.IconContent("cs Script Icon"),
                             minWidth=30,
                             maxWidth=30,
                             width=30,
@@ -177,9 +184,9 @@ namespace IFramework.UI
                     var data = datas[args.item.id - layerNames.Length];
                     GUI.Label(EditorTools.RectEx.Zoom(args.GetCellRect(0), TextAnchor.MiddleRight, new Vector2(-indent, 0)), data.name);
 
-                    GUI.Toggle(args.GetCellRect(3), data.isResourcePath, "");
-                    GUI.Label(args.GetCellRect(4), data.order.ToString());
-                    GUI.Label(args.GetCellRect(5), data.path);
+                    GUI.Toggle(args.GetCellRect(4), data.isResourcePath, "");
+                    GUI.Label(args.GetCellRect(5), data.order.ToString());
+                    GUI.Label(args.GetCellRect(6), data.path);
                     if (GUI.Button(args.GetCellRect(1), EditorGUIUtility.IconContent("Search Icon"), EditorStyles.iconButton))
                     {
                         var p = Resources.FindObjectsOfTypeAll(typeof(UIPanel)).Select(x => x as UIPanel).FirstOrDefault(x => x.GetPath() == data.path);
@@ -191,6 +198,22 @@ namespace IFramework.UI
                     if (GUI.Button(args.GetCellRect(2), EditorGUIUtility.IconContent("Search Icon"), EditorStyles.iconButton))
                     {
                         PingProject(data);
+                    }
+                    if (GUI.Button(args.GetCellRect(3), EditorGUIUtility.IconContent("d_editicon.sml"), EditorStyles.iconButton))
+                    {
+                        var names = window.GetPanelScriptNames(data.name);
+                        var paths = AssetDatabase.GetAllAssetPaths().ToList();
+                        foreach (var name in names)
+                        {
+                            string find = paths.Find(x => x.EndsWith(name));
+
+                            if (!string.IsNullOrEmpty(find))
+                            {
+                                EditorUtility.OpenWithDefaultApp(find);
+                                break;
+                            }
+                    
+                        }
                     }
                 }
                 private void PingProject(Data data)
@@ -292,7 +315,7 @@ namespace IFramework.UI
                         this.searchString = string.Empty;
                         Reload();
                         SetExpanded(layerNames.ToList().IndexOf(_data.layer.ToString()), true);
-                     
+
                     }
                     else
                     {
@@ -338,7 +361,7 @@ namespace IFramework.UI
             private void Tool(Rect rect)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("File Folder",GUILayout.Width(100));
+                GUILayout.Label("File Folder", GUILayout.Width(100));
                 EditorGUILayout.LabelField("");
                 f.OnGUI(GUILayoutUtility.GetLastRect());
                 GUILayout.EndHorizontal();
@@ -364,5 +387,7 @@ namespace IFramework.UI
 
 
         }
+
+
     }
 }

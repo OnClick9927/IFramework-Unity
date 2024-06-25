@@ -17,7 +17,7 @@ namespace IFramework.UI
 {
     public partial class UIModuleWindow
     {
-        public abstract class UIGenCode<T> : UIMoudleWindowTab where T : UnityEngine.Object
+        public abstract class UIGenCode<T> : UIModuleWindowTab where T : UnityEngine.Object
         {
             [SerializeField] protected string UIdir = "";
             [SerializeField] protected T panel;
@@ -29,8 +29,12 @@ namespace IFramework.UI
             protected abstract GameObject gameObject { get; }
 
             protected string panelName { get { return panel.name; } }
-            protected string viewName { get { return $"{panelName}View"; } }
-            protected abstract string viewScriptName { get; }
+            private string PanelToViewName(string panelName) => $"{panelName}View";
+
+            protected string viewName => PanelToViewName(panelName);
+            public override string GetPanelScriptName(string panelName) => GetViewScriptName(PanelToViewName(panelName));
+            protected abstract string GetViewScriptName(string viewName);
+            protected string viewScriptName => GetViewScriptName(viewName);
             protected virtual string scriptPath { get { return UIdir.CombinePath(viewScriptName); } }
 
 
@@ -157,6 +161,8 @@ namespace IFramework.UI
                 GUILayout.EndHorizontal();
 
             }
+
+
         }
     }
 }

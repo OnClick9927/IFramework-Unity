@@ -28,7 +28,7 @@ namespace IFramework.UI
                 MVCView
             }
             public override string name => "CS";
-            protected override string viewScriptName { get { return $"{viewName}.cs"; } }
+            protected override string GetViewScriptName(string viewName) => $"{viewName}.cs";
 
 
             [SerializeField] private ItemType _type;

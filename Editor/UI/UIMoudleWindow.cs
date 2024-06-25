@@ -116,7 +116,7 @@ namespace IFramework.UI
 
         }
 
-        private Dictionary<string, UIMoudleWindowTab> _tabs;
+        private Dictionary<string, UIModuleWindowTab> _tabs;
         private MenuTree menu = new MenuTree();
         private SplitView sp = new SplitView();
         private string _name;
@@ -125,11 +125,12 @@ namespace IFramework.UI
         {
             window = this;
 
-            _tabs = typeof(UIMoudleWindowTab).GetSubTypesInAssemblys()
+            _tabs = typeof(UIModuleWindowTab).GetSubTypesInAssemblys()
                 .Where(x => !x.IsAbstract)
                                      .ToList()
-                                     .ConvertAll((type) => { return Activator.CreateInstance(type) as UIMoudleWindowTab; })
+                                     .ConvertAll((type) => { return Activator.CreateInstance(type) as UIModuleWindowTab; })
                                      .ToDictionary((tab) => { return tab.name; });
+
 
             var _names = _tabs.Keys.ToList();
             menu.ReadTree(_names);
@@ -143,7 +144,7 @@ namespace IFramework.UI
             {
                 item.OnEnable();
             }
-       
+
             menu.onCurrentChange += (name) =>
             {
                 _name = name;
@@ -186,6 +187,9 @@ namespace IFramework.UI
             _tabs[_name].OnHierarchyChanged();
             Repaint();
         }
-
+        private List<string> GetPanelScriptNames(string name)
+        {
+            return _tabs.Values.Select(x => x.GetPanelScriptName(name)).ToList();
+        }
     }
 }
