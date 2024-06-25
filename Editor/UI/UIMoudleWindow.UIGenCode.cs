@@ -23,6 +23,7 @@ namespace IFramework.UI
             [SerializeField] protected T panel;
 
             [SerializeField] protected TreeViewState state = new TreeViewState();
+            [SerializeField] private ScriptCreatorFieldsDrawer.SearchType _searchType;
             private ScriptCreatorFieldsDrawer fields;
             private FolderField FloderField;
             protected abstract GameObject gameObject { get; }
@@ -36,16 +37,29 @@ namespace IFramework.UI
             protected ScriptCreator creator = new ScriptCreator();
             public override void OnEnable()
             {
-                LoadLastData();
+                var last = EditorTools.GetFromPrefs(this.GetType(), name) as UIGenCode<T>;
+                if (last != null)
+                {
+                    this._searchType = last._searchType;
+                    this.panel = last.panel;
+                    var path = AssetDatabase.GetAssetPath(this.gameObject);
+                    if (!path.EndsWith(".prefab"))
+                        this.panel = null;
+                    this.UIdir = last.UIdir;
+                    this.state = last.state;
+                    LoadLastData(last);
+                }
                 this.FloderField = new FolderField(UIdir);
-                fields = new ScriptCreatorFieldsDrawer(creator, state);
+
+                fields = new ScriptCreatorFieldsDrawer(creator, state, _searchType);
                 SetViewData();
             }
             protected abstract void OnFindDirSuccess();
-            protected abstract void LoadLastData();
+            protected abstract void LoadLastData(UIGenCode<T> last);
             protected abstract void WriteView();
             public override void OnDisable()
             {
+                _searchType = fields.GetSearchType();
                 EditorTools.SaveToPrefs(this, name);
             }
             private void SetViewData()
@@ -79,7 +93,7 @@ namespace IFramework.UI
 
             public override void OnHierarchyChanged()
             {
-                creator.ColllectMarks();
+                //creator.CollectMarks();
             }
             protected virtual void Draw() { }
             public override void OnGUI()
@@ -138,7 +152,7 @@ namespace IFramework.UI
                         EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(scriptPath));
                     GUI.enabled = true;
 
-         
+
                 }
                 GUILayout.EndHorizontal();
 

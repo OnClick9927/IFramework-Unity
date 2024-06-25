@@ -65,6 +65,10 @@ namespace IFramework
         {
             return Prefs.GetObject<T>(typeof(T), key, unique);
         }
+        public static object GetFromPrefs(Type type,string key, bool unique = true)
+        {
+            return Prefs.GetObject(type, key, unique);
+        }
         public static void OpenFolder(string folder)
         {
             EditorUtility.OpenWithDefaultApp(folder);

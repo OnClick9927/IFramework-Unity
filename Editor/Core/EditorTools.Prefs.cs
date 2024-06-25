@@ -56,6 +56,7 @@ namespace IFramework
                 {
                     if (map[path] == value)
                         return;
+                    map[path] = value;
                 }
                 File.WriteAllText(path, value);
                 AssetDatabase.Refresh();
@@ -67,7 +68,12 @@ namespace IFramework
             public static V GetObject<V>(Type type, string key, bool unique)
             {
                 var str = GetString(type, key, unique);
-                return JsonUtility.FromJson<V>(str);
+                return (V)JsonUtility.FromJson(str, type);
+            }
+            public static object GetObject(Type type, string key, bool unique)
+            {
+                var str = GetString(type, key, unique);
+                return JsonUtility.FromJson(str, type);
             }
         }
     }

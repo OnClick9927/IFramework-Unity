@@ -24,7 +24,7 @@ namespace IFramework.UI
             {
                 UIItem,
                 GameObject,
-                UIObject,
+                //UIObject,
                 MVCView
             }
             public override string name => "CS";
@@ -38,8 +38,8 @@ namespace IFramework.UI
             protected override void OnFindDirSuccess()
             {
                 string txt = File.ReadAllText(scriptPath);
-                if (txt.Contains($": {typeof(UIObjectView)}"))
-                    _type = ItemType.UIObject;
+                //if (txt.Contains($": {typeof(UIObjectView)}"))
+                //    _type = ItemType.UIObject;
                 if (txt.Contains($": {typeof(GameObjectView)}"))
                     _type = ItemType.GameObject;
                 if (txt.Contains($": {typeof(UIItemView)}"))
@@ -48,20 +48,16 @@ namespace IFramework.UI
                     _type = ItemType.MVCView;
             }
 
-            protected override void LoadLastData()
+            protected override void LoadLastData(UIGenCode<GameObject> _last)
             {
-                var last = EditorTools.GetFromPrefs<UIGenCodeCS>(name);
-                if (last != null)
-                {
-
-                    this.panel = last.gameObject;
-                    var path = AssetDatabase.GetAssetPath(this.gameObject);
-                    if (!path.EndsWith(".prefab"))
-                        this.panel = null;
-                    this.UIdir = last.UIdir;
-                    this.state = last.state;
-                    this._type = last._type;
-                }
+                var last = _last as UIGenCodeCS;
+                //this.panel = last.gameObject;
+                //var path = AssetDatabase.GetAssetPath(this.gameObject);
+                //if (!path.EndsWith(".prefab"))
+                //    this.panel = null;
+                //this.UIdir = last.UIdir;
+                //this.state = last.state;
+                this._type = last._type;
             }
             private static void CS_BuildPanelNames()
             {
@@ -278,9 +274,9 @@ namespace IFramework.UI
                     case ItemType.GameObject:
                         pa = typeof(GameObjectView);
                         break;
-                    case ItemType.UIObject:
-                        pa = typeof(UIObjectView);
-                        break;
+                    //case ItemType.UIObject:
+                    //    pa = typeof(UIObjectView);
+                    //    break;
                     case ItemType.MVCView:
                         pa = typeof(IFramework.UI.MVC.UIView);
                         break;

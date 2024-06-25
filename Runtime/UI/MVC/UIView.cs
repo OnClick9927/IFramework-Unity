@@ -10,7 +10,7 @@
 namespace IFramework.UI.MVC
 {
 
-    public abstract class UIView : UIObjectView, IViewEventHandler
+    public abstract class UIView : GameObjectView, IViewEventHandler
     {     
         protected abstract void OnLoad();
         protected abstract void OnShow();

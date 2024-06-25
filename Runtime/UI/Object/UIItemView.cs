@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace IFramework.UI
 {
-    public abstract class UIItemView : UIObjectView
+    public abstract class UIItemView : GameObjectView
     {
         public Action completed;
         public bool _isDone = false;

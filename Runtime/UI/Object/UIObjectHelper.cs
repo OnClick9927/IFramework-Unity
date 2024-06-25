@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace IFramework.UI
 {
-    public abstract class UIObjectView : GameObjectView
+    public class UIObjectHelper
     {
         public abstract class UIEventEntity : IDisposable
         {

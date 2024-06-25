@@ -12,15 +12,30 @@ using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Threading.Tasks;
+using static IFramework.EditorTools;
+using static IFramework.UI.ScriptCreator;
+using static IFramework.UI.ScriptCreatorFieldsDrawer;
 
 namespace IFramework.UI
 {
     public class ScriptCreatorFieldsDrawer
     {
+        public enum SearchType
+        {
+            Name,
+            FieldName,
+            FieldType
+        }
         private class Tree : TreeView
         {
+            public SearchType searchType;
+
+   
             private GameObject go;
             private ScriptCreator sc;
+            private SearchField search;
             public void SetGameObject(ScriptCreator sc)
             {
                 this.sc = sc;
@@ -30,8 +45,10 @@ namespace IFramework.UI
                     this.Reload();
                 }
             }
-            public Tree(TreeViewState state) : base(state)
+            public Tree(TreeViewState state,SearchType searchType) : base(state)
             {
+                this.searchType = searchType;
+                search = new SearchField();
                 this.showBorder = true;
                 this.showAlternatingRowBackgrounds = true;
                 this.multiColumnHeader = new MultiColumnHeader(new MultiColumnHeaderState(new MultiColumnHeaderState.Column[]
@@ -78,13 +95,46 @@ namespace IFramework.UI
                 if (go == null) return;
                 if (sc.IsPrefabInstance(go)) return;
 
-                var item = CreateTreeViewItemForGameObject(go);
-                item.parent = root;
-                if (root.children == null)
-                    root.children = new List<TreeViewItem>();
-                rows.Add(item);
-                root.children.Add(item);
-                item.depth = root.depth + 1;
+                TreeViewItem item = null;
+                bool create = true;
+                if (!string.IsNullOrEmpty(this.searchString))
+                {
+                    string low = this.searchString.ToLower();
+                    switch (searchType)
+                    {
+                        case SearchType.Name:
+                            create = go.name.ToLower().Contains(low);
+                            break;
+                        case SearchType.FieldName:
+                            {
+                                var sm = sc.GetMarks().Find(x => x.gameObject == go);
+                                create = sm != null && sm.fieldName.ToLower().Contains(low);
+                            }
+                            break;
+                        case SearchType.FieldType:
+                            {
+                                var sm = sc.GetMarks().Find(x => x.gameObject == go);
+                                create = sm != null && sm.fieldType.ToLower().Contains(low);
+                            }
+                            break;
+
+                    }
+                }
+
+
+
+
+                if (create)
+                {
+
+                    item = CreateTreeViewItemForGameObject(go);
+                    item.parent = root;
+                    if (root.children == null)
+                        root.children = new List<TreeViewItem>();
+                    rows.Add(item);
+                    root.children.Add(item);
+                    item.depth = root.depth + 1;
+                }
                 int childCount = go.transform.childCount;
                 bool ok = false;
                 for (int i = 0; i < childCount; i++)
@@ -93,14 +143,23 @@ namespace IFramework.UI
                         ok = true;
                         break;
                     }
+
                 if (ok)
                 {
+                    if (string.IsNullOrEmpty(this.searchString))
+                    {
 
-                    if (IsExpanded(item.id))
-                        for (int i = 0; i < childCount; i++)
-                            AddChildrenRecursive(go.transform.GetChild(i).gameObject, item, rows);
+                        if (IsExpanded(item.id))
+                            for (int i = 0; i < childCount; i++)
+                                AddChildrenRecursive(go.transform.GetChild(i).gameObject, item, rows);
+                        else
+                            item.children = CreateChildListForCollapsedParent();
+                    }
                     else
-                        item.children = CreateChildListForCollapsedParent();
+                    {
+                        for (int i = 0; i < childCount; i++)
+                            AddChildrenRecursive(go.transform.GetChild(i).gameObject, root, rows);
+                    }
                 }
             }
             private bool GetActive(GameObject go)
@@ -140,8 +199,28 @@ namespace IFramework.UI
                     }
                 }
                 GUI.color = Color.white;
-            }
+                if (go == _ping)
+                    GUI.Label(RectEx.Zoom(args.rowRect, TextAnchor.MiddleCenter, -8), "", "LightmapEditorSelectedHighlight");
 
+            }
+            public override void OnGUI(Rect rect)
+            {
+                var rs = EditorTools.RectEx.HorizontalSplit(rect, 18);
+                var rs1 = EditorTools.RectEx.VerticalSplit(rs[0], 150,10);
+                var _tmp = (SearchType)EditorGUI.EnumPopup(rs1[0], searchType);
+                if (_tmp!= searchType)
+                {
+                    searchType = _tmp;
+                    Reload();
+                }
+                var tmp = search.OnToolbarGUI(rs1[1], this.searchString);
+                if (tmp != this.searchString)
+                {
+                    this.searchString = tmp;
+                    Reload();
+                }
+                base.OnGUI(rs[1]);
+            }
 
             void SaveGo()
             {
@@ -150,14 +229,14 @@ namespace IFramework.UI
                 AssetDatabase.Refresh();
                 Reload();
             }
-            
+
             protected override bool CanRename(TreeViewItem item)
             {
                 var go = GetGameObject(item.id);
                 return go.GetComponent<ScriptMark>() != null;
 
             }
-            
+
             protected override void RenameEnded(RenameEndedArgs args)
             {
                 var id = args.itemID;
@@ -240,9 +319,9 @@ namespace IFramework.UI
                         sc.RemoveMarks(marks);
                         SaveGo();
                     });
-                menu.AddItem(new GUIContent("Destory All Marks"), false, () =>
+                menu.AddItem(new GUIContent("Destroy All Marks"), false, () =>
                   {
-                      sc.DestoryMarks();
+                      sc.DestroyMarks();
                       SaveGo();
                   });
                 menu.AddSeparator("");
@@ -285,25 +364,49 @@ namespace IFramework.UI
 
                 menu.ShowAsContext();
             }
+            GameObject _ping;
+            protected async override void DoubleClickedItem(int id)
+            {
+                if (!string.IsNullOrEmpty(searchString))
+                {
+                    var _ping = GetGameObject(id);
+                    this._ping = _ping;
+                    while (true)
+                    {
+                        this.SetExpanded(_ping.GetInstanceID(), true);
+                        if (_ping.transform.parent == null) break;
+                        _ping = _ping.transform.parent.gameObject;
+                    }
+                    this.FrameItem(id);
+                    this.searchString = string.Empty;
+                    Reload();
+                    this.FrameItem(id);
+                    await Task.Delay(1000);
+                    this._ping = null;
+                    Reload();
+                }
+            }
         }
-        private ScriptCreator _creater;
+        private ScriptCreator _creator;
         private Tree _tree;
-        public ScriptCreatorFieldsDrawer(ScriptCreator creater, TreeViewState state)
+        public ScriptCreatorFieldsDrawer(ScriptCreator creator, TreeViewState state,SearchType searchType)
         {
-            this._creater = creater;
+            this._creator = creator;
             if (state == null)
             {
                 state = new TreeViewState();
             }
-            _tree = new Tree(state);
+            _tree = new Tree(state, searchType);
         }
 
 
         public void OnGUI()
         {
-            _tree.SetGameObject(_creater);
+            _tree.SetGameObject(_creator);
             _tree.OnGUI(EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true)));
         }
+
+         internal SearchType GetSearchType() => _tree.searchType;
     }
 
 }

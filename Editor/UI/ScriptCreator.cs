@@ -17,6 +17,7 @@ namespace IFramework.UI
     [System.Serializable]
     public class ScriptCreator
     {
+
         public GameObject gameObject;
         [SerializeField] private List<ScriptMark> marks = new List<ScriptMark>();
         public bool IsPrefabInstance(GameObject obj)
@@ -33,20 +34,19 @@ namespace IFramework.UI
                 RemoveMarkFlag(sms[i]);
                 GameObject.DestroyImmediate(sms[i], true);
             }
+            CollectMarks();
         }
         public ScriptMark AddMark(GameObject go)
         {
             if (IsPrefabInstance(go)) return null;
             ScriptMark sm = go.AddComponent<ScriptMark>();
             AddMarkFlag(sm);
+            CollectMarks();
+
             return sm;
         }
 
-        /// <summary>
-        /// 是否是合法字段名称
-        /// </summary>
-        /// <param name="self"></param>
-        /// <returns></returns>
+
         private const string flag = "@sm";
         private void RemoveMarkFlag(ScriptMark sm)
         {
@@ -84,6 +84,7 @@ namespace IFramework.UI
                 sb.Append(list[i]);
             }
             mark.fieldName = sb.ToString();
+
         }
 
         public void SetGameObject(GameObject gameObject)
@@ -92,10 +93,10 @@ namespace IFramework.UI
             {
                 this.gameObject = gameObject;
                 marks.Clear();
-                ColllectMarks();
+                CollectMarks();
             }
         }
-        public void ColllectMarks()
+        private void CollectMarks()
         {
             if (!gameObject) return;
 
@@ -112,10 +113,7 @@ namespace IFramework.UI
         {
             same = "";
             bool exist = false;
-            if (marks == null || marks.Count == 0)
-            {
-                ColllectMarks();
-            }
+            CollectMarks();
             Dictionary<string, List<ScriptMark>> map = new Dictionary<string, List<ScriptMark>>();
             for (int i = 0; i < marks.Count; i++)
             {
@@ -153,7 +151,7 @@ namespace IFramework.UI
             return this.marks.FindAll(x => !IsPrefabInstance(x.gameObject));
         }
 
-        public void DestoryMarks()
+        public void DestroyMarks()
         {
             gameObject.GetComponentsInChildren<ScriptMark>(true).ToList().ForEach((sm) =>
             {
@@ -162,6 +160,7 @@ namespace IFramework.UI
                     GameObject.DestroyImmediate(sm, true);
                 }
             });
+            CollectMarks();
         }
 
     }
