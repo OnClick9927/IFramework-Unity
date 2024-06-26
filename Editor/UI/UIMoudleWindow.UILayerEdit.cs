@@ -197,7 +197,7 @@ namespace IFramework.UI
                     GUI.Label(args.GetCellRect(7), data.path);
                     if (GUI.Button(args.GetCellRect(1), EditorGUIUtility.IconContent("Search Icon"), EditorStyles.iconButton))
                     {
-                        var p = Resources.FindObjectsOfTypeAll(typeof(UIPanel)).Select(x => x as UIPanel).FirstOrDefault(x => x.name == data.name);
+                        var p = Resources.FindObjectsOfTypeAll(typeof(UIPanel)).Select(x => x as UIPanel).FirstOrDefault(x => x.name == data.name && !AssetDatabase.Contains(x));
                         if (p != null)
                         {
                             EditorGUIUtility.PingObject(p);
