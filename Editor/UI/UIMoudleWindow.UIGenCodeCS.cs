@@ -44,11 +44,11 @@ namespace IFramework.UI
                 string txt = File.ReadAllText(scriptPath);
                 //if (txt.Contains($": {typeof(UIObjectView)}"))
                 //    _type = ItemType.UIObject;
-                if (txt.Contains($": {typeof(GameObjectView)}"))
+                if (txt.Contains($": {typeof(IFramework.UI.GameObjectView).FullName}"))
                     _type = ItemType.GameObject;
-                if (txt.Contains($": {typeof(UIItemView)}"))
+                if (txt.Contains($": {typeof(IFramework.UI.UIItemView).FullName}"))
                     _type = ItemType.UIItem;
-                if (txt.Contains($": {typeof(IFramework.UI.MVC.UIView)}"))
+                if (txt.Contains($": {typeof(IFramework.UI.MVC.UIView).FullName}"))
                     _type = ItemType.MVCView;
             }
 
