@@ -156,7 +156,6 @@ namespace IFramework.UI
 
         }
 
-        static string cs_path { get { return EditorTools.projectScriptPath.CombinePath("PanelNames.cs"); } }
 
         private void OnDisable()
         {

@@ -54,7 +54,7 @@ namespace IFramework
                     map[path] = value;
                 else
                 {
-                    if (map[path] == value)
+                    if (map[path] == value && File.Exists(path))
                         return;
                     map[path] = value;
                 }

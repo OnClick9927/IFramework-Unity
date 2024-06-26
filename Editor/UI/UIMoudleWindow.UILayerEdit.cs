@@ -56,6 +56,13 @@ namespace IFramework.UI
                         },
                                new MultiColumnHeaderState.Column()
                         {
+                            headerContent=EditorGUIUtility.IconContent("Prefab Icon"),
+                            minWidth=30,
+                            maxWidth=30,
+                            width=30,
+                        },
+                               new MultiColumnHeaderState.Column()
+                        {
                             headerContent=EditorGUIUtility.IconContent("cs Script Icon"),
                             minWidth=30,
                             maxWidth=30,
@@ -71,9 +78,9 @@ namespace IFramework.UI
                           new MultiColumnHeaderState.Column()
                         {
                             headerContent=new GUIContent("Order"),
-                            minWidth=30,
-                            maxWidth=30,
-                            width=30
+                            minWidth=40,
+                            maxWidth=40,
+                            width=40
                         },
                         new MultiColumnHeaderState.Column()
                         {
@@ -183,13 +190,14 @@ namespace IFramework.UI
                     float indent = this.GetContentIndent(args.item);
                     var data = datas[args.item.id - layerNames.Length];
                     GUI.Label(EditorTools.RectEx.Zoom(args.GetCellRect(0), TextAnchor.MiddleRight, new Vector2(-indent, 0)), data.name);
-
-                    GUI.Toggle(args.GetCellRect(4), data.isResourcePath, "");
-                    GUI.Label(args.GetCellRect(5), data.order.ToString());
-                    GUI.Label(args.GetCellRect(6), data.path);
+                    if (data.isResourcePath)
+                        GUI.Label(args.GetCellRect(5), EditorGUIUtility.IconContent("d_P4_CheckOutRemote"));
+                    //GUI.Toggle(args.GetCellRect(5), data.isResourcePath, "");
+                    GUI.Label(args.GetCellRect(6), data.order.ToString());
+                    GUI.Label(args.GetCellRect(7), data.path);
                     if (GUI.Button(args.GetCellRect(1), EditorGUIUtility.IconContent("Search Icon"), EditorStyles.iconButton))
                     {
-                        var p = Resources.FindObjectsOfTypeAll(typeof(UIPanel)).Select(x => x as UIPanel).FirstOrDefault(x => x.GetPath() == data.path);
+                        var p = Resources.FindObjectsOfTypeAll(typeof(UIPanel)).Select(x => x as UIPanel).FirstOrDefault(x => x.name == data.name);
                         if (p != null)
                         {
                             EditorGUIUtility.PingObject(p);
@@ -201,6 +209,10 @@ namespace IFramework.UI
                     }
                     if (GUI.Button(args.GetCellRect(3), EditorGUIUtility.IconContent("d_editicon.sml"), EditorStyles.iconButton))
                     {
+                        AssetDatabase.OpenAsset(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(data.path));
+                    }
+                    if (GUI.Button(args.GetCellRect(4), EditorGUIUtility.IconContent("d_editicon.sml"), EditorStyles.iconButton))
+                    {
                         var names = window.GetPanelScriptNames(data.name);
                         var paths = AssetDatabase.GetAllAssetPaths().ToList();
                         foreach (var name in names)
@@ -209,10 +221,11 @@ namespace IFramework.UI
 
                             if (!string.IsNullOrEmpty(find))
                             {
-                                EditorUtility.OpenWithDefaultApp(find);
+                                UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(find, 0);
+                                //EditorUtility.OpenWithDefaultApp(find);
                                 break;
                             }
-                    
+
                         }
                     }
                 }
