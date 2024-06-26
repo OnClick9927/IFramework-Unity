@@ -56,8 +56,11 @@ namespace IFramework.UI
             {
                 var last = _last as UIGenCodeCS;
                 this._type = last._type;
-                this._panelNameDir = last._panelNameDir;
-                this._panelNameFitDir = last._panelNameFitDir;
+
+                if (!string.IsNullOrEmpty(last._panelNameDir))
+                    this._panelNameDir = last._panelNameDir;
+                if (!string.IsNullOrEmpty(last._panelNameFitDir))
+                    this._panelNameFitDir = last._panelNameFitDir;
             }
 
             private void CS_BuildPanelNames()
@@ -90,7 +93,7 @@ namespace IFramework.UI
                 {
                     GUILayout.BeginHorizontal();
 
-                    if (GUILayout.Button("Build Panel Names", GUILayout.Width(120),GUILayout.Height(40)))
+                    if (GUILayout.Button("Build Panel Names", GUILayout.Width(120), GUILayout.Height(40)))
                         CS_BuildPanelNames();
                     GUILayout.BeginVertical();
                     {
