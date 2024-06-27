@@ -12,7 +12,7 @@ namespace IFramework
 {
     public abstract class Game:MonoBehaviour
 	{
-        public IModules modules { get { return Launcher.modules; } }
+        public Modules modules { get { return Launcher.modules; } }
         private void Awake()
         {
             transform.parent = Launcher.Instance.transform;

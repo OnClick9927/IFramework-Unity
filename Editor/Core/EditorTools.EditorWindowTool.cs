@@ -111,7 +111,7 @@ namespace IFramework
                 var _windows_2 = new List<Entity>();
                 var _windows_3 = new List<Entity>();
 
-                type.GetSubTypesInAssemblys().Where(x => !x.IsAbstract && x != typeof(RootWindow)).ToList().ForEach((_type) =>
+                type.GetSubTypesInAssemblies().Where(x => !x.IsAbstract && x != typeof(RootWindow)).ToList().ForEach((_type) =>
                 {
                     if (!_type.IsDefined(typeof(EditorWindowCacheAttribute), false))
                     {

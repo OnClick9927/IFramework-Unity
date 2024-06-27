@@ -38,7 +38,7 @@ namespace IFramework
             this.minSize = new Vector2(700, 400);
             _searchField = new UnityEditor.IMGUI.Controls.SearchField();
             _split = new SplitView();
-            var list = typeof(UserOptionTab).GetSubTypesInAssemblys().ToList();
+            var list = typeof(UserOptionTab).GetSubTypesInAssemblies().ToList();
             list.RemoveAll(t => t.IsAbstract);
 
             tabs = list.ConvertAll(t => Activator.CreateInstance(t) as UserOptionTab)
@@ -91,10 +91,9 @@ namespace IFramework
         private void Tool(Rect position)
         {
             GUILayout.BeginArea(position);
-            GUILayout.BeginHorizontal("toolbar");
-            GUILayout.Label("", GUILayout.Width(100));
+            GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            Rect r = GUILayoutUtility.GetLastRect();
+            Rect r = EditorGUILayout.GetControlRect(GUILayout.Width(100));
             if (GUI.Button(r, "Tools", GUIStyles.ToolbarDropDown))
             {
                 GenericMenu menu = new GenericMenu();
@@ -118,9 +117,8 @@ namespace IFramework
                 menu.DropDown(r);
             }
             GUILayout.FlexibleSpace();
-            GUILayout.Label("", GUILayout.Width(200));
 
-            search = _searchField.OnGUI(GUILayoutUtility.GetLastRect(), search);
+            search = _searchField.OnGUI(EditorGUILayout.GetControlRect(GUILayout.Width(200)), search);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }

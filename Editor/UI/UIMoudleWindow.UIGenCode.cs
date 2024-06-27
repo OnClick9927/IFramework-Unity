@@ -17,9 +17,13 @@ namespace IFramework.UI
 {
     public partial class UIModuleWindow
     {
-        public abstract class UIGenCode<T> : UIModuleWindowTab where T : UnityEngine.Object
+        public abstract class UIGenCode : UIModuleWindowTab
         {
-            [SerializeField] protected string UIdir = "";
+            public abstract void GenPanelNames(PanelPathCollect collect, string scriptGenPath, string scriptName);
+        }
+        public abstract class UIGenCode<T> : UIGenCode where T : UnityEngine.Object
+        {
+            [SerializeField] protected string GenPath = "";
             [SerializeField] protected T panel;
 
             [SerializeField] protected TreeViewState state = new TreeViewState();
@@ -32,10 +36,10 @@ namespace IFramework.UI
             private string PanelToViewName(string panelName) => $"{panelName}View";
 
             protected string viewName => PanelToViewName(panelName);
-            public override string GetPanelScriptName(string panelName) => GetViewScriptName(PanelToViewName(panelName));
+            public sealed override string GetPanelScriptName(string panelName) => GetViewScriptName(PanelToViewName(panelName));
             protected abstract string GetViewScriptName(string viewName);
             protected string viewScriptName => GetViewScriptName(viewName);
-            protected virtual string scriptPath { get { return UIdir.CombinePath(viewScriptName); } }
+            protected virtual string scriptPath { get { return GenPath.CombinePath(viewScriptName); } }
 
 
             protected ScriptCreator creator = new ScriptCreator();
@@ -49,11 +53,11 @@ namespace IFramework.UI
                     var path = AssetDatabase.GetAssetPath(this.gameObject);
                     if (!path.EndsWith(".prefab"))
                         this.panel = null;
-                    this.UIdir = last.UIdir;
+                    this.GenPath = last.GenPath;
                     this.state = last.state;
                     LoadLastData(last);
                 }
-                this.FloderField = new FolderField(UIdir);
+                this.FloderField = new FolderField(GenPath);
 
                 fields = new ScriptCreatorFieldsDrawer(creator, state, _searchType);
                 SetViewData();
@@ -90,15 +94,12 @@ namespace IFramework.UI
                 else
                 {
                     FloderField.SetPath(find.Replace(viewScriptName, "").ToAssetsPath());
-                    UIdir = FloderField.path;
+                    GenPath = FloderField.path;
                     OnFindDirSuccess();
                 }
             }
 
-            public override void OnHierarchyChanged()
-            {
-                //creator.CollectMarks();
-            }
+        
             protected virtual void Draw() { }
             public override void OnGUI()
             {
@@ -116,7 +117,7 @@ namespace IFramework.UI
                     GUILayout.Space(20);
 
                     FloderField.OnGUI(EditorGUILayout.GetControlRect());
-                    UIdir = FloderField.path;
+                    GenPath = FloderField.path;
                     GUILayout.EndHorizontal();
                 }
                 Draw();
@@ -138,7 +139,7 @@ namespace IFramework.UI
                             EditorWindow.focusedWindow.ShowNotification(new GUIContent("Select UI Panel"));
                             return;
                         }
-                        if (string.IsNullOrEmpty(UIdir))
+                        if (string.IsNullOrEmpty(GenPath))
                         {
                             EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
                             return;
@@ -159,6 +160,7 @@ namespace IFramework.UI
 
                 }
                 GUILayout.EndHorizontal();
+                GUILayout.Space(5);
 
             }
 

@@ -130,10 +130,9 @@ namespace IFramework
                 for (var i = Info.logIgnoreFiles.Count - 1; i >= 0; i--)
                 {
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label(String.Empty);
                     var f = GetFileField(i);
                     f.SetPath(Info.logIgnoreFiles[i]);
-                    f.OnGUI(GUILayoutUtility.GetLastRect());
+                    f.OnGUI(EditorGUILayout.GetControlRect());
                     if (GUILayout.Button("", GUIStyles.minus, GUILayout.Width(20)))
                     {
                         Info.logIgnoreFiles.RemoveAt(i);

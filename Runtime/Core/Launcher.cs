@@ -30,7 +30,7 @@ namespace IFramework
             }
         }
 
-        public static IModules modules { get { return instance._modules; } }
+        public static Modules modules { get { return instance._modules; } }
 
         private static event Action onFixUpdate;
         private static event Action onUpdate;
@@ -48,7 +48,7 @@ namespace IFramework
         private void Awake()
         {
             _modules = new Modules();
-            _loom = LoomModule.CreatInstance<LoomModule>("");
+            _loom = LoomModule.CreateInstance<LoomModule>("");
 
 
         }

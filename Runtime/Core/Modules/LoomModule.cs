@@ -3,9 +3,6 @@ using System.Collections.Generic;
 
 namespace IFramework
 {
-    /// <summary>
-    /// 线程反馈模块
-    /// </summary>
     partial class LoomModule : UpdateModule
     {
         private interface IQueue
@@ -66,7 +63,7 @@ namespace IFramework
             MyQueue<T> queue = GetQueue<T>();
             queue.action -= action;
         }
-        protected override ModulePriority OnGetDefautPriority()
+        protected override ModulePriority OnGetDefaultPriority()
         {
             return ModulePriority.Loom;
         }

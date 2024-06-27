@@ -33,7 +33,7 @@ namespace IFramework
         {
             this._path = path;
         }
-        public bool leagal { get { return Fitter(path); } }
+        public bool legal { get { return Fitter(path); } }
         protected virtual bool Fitter(string path) { return true; }
 
         public void OnGUI(Rect position)

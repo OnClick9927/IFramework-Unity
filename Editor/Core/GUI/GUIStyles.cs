@@ -47,7 +47,7 @@ namespace IFramework
         public static GUIStyle PreDropDown = Get("PreDropDown");
         public static GUIStyle IN_title = Get("IN Title");
 
-        public static GUIStyle titlestyle = Get("IN BigTitle");
+        public static GUIStyle titleStyle = Get("IN BigTitle");
         public static GUIStyle minus = Get("OL Minus");
         public static GUIStyle plus = Get("OL Plus");
         public static GUIStyle BoldLabel = Get("BoldLabel");

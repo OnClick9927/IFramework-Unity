@@ -13,6 +13,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using static IFramework.UI.PanelPathCollect;
+using static IFramework.UI.UIModuleWindow.UICollectData;
 
 namespace IFramework.UI
 {
@@ -21,16 +22,15 @@ namespace IFramework.UI
         private TreeViewState layer_state = new TreeViewState();
         public class UILayerEdit : UIModuleWindowTab
         {
+            private static PanelPathCollect collect;
             private class LayerView : TreeView
             {
-                public PanelPathCollect collect;
                 private List<Data> datas { get { return collect.datas; } }
                 private SearchField searchField;
                 string[] layerNames;
                 IList<int> draggedItemIDs;
                 public LayerView(TreeViewState state) : base(state)
                 {
-                    collect = UICollectData.collect;
                     layerNames = Enum.GetNames(typeof(UILayer));
                     searchField = new SearchField();
                     this.multiColumnHeader = new MultiColumnHeader(new MultiColumnHeaderState(new MultiColumnHeaderState.Column[] {
@@ -352,46 +352,94 @@ namespace IFramework.UI
             }
             public override string name => "BuildUILayer";
             LayerView view;
-            FolderField f;
+            FolderField GenF = new FolderField();
+            FolderField CollectF = new FolderField();
+            FolderField ScriptGenF = new FolderField();
+
+
             public override void OnEnable()
             {
+                Fresh();
                 view = new LayerView(window.layer_state);
-                f = new FolderField(UICollectData.UICollectDir);
-                f.onValueChange += (value) =>
-                {
-                    UICollectData.UICollectDir = value.ToAssetsPath();
-                };
+
             }
             public override void OnGUI()
             {
-                GUILayout.Box("", GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
-                var rect = GUILayoutUtility.GetLastRect();
+                var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
                 var rs = EditorTools.RectEx.HorizontalSplit(rect, rect.height - 10);
-
                 view.OnGUI(rs[0]);
                 Tool(rs[1]);
             }
+            private void Fresh()
+            {
+                collect = UICollectData.Collect();
+                view?.Reload();
+            }
             private void Tool(Rect rect)
             {
+
+                var index = UICollectData.planIndex;
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("File Folder", GUILayout.Width(100));
-                EditorGUILayout.LabelField("");
-                f.OnGUI(GUILayoutUtility.GetLastRect());
+                var plans = UICollectData.plans;
+                index = EditorGUILayout.Popup(index, plans.ConvertAll(x => x.name).ToArray(), GUILayout.Width(150));
+                if (index != UICollectData.planIndex)
+                {
+                    UICollectData.SetPlanIndex(index);
+                    Fresh();
+                }
+                var plan = UICollectData.plan;
+                var _name = GUILayout.TextField(plan.name);
+                if (GUILayout.Button(nameof(UICollectData.DeletePlan), GUILayout.Width(80)))
+                {
+                    UICollectData.DeletePlan();
+                    GUIUtility.ExitGUI();
+                }
+                if (GUILayout.Button(nameof(UICollectData.NewPlan), GUILayout.Width(70)))
+                {
+                    UICollectData.NewPlan();
+                    GUIUtility.ExitGUI();
+                }
+                GUILayout.EndHorizontal();
+
+
+                GenF.SetPath(plan.GenPath);
+                CollectF.SetPath(plan.CollectPath);
+                ScriptGenF.SetPath(plan.ScriptGenPath);
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(nameof(UICollectData.Plan.GenPath), GUILayout.Width(150));
+                GenF.OnGUI(EditorGUILayout.GetControlRect());
+                GUILayout.EndHorizontal();
+
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(nameof(UICollectData.Plan.CollectPath), GUILayout.Width(150));
+                CollectF.OnGUI(EditorGUILayout.GetControlRect());
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
+                GUILayout.Label(nameof(UICollectData.Plan.ScriptGenPath), GUILayout.Width(150));
+                ScriptGenF.OnGUI(EditorGUILayout.GetControlRect());
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+
+                string scriptName = EditorGUILayout.TextField(nameof(plan.ScriptName), plan.ScriptName);
+                var typeIndex = EditorGUILayout.Popup(plan.typeIndex, Plan.shortTypes, GUILayout.Width(150));
+                GUILayout.EndHorizontal();
+
+
+                UICollectData.SavePlan(_name, GenF.path, CollectF.path, ScriptGenF.path, scriptName, typeIndex);
+
+                GUILayout.BeginHorizontal();
                 {
-                    if (GUILayout.Button("Fresh"))
+                    if (GUILayout.Button(nameof(Fresh))) Fresh();
+          
+                    if (GUILayout.Button(nameof(UICollectData.SavePlan)))
                     {
-                        view.collect = UICollectData.collect;
-                        view.Reload();
+                        UICollectData.SavePlan(collect);
                     }
-                    if (GUILayout.Button("Save To File"))
+                    if (GUILayout.Button(nameof(UICollectData.SavePlans)))
                     {
-                        UICollectData.Save(view.collect);
-                    }
-                    if (GUILayout.Button("Ping File"))
-                    {
-                        EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<TextAsset>(UICollectData.UICollectPath));
+                        UICollectData.SavePlans();
+                        GUIUtility.ExitGUI();
                     }
                 }
                 GUILayout.EndHorizontal();

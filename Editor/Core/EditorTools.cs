@@ -33,7 +33,7 @@ namespace IFramework
             CreateDirectories(directorys);
 
             AssetDatabase.Refresh();
-            Log.loger = new UnityLogger();
+            Log.logger = new UnityLogger();
             Log.enable_L = ProjectConfig.enable_L;
             Log.enable_W = ProjectConfig.enable_W;
             Log.enable_E = ProjectConfig.enable_E;
@@ -69,6 +69,9 @@ namespace IFramework
         {
             return Prefs.GetObject(type, key, unique);
         }
+
+
+
         public static void OpenFolder(string folder)
         {
             EditorUtility.OpenWithDefaultApp(folder);
@@ -107,12 +110,8 @@ namespace IFramework
         {
             return self.Replace("\r\n", "\n").Replace("\r", "\n");
         }
-        /// <summary>
-        /// 获取所有程序集中的类型的子类，3.5有问题
-        /// </summary>
-        /// <param name="self"></param>
-        /// <returns></returns>
-        public static IEnumerable<Type> GetSubTypesInAssemblys(this Type self)
+
+        public static IEnumerable<Type> GetSubTypesInAssemblies(this Type self)
         {
             if (self.IsInterface)
                 return AppDomain.CurrentDomain.GetAssemblies()
@@ -122,22 +121,13 @@ namespace IFramework
                             .SelectMany(item => item.GetTypes())
                             .Where(item => item.IsSubclassOf(self));
         }
-        /// <summary>
-        /// 规范路径
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+
         public static string ToRegularPath(this string path)
         {
             path = path.Replace('\\', '/');
             return path;
         }
-        /// <summary>
-        /// 拼接路径
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="toCombinePath"></param>
-        /// <returns></returns>
+   
         public static string CombinePath(this string path, string toCombinePath)
         {
             return Path.Combine(path, toCombinePath).ToRegularPath();

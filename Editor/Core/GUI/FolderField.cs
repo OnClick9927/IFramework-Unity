@@ -20,7 +20,7 @@ namespace IFramework
         public string title;
         public string folder;
         public string defaultName;
-        public FolderField(string path = "Assets", string folder = "Assets", string title = "Select Floder", string defaultName = "")
+        public FolderField(string path = "Assets", string folder = "Assets", string title = "Select Folder", string defaultName = "")
         {
             this._path = path;
             this.title = title;
@@ -32,7 +32,7 @@ namespace IFramework
         {
             this._path = path;
         }
-        public bool leagal { get { return Fitter(path); } }
+        public bool legal { get { return Fitter(path); } }
         protected virtual bool Fitter(string path) { return true; }
 
         public void OnGUI(Rect position)
@@ -61,7 +61,7 @@ namespace IFramework
                     onValueChange?.Invoke(_path);
                 }
             }
-            if (leagal)
+            if (legal)
             {
 
                 EditorTools.RectEx.DrawOutLine(rects[0], Color.grey);

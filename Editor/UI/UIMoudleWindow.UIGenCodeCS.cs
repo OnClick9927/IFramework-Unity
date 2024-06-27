@@ -32,12 +32,10 @@ namespace IFramework.UI
 
 
             [SerializeField] private ItemType _type;
-            [SerializeField] private string _panelNameDir = EditorTools.projectScriptPath;
-            [SerializeField] private string _panelNameFitDir = EditorTools.projectPath;
+  
 
             protected override GameObject gameObject => panel;
-            private FolderField _PanelNameF = new FolderField();
-            private FolderField _PanelNameFitF = new FolderField();
+
 
             protected override void OnFindDirSuccess()
             {
@@ -56,28 +54,19 @@ namespace IFramework.UI
             {
                 var last = _last as UIGenCodeCS;
                 this._type = last._type;
-
-                if (!string.IsNullOrEmpty(last._panelNameDir))
-                    this._panelNameDir = last._panelNameDir;
-                if (!string.IsNullOrEmpty(last._panelNameFitDir))
-                    this._panelNameFitDir = last._panelNameFitDir;
             }
-
-            private void CS_BuildPanelNames()
+            public override void GenPanelNames(PanelPathCollect collect, string scriptGenPath, string scriptName)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine("public class PanelNames");
+                sb.AppendLine($"public class {scriptName}");
                 sb.AppendLine("{");
-                var datas = UICollectData.collect.datas;
+                var datas = collect.datas;
                 foreach (var data in datas)
                 {
-                    if (data.path.Contains(this._panelNameFitDir))
-                    {
-                        sb.AppendLine($"\t public static string {data.name} = \"{data.path}\";");
-                    }
+                    sb.AppendLine($"\t public static string {data.name} = \"{data.path}\";");
                 }
                 sb.AppendLine("}");
-                File.WriteAllText(_panelNameDir.CombinePath("PanelNames.cs"), sb.ToString());
+                File.WriteAllText(scriptGenPath.CombinePath($"{scriptName}.cs"), sb.ToString());
                 AssetDatabase.Refresh();
             }
             protected override void Draw()
@@ -88,37 +77,7 @@ namespace IFramework.UI
             public override void OnGUI()
             {
                 base.OnGUI();
-                if (EditorApplication.isCompiling) return;
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.BeginHorizontal();
-
-                    if (GUILayout.Button("Build Panel Names", GUILayout.Width(120), GUILayout.Height(40)))
-                        CS_BuildPanelNames();
-                    GUILayout.BeginVertical();
-                    {
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.Label("Gen Path", GUILayout.Width(60));
-                            _PanelNameF.SetPath(this._panelNameDir);
-                            _PanelNameF.OnGUI(GUILayoutUtility.GetRect(10, 20, GUILayout.ExpandWidth(true)));
-                            this._panelNameDir = _PanelNameF.path;
-                            GUILayout.EndHorizontal();
-                        }
-
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.Label("Fit Path", GUILayout.Width(60));
-                            _PanelNameFitF.SetPath(this._panelNameFitDir);
-                            _PanelNameFitF.OnGUI(GUILayoutUtility.GetRect(10, 20, GUILayout.ExpandWidth(true)));
-                            this._panelNameFitDir = _PanelNameFitF.path;
-                            GUILayout.EndHorizontal();
-                        }
-                        GUILayout.EndVertical();
-                    }
-                    GUILayout.EndHorizontal();
-                }
-                GUILayout.EndVertical();
+     
             }
 
             protected override void WriteView()

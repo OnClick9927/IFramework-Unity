@@ -13,6 +13,7 @@ using System.Reflection;
 using UnityEditorInternal;
 using UnityEditor.Callbacks;
 using System.Text.RegularExpressions;
+using UnityEngine.Windows;
 
 namespace IFramework
 {
@@ -101,9 +102,9 @@ namespace IFramework
                     var p = _type.GetProperty("displayName");
                     __info.UserName = (string)p.GetValue(userInfo);
                     if (!__info.logIgnoreFiles.Contains(default_path))
-                    {
                         __info.logIgnoreFiles.Add(default_path);
-                    }
+
+                    __info.logIgnoreFiles.RemoveAll(x => !File.Exists(x));
                     __info.Save();
                     return __info;
                 }

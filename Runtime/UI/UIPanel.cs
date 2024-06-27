@@ -9,9 +9,7 @@
 using UnityEngine;
 namespace IFramework.UI
 {
-    /// <summary>
-    /// ui 基类
-    /// </summary>
+
     public class UIPanel:MonoBehaviour
     {
         private string path;

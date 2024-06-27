@@ -2,65 +2,44 @@
 
 namespace IFramework
 {
-    /// <summary>
-    /// 模块
-    /// </summary>
+
     public abstract class Module : IGenericPriorityQueueNode<int>,IDisposable
     {
-        /// <summary>
-        /// 默认名字
-        /// </summary>
+ 
         public const string defaultName = "default";
 
 
         private bool _binded;
         private int _priority;
-        /// <summary>
-        /// 优先级（越大释放越早释放,越小越先 update）
-        /// </summary>
+ 
         int IGenericPriorityQueueNode<int>.priority { get => _priority; set => _priority = value; }
         int IGenericPriorityQueueNode<int>.position { get; set; }
         long IGenericPriorityQueueNode<int>.insertPosition { get; set; }
 
         public int priority { get { return _priority; } }
 
-        /// <summary>
-        /// 是否绑定了
-        /// </summary>
+
         public bool binded { get { return _binded; } internal set { _binded = value; } }
 
-        /// <summary>
-        /// 名字
-        /// </summary>
+
         public string name { get; set; }
 
 
 
 
-        /// <summary>
-        /// 初始化
-        /// </summary>
         protected abstract void Awake();
 
-        /// <summary>
-        /// 阻止 New
-        /// </summary>
+ 
         protected Module() { }
-        /// <summary>
-        /// 创建实例
-        /// </summary>
-        /// <param name="type">模块类型</param>
-        /// <param name="name">模块名称</param>
-        /// <param name="priority"></param>
-        /// <returns></returns>
-        public static Module CreatInstance(Type type, string name = defaultName, int priority = 0)
+
+        public static Module CreateInstance(Type type, string name = defaultName, int priority = 0)
         {
             Module moudle = Activator.CreateInstance(type) as Module;
             if (moudle != null)
             {
                 moudle._binded = false;
                 moudle.name = name;
-                moudle._priority = moudle.OnGetDefautPriority().value + priority;
+                moudle._priority = moudle.OnGetDefaultPriority().value + priority;
                 moudle.Awake();
                 if (moudle is UpdateModule)
                 {
@@ -72,37 +51,22 @@ namespace IFramework
 
             return moudle;
         }
-        /// <summary>
-        /// 设置优先级
-        /// </summary>
-        /// <returns></returns>
-        protected virtual ModulePriority OnGetDefautPriority()
+
+        protected virtual ModulePriority OnGetDefaultPriority()
         {
             return ModulePriority.Custom;
         }
 
-        /// <summary>
-        /// 创建实例
-        /// </summary>
-        /// <param name="name">模块名称</param>
-        /// <param name="priority"></param>
-        /// <returns></returns>
-        public static T CreatInstance<T>(string name = defaultName, int priority = 0) where T : Module
+        public static T CreateInstance<T>(string name = defaultName, int priority = 0) where T : Module
         {
-            return CreatInstance(typeof(T), name, priority) as T;
+            return CreateInstance(typeof(T), name, priority) as T;
         }
         private bool _disposed;
-        /// <summary>
-        /// 是否已经释放
-        /// </summary>
+
         public bool disposed { get { return _disposed; } }
-        /// <summary>
-        /// 释放时
-        /// </summary>
+
         protected abstract void OnDispose();
-        /// <summary>
-        /// 释放
-        /// </summary>
+
         public virtual void Dispose()
         {
             if (_disposed) return;

@@ -5,7 +5,7 @@ namespace IFramework
 {
     partial class EditorTools
     {
-        public class UnityLogger : ILoger
+        public class UnityLogger : ILogger
         {
             public static string GetLogFilePath()
             {
@@ -31,6 +31,11 @@ namespace IFramework
             {
                 UnityEngine.Debug.LogWarning(messages);
             }
+            public void Assert(object messages, params object[] paras)
+            {
+                UnityEngine.Debug.LogAssertion(messages);
+            }
+
         }
     }
 

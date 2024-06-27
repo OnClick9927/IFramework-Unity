@@ -8,9 +8,6 @@
 *********************************************************************************/
 namespace IFramework.UI
 {
-    /// <summary>
-    /// ui 状态
-    /// </summary>
     public enum PanelState
     {
         None, OnLoad, OnShow, OnHide, OnClose

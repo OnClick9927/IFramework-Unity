@@ -206,7 +206,7 @@ namespace IFramework.UI
             }
             else
             {
-                ShowRaycast();
+                ShowRayCast();
                 while (asyncLoadQueue.Count > 0 && asyncLoadQueue.Peek().isDone)
                 {
                     LoadPanelAsyncOperation op = asyncLoadQueue.Dequeue();
@@ -242,7 +242,7 @@ namespace IFramework.UI
             _itemPool.Set(path, go);
         }
 
-        public void ShowRaycast()
+        public void ShowRayCast()
         {
             raycast.raycastTarget = true;
         }
@@ -250,9 +250,7 @@ namespace IFramework.UI
         {
             raycast.raycastTarget = false;
         }
-        /// <summary>
-        /// 创建 画布
-        /// </summary>
+
         public void CreateCanvas()
         {
             var canvas = _asset.GetCanvas();
@@ -274,15 +272,9 @@ namespace IFramework.UI
             HideRayCast();
         }
 
-        /// <summary>
-        /// 设置加载器
-        /// </summary>
-        /// <param name="asset"></param>
+
         public void SetAsset(UIAsset asset) => _asset = asset;
-        /// <summary>
-        /// 设置ui组管理器
-        /// </summary>
-        /// <param name="groups"></param>
+
         public void SetGroups(IGroups groups) => this._groups = groups;
         public void SetUIDelegate(IUIDelegate del) => this.del = del;
         private void OnShowCallBack(string path, UIPanel panel, ShowPanelAsyncOperation op)
@@ -300,10 +292,7 @@ namespace IFramework.UI
             if (op != null)
                 op.SetCompelete();
         }
-        /// <summary>
-        /// 展示一个界面
-        /// </summary>
-        /// <param name="path"></param>
+
         public ShowPanelAsyncOperation Show(string path)
         {
 
@@ -340,10 +329,7 @@ namespace IFramework.UI
             }
             return show_op;
         }
-        /// <summary>
-        /// 藏一个界面
-        /// </summary>
-        /// <param name="path"></param>
+
         public void Hide(string path)
         {
             var panel = Find(path);
@@ -358,10 +344,7 @@ namespace IFramework.UI
                 EndChangeLayerTopChangeCheck(layer);
             }
         }
-        /// <summary>
-        /// 彻底关闭一个界面
-        /// </summary>
-        /// <param name="path"></param>
+
         public void Close(string path)
         {
             var panel = Find(path);

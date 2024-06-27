@@ -5,10 +5,7 @@ namespace IFramework
 {
 
 
-    /// <summary>
-    /// 模块容器
-    /// </summary>
-    public class Modules : IModules,IDisposable
+    public class Modules : IDisposable
     {
         private object _lock = new object();
         private Dictionary<Type, Dictionary<string, Module>> _dic;
@@ -16,39 +13,22 @@ namespace IFramework
         private GenericPriorityQueue<Module, int> _queue;
         private List<UpdateModule> _updateModules;
 
-        /// <summary>
-        /// 创建一个模块，创建完了自动绑定
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="name"></param>
-        /// <param name="priority"></param>
-        /// <returns></returns>
+
         public Module CreateModule(Type type, string name = Module.defaultName, int priority = 0)
         {
-            var mou = Module.CreatInstance(type, name, priority);
+            var mou = Module.CreateInstance(type, name, priority);
             if (SubscribeModule(mou))
                 mou.binded = true;
             return mou;
         }
-        /// <summary>
-        /// 创建模块
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="priority"></param>
-        /// <returns></returns>
+
         public T CreateModule<T>(string name = Module.defaultName, int priority = 0) where T : Module
         {
             return CreateModule(typeof(T), name, priority) as T;
         }
 
 
-        /// <summary>
-        /// 查找模块
-        /// </summary>
-        /// <param name="type">模块类型</param>
-        /// <param name="name">模块名称</param>
-        /// <returns></returns>
+
         public Module FindModule(Type type, string name = Module.defaultName)
         {
             if (string.IsNullOrEmpty(name))
@@ -59,13 +39,7 @@ namespace IFramework
             return module;
 
         }
-        /// <summary>
-        /// 获取模块
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="name"></param>
-        /// <param name="priority"></param>
-        /// <returns></returns>
+
         public Module GetModule(Type type, string name = Module.defaultName, int priority = 0)
         {
             var tmp = FindModule(type, name);
@@ -77,42 +51,27 @@ namespace IFramework
         }
 
 
-        /// <summary>
-        /// 查找模块
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
-        /// <returns></returns>
+
         public T FindModule<T>(string name = Module.defaultName) where T : Module
         {
             return FindModule(typeof(T), name) as T;
         }
-        /// <summary>
-        /// 获取模块
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name"></param>
-        /// <param name="priority"></param>
-        /// <returns></returns>
+
         public T GetModule<T>(string name = Module.defaultName, int priority = 0) where T : Module
         {
             return GetModule(typeof(T), name, priority) as T;
         }
 
-        /// <summary>
-        /// Ctor
-        /// </summary>
+
         public Modules()
         {
             _dic = new Dictionary<Type, Dictionary<string, Module>>();
             _queue = new GenericPriorityQueue<Module, int>(256);
             _updateModules = new List<UpdateModule>();
         }
-        /// <summary>
-        /// 绑定环境
-        /// </summary>
 
- 
+
+
         internal void Update()
         {
             for (int i = 0; i < _updateModules.Count; i++)
@@ -148,7 +107,7 @@ namespace IFramework
                 else
                 {
                     list.Add(moudle.name, moudle);
-                    if (_queue.count == _queue.capcity)
+                    if (_queue.count == _queue.capacity)
                         _queue.Resize(_queue.count * 2);
                     _queue.Enqueue(moudle, moudle.priority);
                     SyncUpdateList();

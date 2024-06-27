@@ -7,8 +7,6 @@
  *History:        2018.11--
 *********************************************************************************/
 
-using System;
-
 namespace IFramework.UI
 {
     public partial class UIModuleWindow
