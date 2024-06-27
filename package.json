@@ -1,7 +1,7 @@
 {
   "name": "com.woo.iframework",
   "displayName": "IFramework",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "unity": "2019.4",
   "description": "IFramework",
   "type": "library"
