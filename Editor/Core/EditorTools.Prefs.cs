@@ -26,7 +26,10 @@ namespace IFramework
                 {
                     string ukey = SystemInfo.deviceUniqueIdentifier;
                     if (!string.IsNullOrEmpty(ProjectConfig.UserName)) ukey = ProjectConfig.UserName;
-                    return EditorTools.projectMemoryPath.CombinePath($"Prefs_{ukey}_{_key}.txt").ToAssetsPath();
+                    string dir = EditorTools.projectMemoryPath.CombinePath(ukey);
+                    if (!Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
+                    return dir.CombinePath($"Prefs_{_key}.txt").ToAssetsPath();
                 }
                 return EditorTools.projectMemoryPath.CombinePath($"Prefs_{_key}.txt").ToAssetsPath();
             }
