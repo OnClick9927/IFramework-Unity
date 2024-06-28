@@ -31,6 +31,8 @@ namespace IFramework
 
                 public static string wenable = "Warning Enable";
                 public static string errenable = "Error Enable";
+                public static string aenable = "Assert Enable";
+
                 public static string Ignore = "Log Ignore File Names";
                 public static string projectPath = "Project Path";
             }
@@ -116,6 +118,8 @@ namespace IFramework
                 Info.enable_L = EditorGUILayout.Toggle(Contents.logenable, Info.enable_L);
                 Info.enable_W = EditorGUILayout.Toggle(Contents.wenable, Info.enable_W);
                 Info.enable_E = EditorGUILayout.Toggle(Contents.errenable, Info.enable_E);
+                Info.enable_A = EditorGUILayout.Toggle(Contents.aenable, Info.enable_A);
+
                 GUI.enabled &= true;
                 GUILayout.Space(5);
                 GUILayout.BeginHorizontal();

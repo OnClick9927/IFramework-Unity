@@ -4,11 +4,11 @@ namespace IFramework
 {
     public interface ILogger
     {
-        void Log(object messages, params object[] paras);
-        void Warn(object messages, params object[] paras);
-        void Error(object messages, params object[] paras);
+        void Log(string messages, params object[] paras);
+        void Warn(string messages, params object[] paras);
+        void Error(string messages, params object[] paras);
         void Exception(Exception ex);
-        void Assert(object messages, params object[] paras);
+        void Assert(bool condition, string messages, params object[] paras);
     }
     public class Log
     {
@@ -16,35 +16,37 @@ namespace IFramework
         public static bool enable_L = true;
         public static bool enable_W = true;
         public static bool enable_E = true;
+        public static bool enable_A = true;
+
         public static ILogger logger { get; set; }
         static Log()
         {
-          
-           
+
+
         }
 
-        public static void L(object message, params object[] paras)
+        public static void L(string message, params object[] paras)
         {
             if (!enable) return;
             if (!enable_L) return;
-            if (logger!=null)
+            if (logger != null)
                 logger.Log(message, paras);
- 
+
         }
-        public static void W(object message, params object[] paras)
+        public static void W(string message, params object[] paras)
         {
             if (!enable) return;
             if (!enable_W) return;
-            if (logger!=null)
+            if (logger != null)
                 logger.Warn(message, paras);
 
         }
-        public static void E(object message, params object[] paras)
+        public static void E(string message, params object[] paras)
         {
             if (!enable) return;
             if (!enable_E) return;
             if (logger != null)
-                logger.Error( message, paras);
+                logger.Error(message, paras);
 
         }
         public static void Exception(Exception ex)
@@ -53,6 +55,14 @@ namespace IFramework
             if (!enable_E) return;
             if (logger != null)
                 logger.Exception(ex);
+
+        }
+        public static void A(bool condition, string messages, params object[] paras)
+        {
+            if (!enable) return;
+            if (!enable_A) return;
+            if (logger != null)
+                logger.Assert(condition, messages, paras);
 
         }
     }

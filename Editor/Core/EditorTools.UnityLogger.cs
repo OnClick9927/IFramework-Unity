@@ -15,25 +15,25 @@ namespace IFramework
             {
                 return path;
             }
-            public void Error(object messages, params object[] paras)
+            public void Error(string messages, params object[] paras)
             {
-                UnityEngine.Debug.LogError(messages);
+                UnityEngine.Debug.LogErrorFormat(messages, paras);
             }
             public void Exception(Exception ex)
             {
                 UnityEngine.Debug.LogException(ex);
             }
-            public void Log(object messages, params object[] paras)
+            public void Log(string messages, params object[] paras)
             {
-                UnityEngine.Debug.Log(messages);
+                UnityEngine.Debug.LogFormat(messages, paras);
             }
-            public void Warn(object messages, params object[] paras)
+            public void Warn(string messages, params object[] paras)
             {
-                UnityEngine.Debug.LogWarning(messages);
+                UnityEngine.Debug.LogWarningFormat(messages, paras);
             }
-            public void Assert(object messages, params object[] paras)
+            public void Assert(bool condition, string messages, params object[] paras)
             {
-                UnityEngine.Debug.LogAssertion(messages);
+                UnityEngine.Debug.AssertFormat(condition, messages, paras);
             }
 
         }

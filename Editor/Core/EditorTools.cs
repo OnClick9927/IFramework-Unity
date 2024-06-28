@@ -37,6 +37,8 @@ namespace IFramework
             Log.enable_L = ProjectConfig.enable_L;
             Log.enable_W = ProjectConfig.enable_W;
             Log.enable_E = ProjectConfig.enable_E;
+            Log.enable_A = ProjectConfig.enable_A;
+
             Log.enable = ProjectConfig.enable;
             directorys = new List<string>()
             {
