@@ -16,7 +16,7 @@ using UnityEngine;
 namespace IFramework
 {
     [InitializeOnLoad]
-   public partial class EditorTools
+    public partial class EditorTools
     {
         static void CreateDirectories(List<string> directorys)
         {
@@ -65,9 +65,9 @@ namespace IFramework
         }
         public static T GetFromPrefs<T>(string key, bool unique = true)
         {
-            return Prefs.GetObject<T>(typeof(T), key, unique);
+            return Prefs.GetObject<T>(key, unique);
         }
-        public static object GetFromPrefs(Type type,string key, bool unique = true)
+        public static object GetFromPrefs(Type type, string key, bool unique = true)
         {
             return Prefs.GetObject(type, key, unique);
         }
@@ -129,7 +129,7 @@ namespace IFramework
             path = path.Replace('\\', '/');
             return path;
         }
-   
+
         public static string CombinePath(this string path, string toCombinePath)
         {
             return Path.Combine(path, toCombinePath).ToRegularPath();

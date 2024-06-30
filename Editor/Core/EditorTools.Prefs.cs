@@ -68,10 +68,10 @@ namespace IFramework
             {
                 SetString(type, key, JsonUtility.ToJson(value, true), unique);
             }
-            public static V GetObject<V>(Type type, string key, bool unique)
+            public static V GetObject<V>(string key, bool unique)
             {
-                var str = GetString(type, key, unique);
-                return (V)JsonUtility.FromJson(str, type);
+                var str = GetString(typeof(V), key, unique);
+                return (V)JsonUtility.FromJson(str, typeof(V));
             }
             public static object GetObject(Type type, string key, bool unique)
             {
