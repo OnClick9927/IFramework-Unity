@@ -10,21 +10,16 @@ namespace IFramework
 {
     [UnityEngine.RequireComponent(typeof(UnityEngine.UI.Image))]
 
-    public class LocalizationImage : LocalizationComponent
+    public class LocalizationImage : LocalizationGraphic<UnityEngine.UI.Image>
     {
-        public UnityEngine.UI.Image image;
-        public ImageSpriteActor imageSpriteActor = new ImageSpriteActor();
-        public ImageColorActor imageColorActor = new ImageColorActor();
-        protected override void Awake()
-        {
-            image = GetComponent<UnityEngine.UI.Image>();
-            base.Awake();
-        }
+        public ImageSpriteActor sprite = new ImageSpriteActor();
+
         protected override List<ILocalizationActor> GetActors()
         {
-            return new List<ILocalizationActor>() {
-            imageSpriteActor,imageColorActor
-            };
+            var _base = base.GetActors();
+            _base.Add(sprite);
+            return _base;
+
         }
     }
 }

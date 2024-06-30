@@ -11,7 +11,7 @@ namespace IFramework
 {
     public abstract class LocalizationActorEditor<T> : ILocalizationActorEditor where T : class, ILocalizationActor
     {
-        void ILocalizationActorEditor.OnGUI(LocalizationComponent component, object value)
+        void ILocalizationActorEditor.OnGUI(string name, LocalizationComponent component, object value)
         {
             T context = value as T;
             var on = EditorGUILayout.Toggle(context.enable, EditorStyles.toolbarPopup);
@@ -24,7 +24,7 @@ namespace IFramework
             var rect = GUILayoutUtility.GetLastRect();
             rect.x += 10;
             rect.width -= 10;
-            GUI.Toggle(rect, on, context.GetType().Name);
+            GUI.Toggle(rect, on, name);
             if (context.enable)
             {
                 GUILayout.BeginVertical(EditorStyles.helpBox);

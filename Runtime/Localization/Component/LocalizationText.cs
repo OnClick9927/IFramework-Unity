@@ -5,36 +5,26 @@
  *Date:           2024-04-25
 *********************************************************************************/
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 namespace IFramework
 {
-
     [UnityEngine.RequireComponent(typeof(UnityEngine.UI.Text))]
-    public class LocalizationText : LocalizationComponent
+    public class LocalizationText : LocalizationGraphic<UnityEngine.UI.Text>
     {
 
 
-        public TextValueActor textValueActor = new TextValueActor();
-        public TextColorActor textColorActor = new TextColorActor();
-        public TextFontActor textFontActor = new TextFontActor();  
-        public TextFontSizeActor textFontSizeActor = new TextFontSizeActor();
-
-        public UnityEngine.UI.Text text;
-
-
-
-        protected override void Awake()
-        {
-            base.Awake();
-            text = GetComponent<UnityEngine.UI.Text>();
-        }
+        public TextValueActor text = new TextValueActor();
+        public TextFontActor font = new TextFontActor();
+        public TextFontSizeActor fontSize = new TextFontSizeActor();
 
         protected override List<ILocalizationActor> GetActors()
         {
-            return new List<ILocalizationActor>() {
-            textValueActor,textColorActor,textFontActor,textFontSizeActor
-
-            };
+            var _base = base.GetActors();
+            _base.Add(text);
+            _base.Add(font);
+            _base.Add(fontSize);
+            return _base;
         }
     }
 }

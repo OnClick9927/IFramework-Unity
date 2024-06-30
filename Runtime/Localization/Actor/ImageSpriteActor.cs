@@ -12,7 +12,7 @@ namespace IFramework
         public SerializableDictionary<string, UnityEngine.Sprite> sprites = new SerializableDictionary<string, UnityEngine.Sprite>();
         protected override void Execute(string localizationType, LocalizationImage component)
         {
-            component.image.sprite = sprites[localizationType];
+            component.graphicT.sprite = sprites[localizationType];
         }
     }
 }

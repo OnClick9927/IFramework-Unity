@@ -4,10 +4,13 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-04-25
 *********************************************************************************/
+using UnityEditor;
+
 namespace IFramework
 {
-    interface ILocalizationActorEditor
+    [CustomEditor(typeof(LocalizationGraphic))]
+    public class LocalizationGraphicEditor : LocalizationComponentEditor<LocalizationGraphic>
     {
-        void OnGUI(string name, LocalizationComponent component, object value);
+
     }
 }

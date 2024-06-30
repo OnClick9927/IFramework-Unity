@@ -12,7 +12,7 @@ namespace IFramework
         public string key;
         protected override void Execute(string localizationType, LocalizationText component)
         {
-            component.text.text = component.GetLocalization(key);
+            component.graphicT.text = component.GetLocalization(key);
         }
     }
 }

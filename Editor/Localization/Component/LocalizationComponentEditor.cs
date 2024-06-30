@@ -50,7 +50,7 @@ namespace IFramework
                 var editor = insMap[type];
 
                 var value = field.GetValue(comp);
-                editor.OnGUI(comp, value);
+                editor.OnGUI(field.Name, comp, value);
                 AssetDatabase.SaveAssetIfDirty(comp);
             }
 

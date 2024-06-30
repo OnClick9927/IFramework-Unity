@@ -9,12 +9,12 @@ using UnityEngine;
 namespace IFramework
 {
     [System.Serializable]
-    public class TextFontActor : LocalizationActor<LocalizationText>
+    public class GraphicColorActor : LocalizationActor<LocalizationGraphic>
     {
-        public SerializableDictionary<string, Font> fonts = new SerializableDictionary<string, Font>();
-        protected override void Execute(string localizationType, LocalizationText component)
+        public SerializableDictionary<string, Color> colors = new SerializableDictionary<string, Color>();
+        protected override void Execute(string localizationType, LocalizationGraphic component)
         {
-            component.graphicT.font = fonts[localizationType];
+            component.graphic.color = colors[localizationType];
 
         }
     }

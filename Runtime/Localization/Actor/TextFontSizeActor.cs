@@ -12,7 +12,7 @@ namespace IFramework
         public SerializableDictionary<string, int> fonts = new SerializableDictionary<string, int>();
         protected override void Execute(string localizationType, LocalizationText component)
         {
-            component.text.fontSize = fonts[localizationType];
+            component.graphicT.fontSize = fonts[localizationType];
 
         }
     }

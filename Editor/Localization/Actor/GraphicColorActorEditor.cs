@@ -5,7 +5,6 @@
  *Date:           2024-04-25
 *********************************************************************************/
 
-using System.Runtime.Remoting.Contexts;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,7 +12,7 @@ namespace IFramework
 {
 
     [LocalizationActorAttribute]
-    public class TextColorActorEditor : LocalizationMapActorEditor<TextColorActor,Color>
+    public class GraphicColorActorEditor : LocalizationMapActorEditor<GraphicColorActor, Color>
     {
         protected override Color Draw(string lan, Color value)
         {
@@ -25,7 +24,7 @@ namespace IFramework
             return Color.white;
         }
 
-        protected override SerializableDictionary<string, Color> GetMap(TextColorActor context)
+        protected override SerializableDictionary<string, Color> GetMap(GraphicColorActor context)
         {
             return context.colors;
         }
