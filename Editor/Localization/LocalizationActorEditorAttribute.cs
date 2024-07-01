@@ -6,8 +6,8 @@
 *********************************************************************************/
 using System;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class LocalizationActorAttribute : Attribute { }
+    public class LocalizationActorEditorAttribute : Attribute { }
 }

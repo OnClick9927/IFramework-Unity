@@ -9,10 +9,10 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace IFramework
+namespace IFramework.Localization
 {
-    [LocalizationActorAttribute]
-    public class GraphicMaterialActorEditor : LocalizationMapActorEditor<GraphicMaterialActor, Material>
+    [LocalizationActorEditorAttribute]
+    class GraphicMaterialActorEditor : LocalizationMapActorEditor<GraphicMaterialActor, Material>
     {
         protected override Material Draw(string lan, Material value)
         {

@@ -7,10 +7,10 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
-    [LocalizationActorAttribute]
-    public class ImageSpriteActorEditor : LocalizationMapActorEditor<ImageSpriteActor,Sprite>
+    [LocalizationActorEditorAttribute]
+    class ImageSpriteActorEditor : LocalizationMapActorEditor<ImageSpriteActor, Sprite>
     {
         protected override Sprite Draw(string lan, Sprite value)
         {

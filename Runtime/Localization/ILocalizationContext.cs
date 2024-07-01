@@ -5,7 +5,7 @@
  *Date:           2024-04-25
 *********************************************************************************/
 using System.Collections.Generic;
-namespace IFramework
+namespace IFramework.Localization
 {
     public interface ILocalizationContext
     {

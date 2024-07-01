@@ -5,7 +5,7 @@
  *Date:           2024-04-25
 *********************************************************************************/
 
-namespace IFramework
+namespace IFramework.Localization
 {
     public abstract class LocalizationMapActorEditor<T, V> : LocalizationActorEditor<T> where T : class, ILocalizationActor
     {

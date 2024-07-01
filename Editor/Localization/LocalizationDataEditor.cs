@@ -10,10 +10,10 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using static UnityEditor.IMGUI.Controls.MultiColumnHeaderState;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     [CustomEditor(typeof(LocalizationData))]
-    public class LocalizationDataEditor : Editor
+    class LocalizationDataEditor : Editor
     {
         private class Tree : TreeView
         {

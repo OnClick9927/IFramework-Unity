@@ -4,16 +4,13 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-06-29
 *********************************************************************************/
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
-using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
 
     [EditorWindowCache("Localization")]
-    public class LocalizationWindow : EditorWindow
+    class LocalizationWindow : EditorWindow
     {
         LocalizationSetting setting => LocalizationSetting.context;
 

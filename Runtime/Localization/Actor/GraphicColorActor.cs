@@ -6,7 +6,7 @@
 *********************************************************************************/
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     [System.Serializable]
     public class GraphicColorActor : LocalizationActor<LocalizationGraphic>

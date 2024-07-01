@@ -7,7 +7,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     public abstract class LocalizationActorEditor<T> : ILocalizationActorEditor where T : class, ILocalizationActor
     {

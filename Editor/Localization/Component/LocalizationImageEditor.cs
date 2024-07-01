@@ -6,10 +6,10 @@
 *********************************************************************************/
 using UnityEditor;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     [CustomEditor(typeof(LocalizationImage))]
-    public class LocalizationImageEditor : LocalizationBehaviorEditor<LocalizationImage>
+    class LocalizationImageEditor : LocalizationBehaviorEditor<LocalizationImage>
     {
 
     }

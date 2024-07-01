@@ -8,11 +8,11 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
-    [LocalizationActorAttribute]
+    [LocalizationActorEditorAttribute]
 
-    public class TextFontActorEditor : LocalizationMapActorEditor<TextFontActor, Font>
+    class TextFontActorEditor : LocalizationMapActorEditor<TextFontActor, Font>
     {
         protected override Font Draw(string lan, Font value) => EditorGUILayout.ObjectField(lan, value, typeof(Font), false) as Font;
 

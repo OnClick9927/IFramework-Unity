@@ -6,7 +6,7 @@
 *********************************************************************************/
 using System.Collections.Generic;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     class MixedRecorder : ILocalizationPrefRecorder
     {

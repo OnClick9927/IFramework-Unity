@@ -8,11 +8,11 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
 
-    [LocalizationActorAttribute]
-    public class GraphicColorActorEditor : LocalizationMapActorEditor<GraphicColorActor, Color>
+    [LocalizationActorEditorAttribute]
+    class GraphicColorActorEditor : LocalizationMapActorEditor<GraphicColorActor, Color>
     {
         protected override Color Draw(string lan, Color value)
         {

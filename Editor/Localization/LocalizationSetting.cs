@@ -5,7 +5,7 @@
  *Date:           2024-06-29
 *********************************************************************************/
 
-namespace IFramework
+namespace IFramework.Localization
 {
     [System.Serializable]
     [UnityEditor.InitializeOnLoad]

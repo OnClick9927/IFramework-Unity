@@ -6,7 +6,7 @@
 *********************************************************************************/
 using IFramework.Singleton;
 using System.Collections.Generic;
-namespace IFramework
+namespace IFramework.Localization
 {
     public class Localization : Singleton<Localization>
     {

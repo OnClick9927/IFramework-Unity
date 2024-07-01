@@ -7,10 +7,10 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
-    [LocalizationActorAttribute]
-    public class TextValueActorEditor : LocalizationActorEditor<TextValueActor>
+    [LocalizationActorEditorAttribute]
+    class TextValueActorEditor : LocalizationActorEditor<TextValueActor>
     {
 
         protected override void OnGUI(LocalizationBehavior component, TextValueActor context)

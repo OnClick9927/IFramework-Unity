@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     [CreateAssetMenu]
     public class LocalizationData : ScriptableObject, ILocalizationContext

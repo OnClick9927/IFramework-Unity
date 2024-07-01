@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     [UnityEngine.RequireComponent(typeof(UnityEngine.UI.Graphic))]
 

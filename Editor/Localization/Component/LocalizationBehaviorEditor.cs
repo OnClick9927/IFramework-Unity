@@ -10,7 +10,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     public abstract class LocalizationBehaviorEditor<T> : UnityEditor.Editor where T : LocalizationBehavior
     {
@@ -28,7 +28,7 @@ namespace IFramework
                 EditorUtility.SetDirty(comp);
             }
             typeMap = EditorTools.GetSubTypesInAssemblies(typeof(ILocalizationActorEditor))
-                     .Where(x => !x.IsAbstract && x.GetCustomAttribute<LocalizationActorAttribute>() != null)
+                     .Where(x => !x.IsAbstract && x.GetCustomAttribute<LocalizationActorEditorAttribute>() != null)
                      .Select(x => new { x, target = x.BaseType.GetGenericArguments()[0] })
                      .ToDictionary(x => x.target, x => x.x);
 

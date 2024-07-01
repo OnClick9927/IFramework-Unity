@@ -7,11 +7,11 @@
 
 using UnityEditor;
 
-namespace IFramework
+namespace IFramework.Localization
 {
-    [LocalizationActorAttribute]
+    [LocalizationActorEditorAttribute]
 
-    public class TextFontSizeActorEditor : LocalizationMapActorEditor<TextFontSizeActor, int>
+    class TextFontSizeActorEditor : LocalizationMapActorEditor<TextFontSizeActor, int>
     {
         protected override int Draw(string lan, int value) => EditorGUILayout.IntField(lan, value);
 

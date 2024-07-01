@@ -8,7 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace IFramework
+namespace IFramework.Localization
 {
     public abstract class LocalizationBehavior : MonoBehaviour
     {
