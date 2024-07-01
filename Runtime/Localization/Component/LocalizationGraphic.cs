@@ -11,7 +11,7 @@ namespace IFramework
 {
     [UnityEngine.RequireComponent(typeof(UnityEngine.UI.Graphic))]
 
-    public class LocalizationGraphic : LocalizationComponent
+    public class LocalizationGraphic : LocalizationBehavior
     {
         public Graphic graphic { get; private set; }
         public GraphicColorActor color = new GraphicColorActor();

@@ -11,7 +11,7 @@ namespace IFramework
 {
     public abstract class LocalizationActorEditor<T> : ILocalizationActorEditor where T : class, ILocalizationActor
     {
-        void ILocalizationActorEditor.OnGUI(string name, LocalizationComponent component, object value)
+        void ILocalizationActorEditor.OnGUI(string name, LocalizationBehavior component, object value)
         {
             T context = value as T;
             var on = EditorGUILayout.Toggle(context.enable, EditorStyles.toolbarPopup);
@@ -33,9 +33,9 @@ namespace IFramework
             }
 
         }
-        protected abstract void OnGUI(LocalizationComponent component, T context);
+        protected abstract void OnGUI(LocalizationBehavior component, T context);
 
-        protected void SetDirty(LocalizationComponent component)
+        protected void SetDirty(LocalizationBehavior component)
         {
             EditorUtility.SetDirty(component);
 

@@ -9,7 +9,7 @@ namespace IFramework
 {
     public abstract class LocalizationMapActorEditor<T, V> : LocalizationActorEditor<T> where T : class, ILocalizationActor
     {
-        protected override void OnGUI(LocalizationComponent component, T context)
+        protected override void OnGUI(LocalizationBehavior component, T context)
         {
             if (component.context == null) return;
             var keys = component.GetLocalizationTypes();

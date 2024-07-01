@@ -12,9 +12,10 @@ using UnityEditor;
 
 namespace IFramework
 {
-    public abstract class LocalizationComponentEditor<T> : UnityEditor.Editor where T : LocalizationComponent
+    public abstract class LocalizationBehaviorEditor<T> : UnityEditor.Editor where T : LocalizationBehavior
     {
-        private LocalizationComponent comp;
+
+        private LocalizationBehavior comp;
         private LocalizationSetting setting => LocalizationSetting.context;
         private Dictionary<Type, Type> typeMap;
         private List<FieldInfo> fields;
@@ -39,7 +40,7 @@ namespace IFramework
         private Dictionary<Type, ILocalizationActorEditor> insMap = new Dictionary<Type, ILocalizationActorEditor>();
         public override void OnInspectorGUI()
         {
-            comp.context = EditorGUILayout.ObjectField(nameof(LocalizationComponent.context),
+            comp.context = EditorGUILayout.ObjectField(nameof(LocalizationBehavior.context),
                 comp.context, typeof(LocalizationObject), false) as LocalizationObject;
             for (int i = 0; i < fields.Count; i++)
             {

@@ -10,7 +10,7 @@ namespace IFramework
     public interface ILocalizationActor
     {
         bool enable { get; set; }
-        void Execute(string localizationType, LocalizationComponent component);
+        void Execute(string localizationType, LocalizationBehavior component);
 
     }
 }

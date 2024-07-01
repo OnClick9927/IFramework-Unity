@@ -9,7 +9,7 @@ using UnityEditor;
 namespace IFramework
 {
     [CustomEditor(typeof(LocalizationImage))]
-    public class LocalizationImageEditor : LocalizationComponentEditor<LocalizationImage>
+    public class LocalizationImageEditor : LocalizationBehaviorEditor<LocalizationImage>
     {
 
     }

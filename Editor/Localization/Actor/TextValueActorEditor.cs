@@ -13,7 +13,7 @@ namespace IFramework
     public class TextValueActorEditor : LocalizationActorEditor<TextValueActor>
     {
 
-        protected override void OnGUI(LocalizationComponent component, TextValueActor context)
+        protected override void OnGUI(LocalizationBehavior component, TextValueActor context)
         {
             var keys = component.GetLocalizationKeys();
 

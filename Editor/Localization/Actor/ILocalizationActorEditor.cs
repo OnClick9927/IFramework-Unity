@@ -8,6 +8,6 @@ namespace IFramework
 {
     interface ILocalizationActorEditor
     {
-        void OnGUI(string name, LocalizationComponent component, object value);
+        void OnGUI(string name, LocalizationBehavior component, object value);
     }
 }

@@ -7,9 +7,10 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+
 namespace IFramework
 {
-    public abstract class LocalizationComponent : MonoBehaviour
+    public abstract class LocalizationBehavior : MonoBehaviour
     {
         public LocalizationObject context;
         public List<string> GetLocalizationTypes()
@@ -49,7 +50,7 @@ namespace IFramework
         {
             if (actors.Contains(actor)) return;
             actors.Add(actor);
-            actor.Execute(Localization.instance.GetLocalizationType(),this);
+            actor.Execute(Localization.instance.GetLocalizationType(), this);
         }
         public void RemoveActor(ILocalizationActor actor)
         {
