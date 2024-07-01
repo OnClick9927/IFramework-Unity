@@ -12,7 +12,7 @@ namespace IFramework
 {
     public abstract class LocalizationBehavior : MonoBehaviour
     {
-        public LocalizationObject context;
+        public LocalizationData context;
         public List<string> GetLocalizationTypes()
         {
             if (context == null)

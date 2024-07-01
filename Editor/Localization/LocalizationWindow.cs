@@ -20,11 +20,11 @@ namespace IFramework
         private void OnGUI()
         {
             EditorGUI.BeginChangeCheck();
-            setting.defaultObject = EditorGUILayout.ObjectField(nameof(setting.defaultObject), setting.defaultObject, typeof(LocalizationObject), false) as LocalizationObject;
+            setting.defaultData = EditorGUILayout.ObjectField(nameof(setting.defaultData), setting.defaultData, typeof(LocalizationData), false) as LocalizationData;
 
-            if (setting.defaultObject)
+            if (setting.defaultData)
             {
-                var types = setting.defaultObject.GetLocalizationTypes();
+                var types = setting.defaultData.GetLocalizationTypes();
                 var index = EditorGUILayout.Popup("LanguageType",types.IndexOf(setting.localizationType), types.ToArray());
                 Localization.instance.SetLocalizationType(types[index]);
                 //GUI.enabled = false;

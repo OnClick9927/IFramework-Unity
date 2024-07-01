@@ -11,7 +11,7 @@ using UnityEngine;
 namespace IFramework
 {
     [CreateAssetMenu]
-    public class LocalizationObject : ScriptableObject, ILocalizationContext
+    public class LocalizationData : ScriptableObject, ILocalizationContext
     {
         [UnityEngine.SerializeField]
         private SerializableDictionary<string, SerializableDictionary<string, string>> map

@@ -22,9 +22,9 @@ namespace IFramework
         private void OnEnable()
         {
             comp = target as T;
-            if (comp.context == null && setting.defaultObject != null)
+            if (comp.context == null && setting.defaultData != null)
             {
-                comp.context = setting.defaultObject;
+                comp.context = setting.defaultData;
                 EditorUtility.SetDirty(comp);
             }
             typeMap = EditorTools.GetSubTypesInAssemblies(typeof(ILocalizationActorEditor))
@@ -41,7 +41,7 @@ namespace IFramework
         public override void OnInspectorGUI()
         {
             comp.context = EditorGUILayout.ObjectField(nameof(LocalizationBehavior.context),
-                comp.context, typeof(LocalizationObject), false) as LocalizationObject;
+                comp.context, typeof(LocalizationData), false) as LocalizationData;
             for (int i = 0; i < fields.Count; i++)
             {
                 var field = fields[i];

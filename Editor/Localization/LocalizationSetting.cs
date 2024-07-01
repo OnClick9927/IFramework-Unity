@@ -29,7 +29,7 @@ namespace IFramework
             Save();
         }
         public string localizationType = "CN";
-        public LocalizationObject defaultObject;
+        public LocalizationData defaultData;
 
         private static LocalizationSetting _context;
         public static LocalizationSetting context

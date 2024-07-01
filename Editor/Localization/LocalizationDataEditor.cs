@@ -12,8 +12,8 @@ using static UnityEditor.IMGUI.Controls.MultiColumnHeaderState;
 
 namespace IFramework
 {
-    [CustomEditor(typeof(LocalizationObject))]
-    public class LocalizationObjectEditor : Editor
+    [CustomEditor(typeof(LocalizationData))]
+    public class LocalizationDataEditor : Editor
     {
         private class Tree : TreeView
         {
@@ -99,10 +99,10 @@ namespace IFramework
         }
         private Tree tree;
         private TreeViewState state = new TreeViewState();
-        private static LocalizationObject context;
+        private static LocalizationData context;
         private void OnEnable()
         {
-            context = target as LocalizationObject;
+            context = target as LocalizationData;
             tree = new Tree(state);
         }
         private string LanType = "";
