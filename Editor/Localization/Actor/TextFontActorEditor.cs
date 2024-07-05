@@ -12,13 +12,12 @@ namespace IFramework.Localization
 {
     [LocalizationActorEditorAttribute]
 
-    class TextFontActorEditor : LocalizationMapActorEditor<TextFontActor, Font>
+    class TextFontActorEditor : LocalizationMapActorEditor<TextFontActor, Font, LocalizationText>
     {
         protected override Font Draw(string lan, Font value) => EditorGUILayout.ObjectField(lan, value, typeof(Font), false) as Font;
 
-        protected override Font GetDefault() => null;
+        protected override Font GetDefault() => Resources.GetBuiltinResource<Font>("Arial.ttf");
 
-        protected override SerializableDictionary<string, Font> GetMap(TextFontActor context) => context.fonts;
 
     }
 }

@@ -10,23 +10,16 @@ using UnityEngine;
 namespace IFramework.Localization
 {
     [LocalizationActorEditorAttribute]
-    class ImageSpriteActorEditor : LocalizationMapActorEditor<ImageSpriteActor, Sprite>
+    class ImageSpriteActorEditor : LocalizationMapActorEditor<ImageSpriteActor, Sprite,LocalizationImage>
     {
         protected override Sprite Draw(string lan, Sprite value)
         {
             return EditorGUILayout.ObjectField(lan, value, typeof(UnityEngine.Sprite), false) as Sprite;
 
         }
-
         protected override Sprite GetDefault()
         {
             return null;
         }
-
-        protected override SerializableDictionary<string, Sprite> GetMap(ImageSpriteActor context)
-        {
-            return context.sprites;
-        }
-
     }
 }

@@ -9,12 +9,11 @@ using UnityEngine;
 namespace IFramework.Localization
 {
     [System.Serializable]
-    public class GraphicColorActor : LocalizationActor<LocalizationGraphic>
+    public class GraphicColorActor : LocalizationMapActor<LocalizationGraphic, Color>
     {
-        public SerializableDictionary<string, Color> colors = new SerializableDictionary<string, Color>();
         protected override void Execute(string localizationType, LocalizationGraphic component)
         {
-            component.graphic.color = colors[localizationType];
+            component.graphic.color = GetValue(localizationType);
 
         }
     }

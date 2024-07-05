@@ -24,7 +24,42 @@ namespace IFramework.UI
         public abstract class UIGenCode<T> : UIGenCode where T : UnityEngine.Object
         {
             [SerializeField] protected string GenPath = "";
-            [SerializeField] protected T panel;
+            [SerializeField] private string panelPath;
+            [SerializeField] private bool includeChildPrefab;
+            private T _panel;
+            protected T panel
+            {
+                get
+                {
+                    if (_panel == null && !string.IsNullOrEmpty(panelPath) && File.Exists(panelPath))
+                    {
+                        _panel = AssetDatabase.LoadAssetAtPath<T>(panelPath);
+                    }
+                    return _panel;
+                }
+                set
+                {
+                    if (_panel != value)
+                    {
+                        if (value == null)
+                        {
+                            panelPath = string.Empty;
+                            _panel = null;
+                        }
+                        else
+                        {
+                            var _path = AssetDatabase.GetAssetPath(value);
+                            if (string.IsNullOrEmpty(_path)) return;
+                            if (!_path.EndsWith(".prefab")) return;
+                            _panel = value;
+                            panelPath = _path;
+                        }
+                    }
+
+
+                }
+            }
+
 
             [SerializeField] protected TreeViewState state = new TreeViewState();
             [SerializeField] private ScriptCreatorFieldsDrawer.SearchType _searchType;
@@ -32,7 +67,7 @@ namespace IFramework.UI
             private FolderField FloderField;
             protected abstract GameObject gameObject { get; }
 
-            protected string panelName { get { return panel.name; } }
+            protected string panelName { get { return panel.name.Replace("@sm", ""); } }
             private string PanelToViewName(string panelName) => $"{panelName}View";
 
             protected string viewName => PanelToViewName(panelName);
@@ -49,11 +84,11 @@ namespace IFramework.UI
                 if (last != null)
                 {
                     this._searchType = last._searchType;
-                    this.panel = last.panel;
-                    var path = AssetDatabase.GetAssetPath(this.gameObject);
-                    if (!path.EndsWith(".prefab"))
-                        this.panel = null;
-                    this.GenPath = last.GenPath;
+                    if (File.Exists(last.panelPath))
+                        this.panelPath = last.panelPath;
+                    if (Directory.Exists(last.GenPath))
+                        this.GenPath = last.GenPath;
+                    this.includeChildPrefab = last.includeChildPrefab;
                     this.state = last.state;
                     LoadLastData(last);
                 }
@@ -62,9 +97,11 @@ namespace IFramework.UI
                 fields = new ScriptCreatorFieldsDrawer(creator, state, _searchType);
                 SetViewData();
             }
+            protected abstract void OnFindDirFail();
+
             protected abstract void OnFindDirSuccess();
             protected abstract void LoadLastData(UIGenCode<T> last);
-            protected abstract void WriteView();
+            protected abstract void WriteView(bool includeChildPrefab);
             public override void OnDisable()
             {
                 _searchType = fields.GetSearchType();
@@ -89,7 +126,8 @@ namespace IFramework.UI
                 string find = AssetDatabase.GetAllAssetPaths().ToList().Find(x => x.EndsWith(viewScriptName));
                 if (string.IsNullOrEmpty(find))
                 {
-                    FloderField.SetPath(string.Empty);
+                    OnFindDirFail();
+                    //FloderField.SetPath(string.Empty);
                 }
                 else
                 {
@@ -99,7 +137,7 @@ namespace IFramework.UI
                 }
             }
 
-        
+
             protected virtual void Draw() { }
             public override void OnGUI()
             {
@@ -127,8 +165,9 @@ namespace IFramework.UI
                 {
                     SetViewData();
                 }
+                this.includeChildPrefab = EditorGUILayout.Toggle("Include Child Prefab", this.includeChildPrefab);
                 GUILayout.Space(5);
-                fields.OnGUI();
+                fields.OnGUI(this.includeChildPrefab);
                 GUILayout.Space(5);
                 GUILayout.BeginHorizontal();
                 {
@@ -144,7 +183,7 @@ namespace IFramework.UI
                             EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
                             return;
                         }
-                        WriteView();
+                        WriteView(this.includeChildPrefab);
                         AssetDatabase.Refresh();
                     }
                     GUILayout.Space(5);

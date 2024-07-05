@@ -21,6 +21,7 @@ namespace IFramework.Localization
                 SetDirty(component);
 
             }
+
             var rect = GUILayoutUtility.GetLastRect();
             rect.x += 10;
             rect.width -= 10;
@@ -32,6 +33,7 @@ namespace IFramework.Localization
                 GUILayout.EndVertical();
             }
 
+
         }
         protected abstract void OnGUI(LocalizationBehavior component, T context);
 
@@ -40,5 +42,7 @@ namespace IFramework.Localization
             EditorUtility.SetDirty(component);
 
         }
+
+    
     }
 }

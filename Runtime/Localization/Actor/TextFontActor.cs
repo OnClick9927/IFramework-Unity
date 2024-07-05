@@ -9,13 +9,11 @@ using UnityEngine;
 namespace IFramework.Localization
 {
     [System.Serializable]
-    public class TextFontActor : LocalizationActor<LocalizationText>
+    public class TextFontActor : LocalizationMapActor<LocalizationText, Font>
     {
-        public SerializableDictionary<string, Font> fonts = new SerializableDictionary<string, Font>();
         protected override void Execute(string localizationType, LocalizationText component)
         {
-            component.graphicT.font = fonts[localizationType];
-
+            component.graphicT.font = GetValue(localizationType);
         }
     }
 }

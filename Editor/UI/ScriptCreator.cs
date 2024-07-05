@@ -40,7 +40,10 @@ namespace IFramework.UI
         {
             if (IsPrefabInstance(go)) return null;
             ScriptMark sm = go.AddComponent<ScriptMark>();
-            AddMarkFlag(sm);
+            if (go != gameObject)
+            {
+                AddMarkFlag(sm);
+            }
             CollectMarks();
 
             return sm;
@@ -148,7 +151,13 @@ namespace IFramework.UI
         }
         public List<ScriptMark> GetMarks()
         {
-            return this.marks.FindAll(x => !IsPrefabInstance(x.gameObject));
+            return this.marks;
+        }
+        public List<ScriptMark> GetAllMarks()
+        {
+            if (!gameObject) return null;
+            var marks = gameObject.GetComponentsInChildren<ScriptMark>(true);
+            return marks.ToList();
         }
 
         public void DestroyMarks()

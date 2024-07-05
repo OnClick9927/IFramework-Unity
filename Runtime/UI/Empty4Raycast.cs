@@ -6,46 +6,60 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace IFramework.UI
 {
+    [DisallowMultipleComponent]
     [RequireComponent(typeof(CanvasRenderer))]
-    public class Empty4Raycast : Image
+    [AddComponentMenu("IFramework/Empty4Raycast")]
+    public class Empty4Raycast : Graphic, ICanvasRaycastFilter
     {
-        private PolygonCollider2D areaPolygon;
+        [SerializeField]
+        private List<Vector2> points = new List<Vector2>();
 
-        public override bool IsRaycastLocationValid(Vector2 screenPoint, Camera eventCamera)
+        public List<Vector2> Points
         {
-            if (areaPolygon == null)
-                return true;
-
-            if (eventCamera != null)
-                return areaPolygon.OverlapPoint(eventCamera.ScreenToWorldPoint(screenPoint));
-            return areaPolygon.OverlapPoint(screenPoint);
-
+            get => points ??= new List<Vector2>();
+            set => points = value;
         }
 
-#if UNITY_EDITOR
-        protected override void Reset()
+
+        bool ICanvasRaycastFilter.IsRaycastLocationValid(Vector2 screenPoint, Camera eventCamera)
         {
-            base.Reset();
-            areaPolygon = GetComponent<PolygonCollider2D>();
-            if (areaPolygon == null)
-                return;
-            transform.localPosition = Vector3.zero;
-            var w = rectTransform.sizeDelta.x * 0.5f + 0.1f;
-            var h = rectTransform.sizeDelta.y * 0.5f + 0.1f;
-            areaPolygon.points = new[]
+            if (points == null || points.Count <= 0)
+                return RectTransformUtility.RectangleContainsScreenPoint(rectTransform, screenPoint, eventCamera);
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint, eventCamera, out var pos);
+            return PolygonOverlap(points, pos.x, pos.y);
+        }
+
+
+
+        // 可以将该方法移至你的工具类
+        static bool PolygonOverlap(IList<Vector2> points, float targetX, float targetY)
+        {
+            bool result = false;
+
+            for (int i = 0, j = points.Count - 1; i < points.Count; i++)
+            {
+                bool betweenY = points[i].y > targetY != points[j].y > targetY;
+                if (betweenY)
                 {
-            new Vector2(-w, -h),
-            new Vector2(w, -h),
-            new Vector2(w, h),
-            new Vector2(-w, h)
-        };
+                    // 检查x是在i、j交点的左边还是右边
+                    if (targetX < (points[j].x - points[i].x) / (points[j].y - points[i].y) * (targetY - points[i].y) + points[i].x)
+                    {
+                        result = !result;
+                    }
+                }
+
+                j = i;
+            }
+
+            return result;
         }
-#endif
         protected Empty4Raycast()
         {
             useLegacyMeshGeneration = false;
@@ -55,11 +69,6 @@ namespace IFramework.UI
         {
             toFill.Clear();
         }
-        protected override void Awake()
-        {
-            base.Awake();
-            areaPolygon = GetComponent<PolygonCollider2D>();
 
-        }
     }
 }

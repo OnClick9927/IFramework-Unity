@@ -6,7 +6,6 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
-using System.Collections.Generic;
 using UnityEngine;
 namespace IFramework.UI
 {

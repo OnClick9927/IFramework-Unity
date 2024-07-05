@@ -10,18 +10,13 @@ using UnityEngine;
 
 namespace IFramework.Localization
 {
-
     [LocalizationActorEditorAttribute]
-    class GraphicColorActorEditor : LocalizationMapActorEditor<GraphicColorActor, Color, LocalizationGraphic>
-    {
-        protected override Color Draw(string lan, Color value)
-        {
-            return EditorGUILayout.ColorField(lan, value);
-        }
 
-        protected override Color GetDefault()
-        {
-            return Color.white;
-        }
+    class PrefabActorEditor : LocalizationMapActorEditor<PrefabActor, GameObject, LocalizationBehavior>
+    {
+        protected override GameObject Draw(string lan, GameObject value) => EditorGUILayout.ObjectField(lan, value, typeof(GameObject), false) as GameObject;
+
+        protected override GameObject GetDefault() => null;
+
     }
 }

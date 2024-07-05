@@ -14,6 +14,7 @@ using UnityEditorInternal;
 using UnityEditor.Callbacks;
 using System.Text.RegularExpressions;
 using UnityEngine.Windows;
+using UnityEngine;
 
 namespace IFramework
 {
@@ -107,7 +108,11 @@ namespace IFramework
                     __info.UserName = (string)p.GetValue(userInfo);
                     if (!__info.logIgnoreFiles.Contains(default_path))
                         __info.logIgnoreFiles.Add(default_path);
+                    if (__info.UserName == "anonymous")
+                    {
+                        __info.UserName = SystemInfo.deviceName;
 
+                    }
                     __info.logIgnoreFiles.RemoveAll(x => !File.Exists(x));
                     __info.Save();
                     return __info;

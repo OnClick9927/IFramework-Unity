@@ -5,12 +5,14 @@
  *Date:           2024-04-25
 *********************************************************************************/
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace IFramework.Localization
 {
     [UnityEngine.RequireComponent(typeof(UnityEngine.UI.Graphic))]
-
+    [DisallowMultipleComponent]
+    [AddComponentMenu("IFramework/LocalizationGraphic")]
     public class LocalizationGraphic : LocalizationBehavior
     {
         public Graphic graphic { get; private set; }

@@ -8,42 +8,41 @@ using IFramework.Singleton;
 using System.Collections.Generic;
 namespace IFramework.Localization
 {
-    public class Localization : Singleton<Localization>
+    public static class Localization
     {
         public const string LocalizationChange = "LocalizationChange";
-        public string localizationType => pref.localizationType;
-        public ILocalizationContext context;
-        private LocalizationPref pref;
-        private ILocalizationPrefRecorder recorder = new MixedRecorder();
+        public static string localizationType => pref.localizationType;
+        public static ILocalizationContext context;
+        private static LocalizationPref pref;
+        private static ILocalizationPrefRecorder recorder = new MixedRecorder();
 
-        public void SetRecorder(ILocalizationPrefRecorder recorder)
+        public static void SetRecorder(ILocalizationPrefRecorder recorder)
         {
-            (this.recorder as MixedRecorder).Add(recorder);
-            pref = this.recorder.Read();
+            (Localization.recorder as MixedRecorder).Add(recorder);
+            pref = Localization.recorder.Read();
         }
-        protected override void OnSingletonInit() { }
 
-        public void SetDefaultLocalizationType(string type)
+        public static void SetDefaultLocalizationType(string type)
         {
             if (string.IsNullOrEmpty(localizationType))
                 SetLocalizationType(type);
         }
-        public void SetContext(ILocalizationContext context)
+        public static void SetContext(ILocalizationContext context)
         {
-            this.context = context;
+            Localization.context = context;
         }
-        public void SetLocalizationType(string type)
+        public static void SetLocalizationType(string type)
         {
             if (localizationType == type) return;
             pref.localizationType = type;
             recorder.Write(pref);
             Events.Publish(LocalizationChange, null);
         }
-        public string GetLocalizationType()
+        public static string GetLocalizationType()
         {
             return pref.localizationType;
         }
-        public string GetLocalization(ILocalizationContext context, string key)
+        public static string GetLocalization(ILocalizationContext context, string key)
         {
             if (string.IsNullOrEmpty(key)) return string.Empty;
             if (context == null) return string.Empty;
@@ -52,21 +51,21 @@ namespace IFramework.Localization
                 return key;
             return restult;
         }
-        public string GetLocalization(string key) => GetLocalization(this.context, key);
+        public static string GetLocalization(string key) => GetLocalization(context, key);
 
-        public List<string> GetLocalizationTypes(ILocalizationContext context)
+        public static List<string> GetLocalizationTypes(ILocalizationContext context)
         {
             if (context == null)
                 return null;
             return context.GetLocalizationTypes();
         }
-        public List<string> GetLocalizationKeys(ILocalizationContext context)
+        public static List<string> GetLocalizationKeys(ILocalizationContext context)
         {
             if (context == null) return null;
             return context.GetLocalizationKeys();
         }
 
-        public List<string> GetLocalizationTypes() => GetLocalizationTypes(this.context);
-        public List<string> GetLocalizationKeys() => GetLocalizationKeys(this.context);
+        public static List<string> GetLocalizationTypes() => GetLocalizationTypes(context);
+        public static List<string> GetLocalizationKeys() => GetLocalizationKeys(context);
     }
 }

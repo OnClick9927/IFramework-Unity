@@ -10,14 +10,12 @@ using UnityEditor;
 namespace IFramework.Localization
 {
     [LocalizationActorEditorAttribute]
-
-    class TextFontSizeActorEditor : LocalizationMapActorEditor<TextFontSizeActor, int>
+    class TextFontSizeActorEditor : LocalizationMapActorEditor<TextFontSizeActor, int,LocalizationText>
     {
         protected override int Draw(string lan, int value) => EditorGUILayout.IntField(lan, value);
 
         protected override int GetDefault() => 14;
 
-        protected override SerializableDictionary<string, int> GetMap(TextFontSizeActor context) => context.fonts;
 
     }
 }

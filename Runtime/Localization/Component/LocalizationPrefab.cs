@@ -4,24 +4,22 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-04-25
 *********************************************************************************/
+
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace IFramework.Localization
 {
-    [UnityEngine.RequireComponent(typeof(UnityEngine.UI.Image))]
     [DisallowMultipleComponent]
-    [AddComponentMenu("IFramework/LocalizationImage")]
-    public class LocalizationImage : LocalizationGraphic<UnityEngine.UI.Image>
+    [AddComponentMenu("IFramework/LocalizationPrefab")]
+    public class LocalizationPrefab : LocalizationBehavior
     {
-        public ImageSpriteActor sprite = new ImageSpriteActor();
-
+        public PrefabActor prefab = new PrefabActor();
         protected override List<ILocalizationActor> GetActors()
         {
-            var _base = base.GetActors();
-            _base.Add(sprite);
-            return _base;
-
+            return new List<ILocalizationActor>() {
+            prefab
+            };
         }
     }
 }

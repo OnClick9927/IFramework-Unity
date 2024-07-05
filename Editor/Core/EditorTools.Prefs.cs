@@ -18,7 +18,6 @@ namespace IFramework
     {
         static class Prefs
         {
-            private static Dictionary<string, string> map = new Dictionary<string, string>();
             private static string StringToPath(string key, bool unique)
             {
                 string _key = key.Replace("/", "_");
@@ -26,6 +25,7 @@ namespace IFramework
                 {
                     string ukey = SystemInfo.deviceUniqueIdentifier;
                     if (!string.IsNullOrEmpty(ProjectConfig.UserName)) ukey = ProjectConfig.UserName;
+               
                     string dir = EditorTools.projectMemoryPath.CombinePath(ukey);
                     if (!Directory.Exists(dir))
                         Directory.CreateDirectory(dir);
@@ -40,27 +40,15 @@ namespace IFramework
             private static string GetString(Type type, string key, bool unique)
             {
                 var path = StringToPath(GetKey(type, key), unique);
-                if (!map.ContainsKey(path))
-                {
-                    var result = string.Empty;
-                    if (File.Exists(path))
-                        result = File.ReadAllText(path);
-                    map[path] = result;
-                }
-                return map[path];
+                if (File.Exists(path))
+                    return File.ReadAllText(path);
+                return string.Empty;
             }
 
             private static void SetString(Type type, string key, string value, bool unique)
             {
                 var path = StringToPath(GetKey(type, key), unique);
-                if (!map.ContainsKey(path))
-                    map[path] = value;
-                else
-                {
-                    if (map[path] == value && File.Exists(path))
-                        return;
-                    map[path] = value;
-                }
+           
                 File.WriteAllText(path, value);
                 AssetDatabase.Refresh();
             }

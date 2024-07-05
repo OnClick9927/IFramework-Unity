@@ -32,10 +32,23 @@ namespace IFramework.UI
 
 
             [SerializeField] private ItemType _type;
-  
+
 
             protected override GameObject gameObject => panel;
 
+            protected override void OnFindDirFail()
+            {
+                UIPanel find = gameObject.GetComponent<UIPanel>();
+                if (find != null)
+                {
+                    _type = ItemType.MVCView;
+                }
+                else
+                {
+                    if (_type == ItemType.MVCView)
+                        _type = ItemType.GameObject;
+                }
+            }
 
             protected override void OnFindDirSuccess()
             {
@@ -77,15 +90,15 @@ namespace IFramework.UI
             public override void OnGUI()
             {
                 base.OnGUI();
-     
+
             }
 
-            protected override void WriteView()
+            protected override void WriteView(bool includeChildPrefab)
             {
-                Write(creator, scriptPath, viewDesignScriptOrigin());
+                Write(creator, scriptPath, viewDesignScriptOrigin(), includeChildPrefab);
             }
 
-            public static void Write(ScriptCreator creator, string path, string origin)
+            public static void Write(ScriptCreator creator, string path, string origin, bool includeChildPrefab)
             {
                 if (File.Exists(path))
                 {
@@ -139,7 +152,7 @@ namespace IFramework.UI
                    {
                        string field;
                        string find;
-                       Fields(creator, out field, out find);
+                       Fields(creator, includeChildPrefab, out field, out find);
                        return str
                        //.Replace("#PanelType#", panelName)
                        .Replace(Field, field)
@@ -148,10 +161,11 @@ namespace IFramework.UI
 
             }
 
-            private static void Fields(ScriptCreator creater, out string field, out string find)
+            private static void Fields(ScriptCreator creater, bool includeChildPrefab, out string field, out string find)
             {
                 var marks = creater.GetMarks();
-
+                if(includeChildPrefab)
+                    marks = creater.GetAllMarks();
 
                 StringBuilder f = new StringBuilder();
                 StringBuilder functionField = new StringBuilder();
@@ -297,9 +311,6 @@ namespace IFramework.UI
             "}";
                 return target.Replace(UIItem, ViewTxt());
             }
-
-
-
 
         }
     }

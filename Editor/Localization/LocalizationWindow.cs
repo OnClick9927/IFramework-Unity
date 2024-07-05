@@ -12,27 +12,32 @@ namespace IFramework.Localization
     [EditorWindowCache("Localization")]
     class LocalizationWindow : EditorWindow
     {
-        LocalizationSetting setting => LocalizationSetting.context;
 
         private void OnGUI()
         {
-            EditorGUI.BeginChangeCheck();
-            setting.defaultData = EditorGUILayout.ObjectField(nameof(setting.defaultData), setting.defaultData, typeof(LocalizationData), false) as LocalizationData;
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField("Regex");
+            LocalizationSetting.quotesReg = EditorGUILayout.TextField(nameof(LocalizationSetting.quotesReg), LocalizationSetting.quotesReg);
+            LocalizationSetting.lineReg = EditorGUILayout.TextField(nameof(LocalizationSetting.lineReg), LocalizationSetting.lineReg);
+            LocalizationSetting.fieldReg = EditorGUILayout.TextField(nameof(LocalizationSetting.fieldReg), LocalizationSetting.fieldReg);
+            EditorGUILayout.EndVertical();
 
-            if (setting.defaultData)
+            LocalizationSetting.defaultData = EditorGUILayout.ObjectField(nameof(LocalizationSetting.defaultData), LocalizationSetting.defaultData, typeof(LocalizationData), false) as LocalizationData;
+
+            if (LocalizationSetting.defaultData)
             {
-                var types = setting.defaultData.GetLocalizationTypes();
-                var index = EditorGUILayout.Popup("LanguageType",types.IndexOf(setting.localizationType), types.ToArray());
-                Localization.instance.SetLocalizationType(types[index]);
+                var types = LocalizationSetting.defaultData.GetLocalizationTypes();
+                if (types.Count==0)
+                {
+                    return;
+                }
+                var index = EditorGUILayout.Popup("LanguageType", types.IndexOf(LocalizationSetting.localizationType), types.ToArray());
+                Localization.SetLocalizationType(types[index]);
                 //GUI.enabled = false;
                 //setting.localizationType = EditorGUILayout.TextField(nameof(setting.localizationType), setting.localizationType);
 
             }
 
-            if (EditorGUI.EndChangeCheck())
-            {
-                setting.Save();
-            }
 
         }
 

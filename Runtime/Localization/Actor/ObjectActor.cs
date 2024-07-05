@@ -7,11 +7,12 @@
 namespace IFramework.Localization
 {
     [System.Serializable]
-    public class TextFontSizeActor : LocalizationMapActor<LocalizationText,int>
+    public class ObjectActor<T> : LocalizationMapActor<LocalizationBehavior,T> where T : UnityEngine.Object
     {
-        protected override void Execute(string localizationType, LocalizationText component)
+        public SerializableDictionary<string, T> objects = new SerializableDictionary<string, T>();
+   
+        protected override void Execute(string localizationType, LocalizationBehavior component)
         {
-            component.graphicT.fontSize = GetValue(localizationType);
 
         }
     }

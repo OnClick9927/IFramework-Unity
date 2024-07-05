@@ -12,11 +12,8 @@ using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using static IFramework.EditorTools;
-using static IFramework.UI.ScriptCreator;
-using static IFramework.UI.ScriptCreatorFieldsDrawer;
 
 namespace IFramework.UI
 {
@@ -32,10 +29,11 @@ namespace IFramework.UI
         {
             public SearchType searchType;
 
-   
+
             private GameObject go;
             private ScriptCreator sc;
             private SearchField search;
+            private ScriptCreatorFieldsDrawer drawer;
             public void SetGameObject(ScriptCreator sc)
             {
                 this.sc = sc;
@@ -45,8 +43,9 @@ namespace IFramework.UI
                     this.Reload();
                 }
             }
-            public Tree(TreeViewState state,SearchType searchType) : base(state)
+            public Tree(TreeViewState state, SearchType searchType, ScriptCreatorFieldsDrawer drawer) : base(state)
             {
+                this.drawer = drawer;
                 this.searchType = searchType;
                 search = new SearchField();
                 this.showBorder = true;
@@ -93,7 +92,9 @@ namespace IFramework.UI
             void AddChildrenRecursive(GameObject go, TreeViewItem root, IList<TreeViewItem> rows)
             {
                 if (go == null) return;
-                if (sc.IsPrefabInstance(go)) return;
+                if (!drawer.includeChildPrefab)
+                    if (sc.IsPrefabInstance(go))
+                        return;
 
                 TreeViewItem item = null;
                 bool create = true;
@@ -138,10 +139,19 @@ namespace IFramework.UI
                 int childCount = go.transform.childCount;
                 bool ok = false;
                 for (int i = 0; i < childCount; i++)
-                    if (!sc.IsPrefabInstance(go.transform.GetChild(i).gameObject))
+                    if (drawer.includeChildPrefab)
                     {
                         ok = true;
                         break;
+                    }
+                    else
+                    {
+                        if (!sc.IsPrefabInstance(go.transform.GetChild(i).gameObject))
+                        {
+                            ok = true;
+                            break;
+                        }
+
                     }
 
                 if (ok)
@@ -206,9 +216,9 @@ namespace IFramework.UI
             public override void OnGUI(Rect rect)
             {
                 var rs = EditorTools.RectEx.HorizontalSplit(rect, 18);
-                var rs1 = EditorTools.RectEx.VerticalSplit(rs[0], 150,10);
+                var rs1 = EditorTools.RectEx.VerticalSplit(rs[0], 150, 10);
                 var _tmp = (SearchType)EditorGUI.EnumPopup(rs1[0], searchType);
-                if (_tmp!= searchType)
+                if (_tmp != searchType)
                 {
                     searchType = _tmp;
                     Reload();
@@ -225,8 +235,7 @@ namespace IFramework.UI
             void SaveGo()
             {
                 EditorUtility.SetDirty(this.go);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
+                AssetDatabase.SaveAssetIfDirty(this.go);
                 Reload();
             }
 
@@ -257,11 +266,12 @@ namespace IFramework.UI
                 Dictionary<Type, int> help = new Dictionary<Type, int>();
                 List<GameObject> gameobjects = new List<GameObject>();
                 List<ScriptMark> marks = new List<ScriptMark>();
-                var s = this.GetSelection();
+                var s = this.GetSelection().Select(x=>GetGameObject(x)).ToList();
+                s.RemoveAll(x => sc.IsPrefabInstance(x));
+                if (s.Count == 0) return;
                 for (int i = 0; i < s.Count; i++)
                 {
-                    var go = GetGameObject(s[i]);
-                    if (sc.IsPrefabInstance(go)) continue;
+                    var go = s[i];
                     gameobjects.Add(go);
                     ScriptMark sm = go.GetComponent<ScriptMark>();
                     if (sm != null) marks.Add(sm);
@@ -389,24 +399,30 @@ namespace IFramework.UI
         }
         private ScriptCreator _creator;
         private Tree _tree;
-        public ScriptCreatorFieldsDrawer(ScriptCreator creator, TreeViewState state,SearchType searchType)
+        private bool includeChildPrefab;
+        public ScriptCreatorFieldsDrawer(ScriptCreator creator, TreeViewState state, SearchType searchType)
         {
             this._creator = creator;
             if (state == null)
             {
                 state = new TreeViewState();
             }
-            _tree = new Tree(state, searchType);
+            _tree = new Tree(state, searchType, this);
         }
 
 
-        public void OnGUI()
+        public void OnGUI(bool includeChildPrefab)
         {
             _tree.SetGameObject(_creator);
+            if (this.includeChildPrefab != includeChildPrefab)
+            {
+                this.includeChildPrefab = includeChildPrefab;
+                _tree.Reload();
+            }
             _tree.OnGUI(EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true)));
         }
 
-         internal SearchType GetSearchType() => _tree.searchType;
+        internal SearchType GetSearchType() => _tree.searchType;
     }
 
 }

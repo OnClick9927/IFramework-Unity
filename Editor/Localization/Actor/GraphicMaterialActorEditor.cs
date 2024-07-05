@@ -12,7 +12,7 @@ using UnityEngine.UI;
 namespace IFramework.Localization
 {
     [LocalizationActorEditorAttribute]
-    class GraphicMaterialActorEditor : LocalizationMapActorEditor<GraphicMaterialActor, Material>
+    class GraphicMaterialActorEditor : LocalizationMapActorEditor<GraphicMaterialActor, Material, LocalizationGraphic>
     {
         protected override Material Draw(string lan, Material value)
         {
@@ -24,10 +24,7 @@ namespace IFramework.Localization
             return Graphic.defaultGraphicMaterial;
         }
 
-        protected override SerializableDictionary<string, Material> GetMap(GraphicMaterialActor context)
-        {
-            return context.materials;
-        }
+
 
     }
 }

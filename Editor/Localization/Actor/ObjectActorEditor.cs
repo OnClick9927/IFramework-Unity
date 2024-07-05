@@ -6,22 +6,17 @@
 *********************************************************************************/
 
 using UnityEditor;
-using UnityEngine;
 
 namespace IFramework.Localization
 {
-
     [LocalizationActorEditorAttribute]
-    class GraphicColorActorEditor : LocalizationMapActorEditor<GraphicColorActor, Color, LocalizationGraphic>
-    {
-        protected override Color Draw(string lan, Color value)
-        {
-            return EditorGUILayout.ColorField(lan, value);
-        }
 
-        protected override Color GetDefault()
-        {
-            return Color.white;
-        }
+    class ObjectActorEditor<T> : LocalizationMapActorEditor<ObjectActor<T>, T, LocalizationBehavior> where T : UnityEngine.Object
+    {
+        protected override T Draw(string lan, T value) => EditorGUILayout.ObjectField(lan, value, typeof(T), false) as T;
+
+        protected override T GetDefault() => null;
+
+
     }
 }

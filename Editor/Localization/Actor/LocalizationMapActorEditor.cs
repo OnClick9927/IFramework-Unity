@@ -7,13 +7,15 @@
 
 namespace IFramework.Localization
 {
-    public abstract class LocalizationMapActorEditor<T, V> : LocalizationActorEditor<T> where T : class, ILocalizationActor
+    public abstract class LocalizationMapActorEditor<Actor, Value, Behavior> : LocalizationActorEditor<Actor>
+        where Actor : LocalizationMapActor<Behavior, Value>
+        where Behavior : LocalizationBehavior
     {
-        protected override void OnGUI(LocalizationBehavior component, T context)
+        protected override void OnGUI(LocalizationBehavior component, Actor context)
         {
             if (component.context == null) return;
             var keys = component.GetLocalizationTypes();
-            var map = GetMap(context);
+            var map = context.map;
             for (int i = 0; keys.Count > i; i++)
             {
                 var key = keys[i];
@@ -46,8 +48,7 @@ namespace IFramework.Localization
 
             }
         }
-        protected abstract SerializableDictionary<string, V> GetMap(T context);
-        protected abstract V GetDefault();
-        protected abstract V Draw(string lan, V value);
+        protected abstract Value GetDefault();
+        protected abstract Value Draw(string lan, Value value);
     }
 }

@@ -7,12 +7,11 @@
 namespace IFramework.Localization
 {
     [System.Serializable]
-    public class ImageSpriteActor : LocalizationActor<LocalizationImage>
+    public class ImageSpriteActor : LocalizationMapActor<LocalizationImage, UnityEngine.Sprite>
     {
-        public SerializableDictionary<string, UnityEngine.Sprite> sprites = new SerializableDictionary<string, UnityEngine.Sprite>();
         protected override void Execute(string localizationType, LocalizationImage component)
         {
-            component.graphicT.sprite = sprites[localizationType];
+            component.graphicT.sprite = GetValue(localizationType);
         }
     }
 }

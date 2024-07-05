@@ -5,10 +5,14 @@
  *Date:           2024-04-25
 *********************************************************************************/
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace IFramework.Localization
 {
     [UnityEngine.RequireComponent(typeof(UnityEngine.UI.Text))]
+    [DisallowMultipleComponent]
+    [AddComponentMenu("IFramework/LocalizationText")]
+
     public class LocalizationText : LocalizationGraphic<UnityEngine.UI.Text>
     {
 

@@ -4,15 +4,14 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-04-25
 *********************************************************************************/
+using UnityEditor;
+
 namespace IFramework.Localization
 {
-    [System.Serializable]
-    public class TextFontSizeActor : LocalizationMapActor<LocalizationText,int>
-    {
-        protected override void Execute(string localizationType, LocalizationText component)
-        {
-            component.graphicT.fontSize = GetValue(localizationType);
 
-        }
+    [CustomEditor(typeof(LocalizationPrefab))]
+    class LocalizationPrefabEditor : LocalizationBehaviorEditor<LocalizationPrefab>
+    {
+
     }
 }

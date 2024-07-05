@@ -9,6 +9,8 @@
 using UnityEngine;
 namespace IFramework.UI
 {
+    [DisallowMultipleComponent]
+    [AddComponentMenu("IFramework/UIPanel")]
 
     public class UIPanel:MonoBehaviour
     {
