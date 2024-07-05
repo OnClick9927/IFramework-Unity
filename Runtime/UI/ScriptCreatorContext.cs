@@ -15,6 +15,6 @@ namespace IFramework.UI
     public class ScriptCreatorContext : MonoBehaviour
     {
         [HideInInspector] public bool containsChildren;
-        [HideInInspector] public List<string> ignorePaths;
+        [HideInInspector] public List<string> ignorePaths = new List<string>();
     }
 }
