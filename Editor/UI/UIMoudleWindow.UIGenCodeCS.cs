@@ -13,6 +13,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace IFramework.UI
 {
@@ -93,12 +94,12 @@ namespace IFramework.UI
 
             }
 
-            protected override void WriteView(bool includeChildPrefab)
+            protected override void WriteView(bool containsChildren, List<string> ignore)
             {
-                Write(creator, scriptPath, viewDesignScriptOrigin(), includeChildPrefab);
+                Write(creator, scriptPath, viewDesignScriptOrigin(), containsChildren, ignore);
             }
 
-            public static void Write(ScriptCreator creator, string path, string origin, bool includeChildPrefab)
+            public static void Write(ScriptCreator creator, string path, string origin, bool containsChildren, List<string> ignore)
             {
                 if (File.Exists(path))
                 {
@@ -152,7 +153,7 @@ namespace IFramework.UI
                    {
                        string field;
                        string find;
-                       Fields(creator, includeChildPrefab, out field, out find);
+                       Fields(creator, containsChildren, ignore, out field, out find);
                        return str
                        //.Replace("#PanelType#", panelName)
                        .Replace(Field, field)
@@ -161,10 +162,10 @@ namespace IFramework.UI
 
             }
 
-            private static void Fields(ScriptCreator creater, bool includeChildPrefab, out string field, out string find)
+            private static void Fields(ScriptCreator creater, bool containsChildren, List<string> ignore, out string field, out string find)
             {
                 var marks = creater.GetMarks();
-                if(includeChildPrefab)
+                if (containsChildren)
                     marks = creater.GetAllMarks();
 
                 StringBuilder f = new StringBuilder();
@@ -190,7 +191,11 @@ namespace IFramework.UI
                         else
                         {
                             string path = marks[i].transform.GetPath();
-
+                            if (containsChildren)
+                            {
+                                if (ignore.Any(x => path.Contains(path)))
+                                    continue;
+                            }
                             path = path.Remove(0, root_path.Length + 1);
                             f.AppendLine($"\t\tprivate {fieldType} {fieldName};");
                             if (fieldType == typeof(GameObject).FullName)

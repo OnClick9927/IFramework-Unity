@@ -6,14 +6,15 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using System.Collections.Generic;
 using UnityEngine;
 namespace IFramework.UI
 {
     [DisallowMultipleComponent]
     [AddComponentMenu("")]
-    public class ScriptMark : MonoBehaviour
+    public class ScriptCreatorContext : MonoBehaviour
     {
-        [HideInInspector] public string fieldName;
-        [HideInInspector] public string fieldType;
+        [HideInInspector] public bool containsChildren;
+        [HideInInspector] public List<string> ignorePaths;
     }
 }

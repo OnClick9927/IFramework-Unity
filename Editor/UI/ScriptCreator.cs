@@ -11,14 +11,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
+using UnityEditor;
 
 namespace IFramework.UI
 {
     [System.Serializable]
     public class ScriptCreator
     {
-
         public GameObject gameObject;
+        public ScriptCreatorContext context;
         [SerializeField] private List<ScriptMark> marks = new List<ScriptMark>();
         public bool IsPrefabInstance(GameObject obj)
         {
@@ -95,6 +96,18 @@ namespace IFramework.UI
             if (gameObject != this.gameObject)
             {
                 this.gameObject = gameObject;
+                this.context = null;
+                if (gameObject != null)
+                {
+                    context = this.gameObject.GetComponent<ScriptCreatorContext>();
+                    if (context == null)
+                    {
+                        context = this.gameObject.AddComponent<ScriptCreatorContext>();
+                        EditorUtility.SetDirty(this.gameObject);
+                        AssetDatabase.SaveAssetIfDirty(this.gameObject);
+                    }
+                }
+
                 marks.Clear();
                 CollectMarks();
             }

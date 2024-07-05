@@ -64,6 +64,10 @@ namespace IFramework.UI
                         {
                            headerContent=new GUIContent("FieldName")
                         },
+                        new MultiColumnHeaderState.Column()
+                        {
+                           headerContent=new GUIContent("Ignore")
+                        },
                 })); ;
                 Reload();
                 this.multiColumnHeader.ResizeToFit();
@@ -207,8 +211,13 @@ namespace IFramework.UI
                         rect = args.GetCellRect(2);
                         GUI.Label(rect, sm.fieldName);
                     }
+                    var path = go.transform.GetPath();
+                    GUI.enabled = false; 
+                    GUI.Toggle(args.GetCellRect(3), sc.context.ignorePaths.Any(x => path.Contains(x)),"");
+                    GUI.enabled = true;
                 }
                 GUI.color = Color.white;
+
                 if (go == _ping)
                     GUI.Label(RectEx.Zoom(args.rowRect, TextAnchor.MiddleCenter, -8), "", "LightmapEditorSelectedHighlight");
 
@@ -266,8 +275,8 @@ namespace IFramework.UI
                 Dictionary<Type, int> help = new Dictionary<Type, int>();
                 List<GameObject> gameobjects = new List<GameObject>();
                 List<ScriptMark> marks = new List<ScriptMark>();
-                var s = this.GetSelection().Select(x=>GetGameObject(x)).ToList();
-                s.RemoveAll(x => sc.IsPrefabInstance(x));
+                var s = this.GetSelection().Select(x => GetGameObject(x)).ToList();
+                //s.RemoveAll(x => sc.IsPrefabInstance(x));
                 if (s.Count == 0) return;
                 for (int i = 0; i < s.Count; i++)
                 {
@@ -334,6 +343,25 @@ namespace IFramework.UI
                       sc.DestroyMarks();
                       SaveGo();
                   });
+                menu.AddSeparator("");
+
+                menu.AddItem(new GUIContent("Add To Ignore Path"), false, () =>
+                {
+                    var find = s.FindAll(x => sc.IsPrefabInstance(x)).Select(x => x.transform.GetPath());
+
+                    sc.context.ignorePaths.AddRange(find);
+                    sc.context.ignorePaths = sc.context.ignorePaths.Distinct().ToList();
+                    EditorUtility.SetDirty(sc.gameObject);
+                    AssetDatabase.SaveAssetIfDirty(sc.gameObject);
+                });
+                menu.AddItem(new GUIContent("Remove From Ignore Path"), false, () =>
+                {
+                    var find = s.FindAll(x => sc.IsPrefabInstance(x)).Select(x => x.transform.GetPath());
+                    sc.context.ignorePaths.RemoveAll(x => find.Contains(x));
+                    EditorUtility.SetDirty(sc.gameObject);
+                    AssetDatabase.SaveAssetIfDirty(sc.gameObject);
+                });
+
                 menu.AddSeparator("");
                 if (go == null)
                     menu.AddDisabledItem(new GUIContent("Fresh FieldNames"));

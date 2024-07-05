@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using System.IO;
+using System.Collections.Generic;
 
 namespace IFramework.UI
 {
@@ -25,7 +26,6 @@ namespace IFramework.UI
         {
             [SerializeField] protected string GenPath = "";
             [SerializeField] private string panelPath;
-            [SerializeField] private bool includeChildPrefab;
             private T _panel;
             protected T panel
             {
@@ -88,7 +88,6 @@ namespace IFramework.UI
                         this.panelPath = last.panelPath;
                     if (Directory.Exists(last.GenPath))
                         this.GenPath = last.GenPath;
-                    this.includeChildPrefab = last.includeChildPrefab;
                     this.state = last.state;
                     LoadLastData(last);
                 }
@@ -101,7 +100,7 @@ namespace IFramework.UI
 
             protected abstract void OnFindDirSuccess();
             protected abstract void LoadLastData(UIGenCode<T> last);
-            protected abstract void WriteView(bool includeChildPrefab);
+            protected abstract void WriteView(bool containsChildren, List<string> ignore);
             public override void OnDisable()
             {
                 _searchType = fields.GetSearchType();
@@ -165,9 +164,22 @@ namespace IFramework.UI
                 {
                     SetViewData();
                 }
-                this.includeChildPrefab = EditorGUILayout.Toggle("Include Child Prefab", this.includeChildPrefab);
+                if (creator.context != null)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    creator.context
+.containsChildren = EditorGUILayout.Toggle("Contains Children", creator.context
+.containsChildren);
+              
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        EditorUtility.SetDirty(creator.context.gameObject);
+                        AssetDatabase.SaveAssetIfDirty(creator.context.gameObject);
+                    }
+                }
                 GUILayout.Space(5);
-                fields.OnGUI(this.includeChildPrefab);
+                fields.OnGUI(creator.context == null ? false : creator.context.containsChildren);
                 GUILayout.Space(5);
                 GUILayout.BeginHorizontal();
                 {
@@ -183,7 +195,7 @@ namespace IFramework.UI
                             EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
                             return;
                         }
-                        WriteView(this.includeChildPrefab);
+                        WriteView(creator.context.containsChildren, creator.context.ignorePaths);
                         AssetDatabase.Refresh();
                     }
                     GUILayout.Space(5);
