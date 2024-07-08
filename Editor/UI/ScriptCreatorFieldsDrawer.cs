@@ -14,6 +14,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using static IFramework.EditorTools;
+using static UnityEditor.GenericMenu;
 
 namespace IFramework.UI
 {
@@ -96,7 +97,7 @@ namespace IFramework.UI
             void AddChildrenRecursive(GameObject go, TreeViewItem root, IList<TreeViewItem> rows)
             {
                 if (go == null) return;
-                if (!drawer.includeChildPrefab)
+                if (!drawer.containsChildren)
                     if (sc.IsPrefabInstance(go))
                         return;
 
@@ -143,7 +144,7 @@ namespace IFramework.UI
                 int childCount = go.transform.childCount;
                 bool ok = false;
                 for (int i = 0; i < childCount; i++)
-                    if (drawer.includeChildPrefab)
+                    if (drawer.containsChildren)
                     {
                         ok = true;
                         break;
@@ -203,7 +204,9 @@ namespace IFramework.UI
                 GUI.Label(first, args.label);
                 if (go != null)
                 {
-                    ScriptMark sm = go.GetComponent<ScriptMark>();
+                    var sm = sc.GetMark(go);
+                    if (sc.IsPrefabInstance(go))
+                        sm = sc.GetPrefabMark(go);
                     if (sm != null)
                     {
                         var rect = args.GetCellRect(1);
@@ -212,8 +215,8 @@ namespace IFramework.UI
                         GUI.Label(rect, sm.fieldName);
                     }
                     var path = go.transform.GetPath();
-                    GUI.enabled = false; 
-                    GUI.Toggle(args.GetCellRect(3), sc.context.ignorePaths.Any(x => path.Contains(x)),"");
+                    GUI.enabled = false;
+                    GUI.Toggle(args.GetCellRect(3), sc.IsIgnorePath(path), "");
                     GUI.enabled = true;
                 }
                 GUI.color = Color.white;
@@ -241,17 +244,11 @@ namespace IFramework.UI
                 base.OnGUI(rs[1]);
             }
 
-            void SaveGo()
-            {
-                EditorUtility.SetDirty(this.go);
-                AssetDatabase.SaveAssetIfDirty(this.go);
-                Reload();
-            }
 
             protected override bool CanRename(TreeViewItem item)
             {
                 var go = GetGameObject(item.id);
-                return go.GetComponent<ScriptMark>() != null;
+                return sc.GetMark(go) != null;
 
             }
 
@@ -259,37 +256,46 @@ namespace IFramework.UI
             {
                 var id = args.itemID;
                 var go = GetGameObject(id);
-                var sm = go.GetComponent<ScriptMark>();
+                var sm = sc.GetMark(go);
                 sm.fieldName = args.newName;
-                SaveGo();
+                sc.SaveContext();
             }
             protected override Rect GetRenameRect(Rect rowRect, int row, TreeViewItem item)
             {
                 return this.multiColumnHeader.GetCellRect(2, rowRect);
             }
 
+            private static void CreateMenu(GenericMenu menu, string content, bool disable, MenuFunction action)
+            {
+                if (disable)
+                    menu.AddDisabledItem(new GUIContent(content));
+                else
+                    menu.AddItem(new GUIContent(content), false, action);
 
+            }
             protected override void ContextClicked()
             {
                 GenericMenu menu = new GenericMenu();
                 Dictionary<Type, int> help = new Dictionary<Type, int>();
                 List<GameObject> gameobjects = new List<GameObject>();
-                List<ScriptMark> marks = new List<ScriptMark>();
-                var s = this.GetSelection().Select(x => GetGameObject(x)).ToList();
+                var marks = new List<GameObject>();
+                var selection = this.GetSelection().Select(x => GetGameObject(x)).ToList();
                 //s.RemoveAll(x => sc.IsPrefabInstance(x));
-                if (s.Count == 0) return;
-                for (int i = 0; i < s.Count; i++)
+                if (selection.Count == 0) return;
+                var normal = selection.FindAll(y => !sc.IsPrefabInstance(y));
+                var prefab = selection.FindAll(y => sc.IsPrefabInstance(y));
+
+                for (int i = 0; i < normal.Count; i++)
                 {
-                    var go = s[i];
+                    var go = normal[i];
                     gameobjects.Add(go);
-                    ScriptMark sm = go.GetComponent<ScriptMark>();
-                    if (sm != null) marks.Add(sm);
+                    var sm = sc.GetMark(go);
+                    if (sm != null) marks.Add(go);
 
                     Component[] components = go.GetComponents<Component>();
                     foreach (var component in components)
                     {
                         Type componentType = component.GetType();
-                        if (component is ScriptMark) continue;
                         if (help.ContainsKey(componentType)) help[componentType]++;
                         else help[componentType] = 1;
                     }
@@ -306,84 +312,66 @@ namespace IFramework.UI
                         if (item.Value == max)
                             types.Add(item.Key);
                 }
-
-                if (types.Count == 0)
-                    menu.AddDisabledItem(new GUIContent("Mark Component"));
-                else
+                if (normal.Count > 0)
+                {
                     for (int i = 0; i < types.Count; i++)
                     {
                         var type = types[i];
                         menu.AddItem(new GUIContent($"Mark Component/{type.FullName}"), false, () =>
                         {
-                            sc.RemoveMarks(marks);
+                            sc.RemoveMarks(marks.ConvertAll(x => x.gameObject));
                             for (int i = 0; i < gameobjects.Count; i++)
                             {
-                                ScriptMark sm = sc.AddMark(gameobjects[i]);
-                                if (sm != null)
-                                {
-                                    sm.fieldType = type.FullName;
-                                    sc.ValidateMarkFieldName(sm);
-                                }
+                                sc.AddMark(gameobjects[i], type);
                             }
-                            SaveGo();
+                            Reload();
                         });
                         if (i == 1)
                             menu.AddSeparator("Mark Component/");
                     }
-                if (marks.Count == 0)
-                    menu.AddDisabledItem(new GUIContent("Remove Marks"));
+                }
                 else
-                    menu.AddItem(new GUIContent("Remove Marks"), false, () =>
-                    {
-                        sc.RemoveMarks(marks);
-                        SaveGo();
-                    });
-                menu.AddItem(new GUIContent("Destroy All Marks"), false, () =>
-                  {
-                      sc.DestroyMarks();
-                      SaveGo();
-                  });
-                menu.AddSeparator("");
-
-                menu.AddItem(new GUIContent("Add To Ignore Path"), false, () =>
                 {
-                    var find = s.FindAll(x => sc.IsPrefabInstance(x)).Select(x => x.transform.GetPath());
+                    menu.AddDisabledItem(new GUIContent("Mark Component"), false);
+                }
 
-                    sc.context.ignorePaths.AddRange(find);
-                    sc.context.ignorePaths = sc.context.ignorePaths.Distinct().ToList();
-                    EditorUtility.SetDirty(sc.gameObject);
-                    AssetDatabase.SaveAssetIfDirty(sc.gameObject);
-                });
-                menu.AddItem(new GUIContent("Remove From Ignore Path"), false, () =>
+                CreateMenu(menu, "Remove Marks", types.Count == 0 || normal.Count == 0, () =>
                 {
-                    var find = s.FindAll(x => sc.IsPrefabInstance(x)).Select(x => x.transform.GetPath());
-                    sc.context.ignorePaths.RemoveAll(x => find.Contains(x));
-                    EditorUtility.SetDirty(sc.gameObject);
-                    AssetDatabase.SaveAssetIfDirty(sc.gameObject);
+                    sc.RemoveMarks(marks.ConvertAll(x => x.gameObject));
+                    Reload();
+
                 });
+                CreateMenu(menu, "Destroy All Marks", false, () =>
+                {
+                    sc.DestroyMarks();
+                    Reload();
 
+                });
                 menu.AddSeparator("");
-                if (go == null)
-                    menu.AddDisabledItem(new GUIContent("Fresh FieldNames"));
-                else
-                    menu.AddItem(new GUIContent("Fresh FieldNames"), false, () =>
+                CreateMenu(menu, "Add To Ignore Path", prefab.Count == 0, () =>
+                {
+                    sc.AddToIgnorePath(prefab);
+                });
+                CreateMenu(menu, "Remove From Ignore Path", prefab.Count == 0, () =>
+                {
+                    sc.RemoveFromIgnorePath(prefab);
+                });
+                menu.AddSeparator("");
+                CreateMenu(menu, "Fresh FieldNames", false, () =>
+                {
+                    var all = sc.GetMarks();
+                    all.RemoveAll(x => x == null);
+                    var goes = all.ConvertAll(m => { return (m.gameObject, m.fieldType); });
+                    sc.RemoveMarks(all.ConvertAll(x => x.gameObject));
+                    foreach (var item in goes)
                     {
-                        var all = sc.GetMarks();
-                        var goes = all.ConvertAll(m => { return (m.gameObject, m.fieldType); });
-                        sc.RemoveMarks(all);
-                        foreach (var item in goes)
-                        {
-                            ScriptMark sm = sc.AddMark(item.gameObject);
-                            if (sm != null)
-                            {
-                                sm.fieldType = item.fieldType;
-                                sc.ValidateMarkFieldName(sm);
-                            }
-                        }
-                        SaveGo();
-                    });
+                        sc.AddMark(item.gameObject, item.fieldType);
+                    }
+                    sc.SaveContext();
+                    Reload();
 
-                menu.AddItem(new GUIContent("Check FiledNames"), false, () =>
+                });
+                CreateMenu(menu, "Check FiledNames", false, () =>
                 {
                     string same;
                     if (sc.HandleSameFieldName(out same))
@@ -391,7 +379,8 @@ namespace IFramework.UI
                         same = "same FieldName\n" + same;
                         same += "\n err repair ok ";
                         EditorWindow.focusedWindow.ShowNotification(new GUIContent(same));
-                        SaveGo();
+                        sc.SaveContext();
+                        Reload();
                     }
                     else
                     {
@@ -399,7 +388,6 @@ namespace IFramework.UI
                     }
                     EditorWindow.focusedWindow.ShowNotification(new GUIContent(same));
                 });
-
                 menu.ShowAsContext();
             }
             GameObject _ping;
@@ -427,7 +415,7 @@ namespace IFramework.UI
         }
         private ScriptCreator _creator;
         private Tree _tree;
-        private bool includeChildPrefab;
+        private bool containsChildren;
         public ScriptCreatorFieldsDrawer(ScriptCreator creator, TreeViewState state, SearchType searchType)
         {
             this._creator = creator;
@@ -439,12 +427,12 @@ namespace IFramework.UI
         }
 
 
-        public void OnGUI(bool includeChildPrefab)
+        public void OnGUI()
         {
             _tree.SetGameObject(_creator);
-            if (this.includeChildPrefab != includeChildPrefab)
+            if (this.containsChildren != _creator.containsChildren)
             {
-                this.includeChildPrefab = includeChildPrefab;
+                this.containsChildren = _creator.containsChildren;
                 _tree.Reload();
             }
             _tree.OnGUI(EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true)));

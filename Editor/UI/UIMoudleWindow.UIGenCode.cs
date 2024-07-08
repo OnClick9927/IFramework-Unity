@@ -12,7 +12,6 @@ using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using System.IO;
-using System.Collections.Generic;
 
 namespace IFramework.UI
 {
@@ -100,7 +99,7 @@ namespace IFramework.UI
 
             protected abstract void OnFindDirSuccess();
             protected abstract void LoadLastData(UIGenCode<T> last);
-            protected abstract void WriteView(bool containsChildren, List<string> ignore);
+            protected abstract void WriteView();
             public override void OnDisable()
             {
                 _searchType = fields.GetSearchType();
@@ -160,57 +159,50 @@ namespace IFramework.UI
                 Draw();
                 EditorGUI.BeginChangeCheck();
                 panel = EditorGUILayout.ObjectField("GameObject", panel, typeof(T), false) as T;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    SetViewData();
-                }
-                if (creator.context != null)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    creator.context
-.containsChildren = EditorGUILayout.Toggle("Contains Children", creator.context
-.containsChildren);
-              
 
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        EditorUtility.SetDirty(creator.context.gameObject);
-                        AssetDatabase.SaveAssetIfDirty(creator.context.gameObject);
-                    }
-                }
-                GUILayout.Space(5);
-                fields.OnGUI(creator.context == null ? false : creator.context.containsChildren);
-                GUILayout.Space(5);
-                GUILayout.BeginHorizontal();
+                if (EditorGUI.EndChangeCheck()) SetViewData();
+
+
+                if (gameObject && !string.IsNullOrEmpty(GenPath))
                 {
-                    if (GUILayout.Button("Gen"))
-                    {
-                        if (gameObject == null)
-                        {
-                            EditorWindow.focusedWindow.ShowNotification(new GUIContent("Select UI Panel"));
-                            return;
-                        }
-                        if (string.IsNullOrEmpty(GenPath))
-                        {
-                            EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
-                            return;
-                        }
-                        WriteView(creator.context.containsChildren, creator.context.ignorePaths);
-                        AssetDatabase.Refresh();
-                    }
+                    GUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Script", scriptPath);
                     GUILayout.Space(5);
 
-                    GUI.enabled = gameObject && File.Exists(scriptPath);
-                    if (GUILayout.Button("Edit Script"))
+                    GUI.enabled = File.Exists(scriptPath);
+                    if (GUILayout.Button("Edit", GUILayout.Width(60)))
                         UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(scriptPath, 10);
 
-                    if (GUILayout.Button("Ping Script"))
+                    if (GUILayout.Button("Ping", GUILayout.Width(60)))
                         EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(scriptPath));
                     GUI.enabled = true;
-
-
+                    GUILayout.EndHorizontal();
                 }
-                GUILayout.EndHorizontal();
+                EditorGUI.BeginChangeCheck();
+                creator.containsChildren = EditorGUILayout.Toggle("Contains Children", creator.containsChildren);
+                if (EditorGUI.EndChangeCheck()) creator.SaveContext();
+
+
+
+                GUILayout.Space(5);
+                fields.OnGUI();
+                GUILayout.Space(5);
+                if (GUILayout.Button("Gen"))
+                {
+                    if (gameObject == null)
+                    {
+                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("Select UI Panel"));
+                        return;
+                    }
+                    if (string.IsNullOrEmpty(GenPath))
+                    {
+                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("Set UI Map Gen Dir "));
+                        return;
+                    }
+                    WriteView();
+                    AssetDatabase.Refresh();
+                }
+
                 GUILayout.Space(5);
 
             }

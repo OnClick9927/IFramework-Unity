@@ -9,86 +9,116 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Text;
 using UnityEditor;
+using System;
+using static IFramework.UI.ScriptCreatorContext;
+using UnityEditor.SceneManagement;
 
 namespace IFramework.UI
 {
     [System.Serializable]
     public class ScriptCreator
     {
-        public GameObject gameObject;
-        public ScriptCreatorContext context;
-        [SerializeField] private List<ScriptMark> marks = new List<ScriptMark>();
+        public void SaveContext()
+        {
+            var gameObject = this.gameObject;
+            if (!gameObject) return;
+            EditorUtility.SetDirty(gameObject);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+        public GameObject gameObject { get; private set; }
+        private ScriptCreatorContext context;
+        public bool containsChildren
+        {
+            get
+            {
+                var context = this.context;
+                if (context != null)
+
+                    return context.containsChildren;
+                return false;
+            }
+            set
+            {
+                var context = this.context;
+
+                if (context != null)
+                    context.containsChildren = value;
+            }
+        }
+        internal void RemoveFromIgnorePath(List<GameObject> s)
+        {
+
+            var find = s.FindAll(x => IsPrefabInstance(x)).Select(x => x.transform.GetPath());
+            context.ignorePaths.RemoveAll(x => find.Contains(x));
+            SaveContext();
+        }
+        public void AddToIgnorePath(List<GameObject> s)
+        {
+            var context = this.context;
+            var find = s.FindAll(x => IsPrefabInstance(x)).Select(x => x.transform.GetPath());
+
+            context.ignorePaths.AddRange(find);
+            context.ignorePaths = context.ignorePaths.Distinct().ToList();
+            SaveContext();
+        }
+        public bool IsIgnorePath(string path)
+        {
+
+            var ignorePaths = context?.ignorePaths;
+            if (ignorePaths == null) return false;
+            for (int i = 0; i < ignorePaths.Count; i++)
+            {
+                var _path = ignorePaths[i];
+                if (path == _path) return true;
+                if (path.Contains(_path))
+                {
+                    var end = path.Substring(_path.Length);
+                    if (end.StartsWith("/")) return true;
+                }
+            }
+            return false;
+        }
+
         public bool IsPrefabInstance(GameObject obj)
         {
             if (obj == null) return true;
             return UnityEditor.PrefabUtility.IsPartOfPrefabInstance(obj);
         }
 
-        public void RemoveMarks(List<ScriptMark> sms)
+        public void RemoveMarks(List<GameObject> sms)
         {
             for (int i = 0; i < sms.Count; i++)
             {
                 if (IsPrefabInstance(sms[i].gameObject)) continue;
-                RemoveMarkFlag(sms[i]);
-                GameObject.DestroyImmediate(sms[i], true);
+                context.RemoveMark(sms[i].gameObject);
             }
-            CollectMarks();
+            SaveContext();
         }
-        public ScriptMark AddMark(GameObject go)
+        public ScriptCreatorContext.MarkContext AddMark(GameObject go, Type type)
         {
             if (IsPrefabInstance(go)) return null;
-            ScriptMark sm = go.AddComponent<ScriptMark>();
-            if (go != gameObject)
-            {
-                AddMarkFlag(sm);
-            }
-            CollectMarks();
-
+            var sm = context.AddMark(go, type.FullName);
+            SaveContext();
+            return sm;
+        }
+        public ScriptCreatorContext.MarkContext AddMark(GameObject go, string type)
+        {
+            if (IsPrefabInstance(go)) return null;
+            var sm = context.AddMark(go, type);
+            SaveContext();
             return sm;
         }
 
-
-        private const string flag = "@sm";
-        private void RemoveMarkFlag(ScriptMark sm)
+        public MarkContext GetMark(GameObject go)
         {
-            string name = sm.name;
-            if (!name.Contains(flag)) return;
-            sm.name = name.Replace(flag, "");
+            return context.GetMark(go);
         }
-        private void AddMarkFlag(ScriptMark sm)
+        public MarkContext GetPrefabMark(GameObject go)
         {
-            string name = sm.name;
-            if (name.Contains(flag)) return;
-            sm.name += flag;
-        }
-        private static bool IsLegalFieldName(string self)
-        {
-            if (string.IsNullOrEmpty(self)) return false;
-            return Regex.IsMatch(self, @"^[_a-zA-Z][_a-zA-Z0-9]*$");
-        }
-        public void ValidateMarkFieldName(ScriptMark mark)
-        {
-            if (!IsLegalFieldName(mark.fieldName)) mark.fieldName = mark.name.Replace(flag, "");
-            var m = Regex.Matches(mark.fieldName, "[_a-zA-Z0-9]");
-            var list = m.Where(x => x.Success).Select(x => x.Value).ToList();
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (i == 0)
-                {
-                    int _val;
-                    if (int.TryParse(list[i], out _val))
-                    {
-                        sb.Append("_");
-                    }
-                }
-                sb.Append(list[i]);
-            }
-            mark.fieldName = sb.ToString();
-
+            var all = context.GetAllMarks();
+            return all.Find(m => m.gameObject == go);
         }
 
         public void SetGameObject(GameObject gameObject)
@@ -99,91 +129,59 @@ namespace IFramework.UI
                 this.context = null;
                 if (gameObject != null)
                 {
-                    context = this.gameObject.GetComponent<ScriptCreatorContext>();
+                    var context = this.gameObject.GetComponent<ScriptCreatorContext>();
                     if (context == null)
                     {
                         context = this.gameObject.AddComponent<ScriptCreatorContext>();
-                        EditorUtility.SetDirty(this.gameObject);
-                        AssetDatabase.SaveAssetIfDirty(this.gameObject);
                     }
+                    this.context = context;
+                    context.RemoveEmpty();
+                    var list = this.gameObject.GetComponentsInChildren<ScriptMark>()
+                              .Where(m => !IsPrefabInstance(m.gameObject)).ToList();
+                    if (list.Count > 0)
+                    {
+                        var paths = list.ConvertAll(x => x.transform.GetPath());
+                        foreach (var m in list)
+                        {
+                            var mark = context.AddMark(m.gameObject, m.fieldType);
+                            mark.fieldName = m.fieldName;
+                        }
+                        var ins = PrefabUtility.InstantiatePrefab(gameObject) as GameObject;
+                        var find = ins.transform.GetComponentsInChildren<ScriptMark>().Where(x => paths.Contains(x.transform.GetPath()));
+                        foreach (var m in find)
+                            GameObject.DestroyImmediate(m);
+                        PrefabUtility.SaveAsPrefabAsset(ins, AssetDatabase.GetAssetPath(gameObject));
+                        GameObject.DestroyImmediate(ins);
+                    }
+
+                    SaveContext();
                 }
 
-                marks.Clear();
-                CollectMarks();
             }
         }
-        private void CollectMarks()
-        {
-            if (!gameObject) return;
 
-            var marks = gameObject.GetComponentsInChildren<ScriptMark>(true);
-            if (marks == null) return;
-            var list = marks.ToList();
-            if (this.marks != null) list.AddRange(this.marks);
-            list = list.Distinct().ToList();
-            list.RemoveAll((o) => { return o == null || IsPrefabInstance(o.gameObject); });
-            this.marks.Clear();
-            this.marks.AddRange(list);
-        }
         public bool HandleSameFieldName(out string same)
         {
-            same = "";
-            bool exist = false;
-            CollectMarks();
-            Dictionary<string, List<ScriptMark>> map = new Dictionary<string, List<ScriptMark>>();
-            for (int i = 0; i < marks.Count; i++)
-            {
-                var cur = marks[i];
-                if (!map.ContainsKey(cur.fieldName))
-                    map.Add(cur.fieldName, new List<ScriptMark>());
-                map[cur.fieldName].Add(cur);
-            }
-            foreach (var item in map)
-            {
-                if (item.Value.Count > 1)
-                {
-                    exist = true;
-                    var list = item.Value;
-                    same += $"{list[0].fieldName}  ";
-
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        var cur = list[i];
-                        list[i].fieldName += $"_{i}";
-                        var sameParrent = list.FindAll(x => x.transform.parent == cur.transform.parent);
-                        if (sameParrent.Count != 1)
-                            for (int i2 = 0; i2 < sameParrent.Count; i2++)
-                            {
-                                var __same = sameParrent[i2];
-                                __same.transform.name = __same.fieldName + flag;
-                            }
-                    }
-                }
-            }
-            return exist;
+            bool bo = context.HandleSameFieldName(out same);
+            SaveContext();
+            return bo;
         }
-        public List<ScriptMark> GetMarks()
+        public List<ScriptCreatorContext.MarkContext> GetMarks()
         {
-            return this.marks;
+            return this.context.marks;
         }
-        public List<ScriptMark> GetAllMarks()
+        public List<ScriptCreatorContext.MarkContext> GetAllMarks()
         {
             if (!gameObject) return null;
-            var marks = gameObject.GetComponentsInChildren<ScriptMark>(true);
-            return marks.ToList();
+            return this.context.GetAllMarks();
         }
 
         public void DestroyMarks()
         {
-            gameObject.GetComponentsInChildren<ScriptMark>(true).ToList().ForEach((sm) =>
-            {
-                if (!IsPrefabInstance(sm.gameObject))
-                {
-                    GameObject.DestroyImmediate(sm, true);
-                }
-            });
-            CollectMarks();
+            context.DestroyMarks();
+            SaveContext();
         }
+
 
     }
 }

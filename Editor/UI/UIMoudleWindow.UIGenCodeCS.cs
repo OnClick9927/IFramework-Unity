@@ -13,7 +13,6 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace IFramework.UI
 {
@@ -88,18 +87,14 @@ namespace IFramework.UI
 
                 _type = (ItemType)EditorGUILayout.EnumPopup("Type", _type);
             }
-            public override void OnGUI()
-            {
-                base.OnGUI();
+       
 
+            protected override void WriteView()
+            {
+                Write(creator, scriptPath, viewDesignScriptOrigin());
             }
 
-            protected override void WriteView(bool containsChildren, List<string> ignore)
-            {
-                Write(creator, scriptPath, viewDesignScriptOrigin(), containsChildren, ignore);
-            }
-
-            public static void Write(ScriptCreator creator, string path, string origin, bool containsChildren, List<string> ignore)
+            public static void Write(ScriptCreator creator, string path, string origin)
             {
                 if (File.Exists(path))
                 {
@@ -153,7 +148,7 @@ namespace IFramework.UI
                    {
                        string field;
                        string find;
-                       Fields(creator, containsChildren, ignore, out field, out find);
+                       Fields(creator, out field, out find);
                        return str
                        //.Replace("#PanelType#", panelName)
                        .Replace(Field, field)
@@ -162,10 +157,10 @@ namespace IFramework.UI
 
             }
 
-            private static void Fields(ScriptCreator creater, bool containsChildren, List<string> ignore, out string field, out string find)
+            private static void Fields(ScriptCreator creater, out string field, out string find)
             {
                 var marks = creater.GetMarks();
-                if (containsChildren)
+                if (creater.containsChildren)
                     marks = creater.GetAllMarks();
 
                 StringBuilder f = new StringBuilder();
@@ -190,10 +185,10 @@ namespace IFramework.UI
                         }
                         else
                         {
-                            string path = marks[i].transform.GetPath();
-                            if (containsChildren)
+                            string path = marks[i].gameObject.transform.GetPath();
+                            if (creater.containsChildren)
                             {
-                                if (ignore.Any(x => path.Contains(path)))
+                                if (creater.IsIgnorePath(path))
                                     continue;
                             }
                             path = path.Remove(0, root_path.Length + 1);
