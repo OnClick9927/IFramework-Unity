@@ -179,7 +179,7 @@ namespace IFramework.UI
                     GUILayout.EndHorizontal();
                 }
                 EditorGUI.BeginChangeCheck();
-                creator.containsChildren = EditorGUILayout.Toggle("Contains Children", creator.containsChildren);
+                creator.executeSubContext = EditorGUILayout.Toggle("Execute Sub Context", creator.executeSubContext);
                 if (EditorGUI.EndChangeCheck()) creator.SaveContext();
 
 

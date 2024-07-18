@@ -8,7 +8,6 @@ namespace IFramework
  
         public const string defaultName = "default";
 
-
         private bool _binded;
         private int _priority;
  
@@ -29,8 +28,6 @@ namespace IFramework
 
         protected abstract void Awake();
 
- 
-        protected Module() { }
 
         public static Module CreateInstance(Type type, string name = defaultName, int priority = 0)
         {

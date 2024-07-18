@@ -6,6 +6,7 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,8 @@ namespace IFramework.UI
     [AddComponentMenu("")]
     public class ScriptCreatorContext : MonoBehaviour
     {
-        [HideInInspector] public bool containsChildren;
-        [HideInInspector] public List<string> ignorePaths = new List<string>();
+        [HideInInspector] public bool executeSubContext;
+        [HideInInspector] public List<GameObject> ignore = new List<GameObject>();
         [HideInInspector] public List<MarkContext> marks = new List<MarkContext>();
         private const string flag = "@sm";
 
@@ -29,14 +30,17 @@ namespace IFramework.UI
             public string fieldName;
             public string fieldType;
         }
-        public MarkContext AddMark(GameObject go, string type)
+        public MarkContext AddMark(GameObject go, string type, bool add_flag)
         {
             var find = marks.Find(x => x.gameObject == go);
 
             if (find == null)
             {
                 find = new MarkContext() { gameObject = go, fieldType = type };
-                AddMarkFlag(go);
+                if (add_flag)
+                {
+                    AddMarkFlag(go);
+                }
                 marks.Add(find);
             }
             else
@@ -53,9 +57,10 @@ namespace IFramework.UI
             if (name.Contains(flag)) return;
             go.name += flag;
         }
-        public void RemoveMark(GameObject go)
+        public void RemoveMark(GameObject go, bool remove_flag)
         {
-            RemoveMarkFlag(go);
+            if (remove_flag)
+                RemoveMarkFlag(go);
             marks.RemoveAll(x => x.gameObject == go);
         }
         private void RemoveMarkFlag(GameObject go)
@@ -92,12 +97,13 @@ namespace IFramework.UI
 
         }
 
-        public bool HandleSameFieldName(out string same)
+        public bool HandleSameFieldName(out string same, Func<GameObject, bool> fixedName)
         {
             same = "";
+            
             bool exist = false;
             var prefab_list = new List<string>();
-            if (this.containsChildren)
+            if (this.executeSubContext)
             {
                 var all = GetAllMarks();
                 all.RemoveAll(x => marks.Contains(x));
@@ -106,10 +112,18 @@ namespace IFramework.UI
             Dictionary<string, List<MarkContext>> map = new Dictionary<string, List<MarkContext>>();
             for (int i = 0; i < marks.Count; i++)
             {
-                var cur = marks[i];
-                if (!map.ContainsKey(cur.fieldName))
-                    map.Add(cur.fieldName, new List<MarkContext>());
-                map[cur.fieldName].Add(cur);
+                var mark = marks[i];
+                var _fixed = fixedName(mark.gameObject);
+                if (!_fixed)
+                {
+                    if (!map.ContainsKey(mark.fieldName))
+                        map.Add(mark.fieldName, new List<MarkContext>());
+                    map[mark.fieldName].Add(mark);
+                }
+                else
+                {
+                    prefab_list.Add(mark.fieldName);
+                }
             }
             foreach (var item in map)
             {
@@ -168,6 +182,8 @@ namespace IFramework.UI
         public void RemoveEmpty()
         {
             marks.RemoveAll(x => x.gameObject == null);
+            ignore.RemoveAll(x => x.gameObject == null);
+
         }
     }
 }

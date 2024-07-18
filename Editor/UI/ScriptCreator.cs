@@ -12,7 +12,6 @@ using System.Linq;
 using UnityEditor;
 using System;
 using static IFramework.UI.ScriptCreatorContext;
-using UnityEditor.SceneManagement;
 
 namespace IFramework.UI
 {
@@ -29,14 +28,14 @@ namespace IFramework.UI
         }
         public GameObject gameObject { get; private set; }
         private ScriptCreatorContext context;
-        public bool containsChildren
+        public bool executeSubContext
         {
             get
             {
                 var context = this.context;
                 if (context != null)
 
-                    return context.containsChildren;
+                    return context.executeSubContext;
                 return false;
             }
             set
@@ -44,38 +43,41 @@ namespace IFramework.UI
                 var context = this.context;
 
                 if (context != null)
-                    context.containsChildren = value;
+                    context.executeSubContext = value;
             }
         }
-        internal void RemoveFromIgnorePath(List<GameObject> s)
+        internal void RemoveFromIgnore(List<GameObject> s)
         {
 
-            var find = s.FindAll(x => IsPrefabInstance(x)).Select(x => x.transform.GetPath());
-            context.ignorePaths.RemoveAll(x => find.Contains(x));
+            var find = s.FindAll(x => !CouldMark(x));
+            context.ignore.RemoveAll(x => find.Contains(x));
             SaveContext();
         }
-        public void AddToIgnorePath(List<GameObject> s)
+
+
+
+        public void AddToIgnore(List<GameObject> s)
         {
             var context = this.context;
-            var find = s.FindAll(x => IsPrefabInstance(x)).Select(x => x.transform.GetPath());
+            var find = s.FindAll(x => !CouldMark(x));
 
-            context.ignorePaths.AddRange(find);
-            context.ignorePaths = context.ignorePaths.Distinct().ToList();
+            context.ignore.AddRange(find);
+            context.ignore = context.ignore.Distinct().ToList();
             SaveContext();
         }
-        public bool IsIgnorePath(string path)
+        public bool IsIgnore(GameObject go)
         {
-
-            var ignorePaths = context?.ignorePaths;
+            var ignorePaths = context?.ignore;
             if (ignorePaths == null) return false;
             for (int i = 0; i < ignorePaths.Count; i++)
             {
                 var _path = ignorePaths[i];
-                if (path == _path) return true;
-                if (path.Contains(_path))
+                if (go == _path) return true;
+                var tmp = go.transform;
+                while (tmp != null)
                 {
-                    var end = path.Substring(_path.Length);
-                    if (end.StartsWith("/")) return true;
+                    if (tmp.gameObject == _path) return true;
+                    tmp = tmp.parent;
                 }
             }
             return false;
@@ -87,26 +89,21 @@ namespace IFramework.UI
             return UnityEditor.PrefabUtility.IsPartOfPrefabInstance(obj);
         }
 
-        public void RemoveMarks(List<GameObject> sms)
+        public void RemoveMarks(List<GameObject> marks)
         {
-            for (int i = 0; i < sms.Count; i++)
+            for (int i = 0; i < marks.Count; i++)
             {
-                if (IsPrefabInstance(sms[i].gameObject)) continue;
-                context.RemoveMark(sms[i].gameObject);
+                var s = marks[i];
+                if (!CouldMark(s)) continue;
+                context.RemoveMark(s, !IsPrefabInstance(s));
             }
             SaveContext();
         }
-        public ScriptCreatorContext.MarkContext AddMark(GameObject go, Type type)
-        {
-            if (IsPrefabInstance(go)) return null;
-            var sm = context.AddMark(go, type.FullName);
-            SaveContext();
-            return sm;
-        }
+        public ScriptCreatorContext.MarkContext AddMark(GameObject go, Type type) => AddMark(go, type.FullName);
         public ScriptCreatorContext.MarkContext AddMark(GameObject go, string type)
         {
-            if (IsPrefabInstance(go)) return null;
-            var sm = context.AddMark(go, type);
+            if (!CouldMark(go)) return null;
+            var sm = context.AddMark(go, type, !IsPrefabInstance(go));
             SaveContext();
             return sm;
         }
@@ -120,7 +117,28 @@ namespace IFramework.UI
             var all = context.GetAllMarks();
             return all.Find(m => m.gameObject == go);
         }
+        public void RemoveEmptyMarks()
+        {
+            context.RemoveEmpty();
+            SaveContext();
+        }
 
+        [MenuItem("Tools/IFramework/ScriptMarkCHange")]
+        static void Do()
+        {
+            var goes = AssetDatabase.FindAssets("t:prefab").Select(x => AssetDatabase.GUIDToAssetPath(x)).Select(x => AssetDatabase.LoadAssetAtPath<GameObject>(x));
+            ScriptCreator sc=new ScriptCreator();
+            foreach (var go in goes)
+            {
+                var marks = go.GetComponentsInChildren<ScriptMark>();
+                if (marks != null && marks.Length > 0)
+                {
+                    sc.SetGameObject(go);
+                }
+            }
+            Debug.Log("OK");
+
+        }
         public void SetGameObject(GameObject gameObject)
         {
             if (gameObject != this.gameObject)
@@ -143,7 +161,7 @@ namespace IFramework.UI
                         var paths = list.ConvertAll(x => x.transform.GetPath());
                         foreach (var m in list)
                         {
-                            var mark = context.AddMark(m.gameObject, m.fieldType);
+                            var mark = AddMark(m.gameObject, m.fieldType);
                             mark.fieldName = m.fieldName;
                         }
                         var ins = PrefabUtility.InstantiatePrefab(gameObject) as GameObject;
@@ -162,7 +180,7 @@ namespace IFramework.UI
 
         public bool HandleSameFieldName(out string same)
         {
-            bool bo = context.HandleSameFieldName(out same);
+            bool bo = context.HandleSameFieldName(out same, IsPrefabInstance);
             SaveContext();
             return bo;
         }
@@ -182,6 +200,22 @@ namespace IFramework.UI
             SaveContext();
         }
 
+        public bool CouldMark(GameObject go)
+        {
+            if (IsPrefabInstance(go))
+            {
+                var tmp = go.transform;
+                while (true)
+                {
+                    var child = tmp.GetComponent<ScriptCreatorContext>();
+                    if (child != null) return false;
+                    tmp = tmp.parent;
+                    if (!IsPrefabInstance(tmp.gameObject))
+                        return true;
+                }
+            }
+            return true;
+        }
 
     }
 }

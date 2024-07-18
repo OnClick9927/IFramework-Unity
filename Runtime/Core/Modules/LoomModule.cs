@@ -3,8 +3,9 @@ using System.Collections.Generic;
 
 namespace IFramework
 {
-    partial class LoomModule : UpdateModule
+    class LoomModule : UpdateModule
     {
+        public LoomModule() { }
         private interface IQueue
         {
             void RunFirst();
@@ -79,7 +80,7 @@ namespace IFramework
                     _delay.Dequeue().RunFirst();
                 }
             }
-
+        
         }
         protected override void OnDispose()
         {

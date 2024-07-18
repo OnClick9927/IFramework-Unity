@@ -69,6 +69,7 @@ namespace IFramework.UI
                         {
                            headerContent=new GUIContent("Ignore")
                         },
+
                 })); ;
                 Reload();
                 this.multiColumnHeader.ResizeToFit();
@@ -98,7 +99,7 @@ namespace IFramework.UI
             {
                 if (go == null) return;
                 if (!drawer.containsChildren)
-                    if (sc.IsPrefabInstance(go))
+                    if (!sc.CouldMark(go))
                         return;
 
                 TreeViewItem item = null;
@@ -127,9 +128,6 @@ namespace IFramework.UI
                     }
                 }
 
-
-
-
                 if (create)
                 {
 
@@ -142,40 +140,22 @@ namespace IFramework.UI
                     item.depth = root.depth + 1;
                 }
                 int childCount = go.transform.childCount;
-                bool ok = false;
-                for (int i = 0; i < childCount; i++)
-                    if (drawer.containsChildren)
-                    {
-                        ok = true;
-                        break;
-                    }
-                    else
-                    {
-                        if (!sc.IsPrefabInstance(go.transform.GetChild(i).gameObject))
-                        {
-                            ok = true;
-                            break;
-                        }
 
-                    }
 
-                if (ok)
+                if (string.IsNullOrEmpty(this.searchString))
                 {
-                    if (string.IsNullOrEmpty(this.searchString))
-                    {
-
-                        if (IsExpanded(item.id))
-                            for (int i = 0; i < childCount; i++)
-                                AddChildrenRecursive(go.transform.GetChild(i).gameObject, item, rows);
-                        else
-                            item.children = CreateChildListForCollapsedParent();
-                    }
-                    else
-                    {
+                    if (IsExpanded(item.id))
                         for (int i = 0; i < childCount; i++)
-                            AddChildrenRecursive(go.transform.GetChild(i).gameObject, root, rows);
-                    }
+                            AddChildrenRecursive(go.transform.GetChild(i).gameObject, item, rows);
+                    else
+                        item.children = CreateChildListForCollapsedParent();
                 }
+                else
+                {
+                    for (int i = 0; i < childCount; i++)
+                        AddChildrenRecursive(go.transform.GetChild(i).gameObject, root, rows);
+                }
+
             }
             private bool GetActive(GameObject go)
             {
@@ -196,16 +176,20 @@ namespace IFramework.UI
                 var go = GetGameObject(args.item.id);
                 float indet = this.GetContentIndent(args.item);
                 var first = EditorTools.RectEx.Zoom(args.GetCellRect(0), TextAnchor.MiddleRight, new Vector2(-indet, 0));
+
                 if (!GetActive(go))
                     GUI.color = Color.gray;
-
                 if (sc.IsPrefabInstance(go))
                     GUI.color *= Color.Lerp(Color.cyan, Color.blue, 0.3f);
-                GUI.Label(first, args.label);
+
+                bool could = sc.CouldMark(go);
+                var image = could ? "greenLight" : "d_redLight";
+                GUI.Label(first, new GUIContent(args.label, EditorGUIUtility.IconContent(image).image));
+
                 if (go != null)
                 {
                     var sm = sc.GetMark(go);
-                    if (sc.IsPrefabInstance(go))
+                    if (!could)
                         sm = sc.GetPrefabMark(go);
                     if (sm != null)
                     {
@@ -214,9 +198,9 @@ namespace IFramework.UI
                         rect = args.GetCellRect(2);
                         GUI.Label(rect, sm.fieldName);
                     }
-                    var path = go.transform.GetPath();
                     GUI.enabled = false;
-                    GUI.Toggle(args.GetCellRect(3), sc.IsIgnorePath(path), "");
+                    if (!could)
+                        GUI.Toggle(args.GetCellRect(3), sc.IsIgnore(go), "");
                     GUI.enabled = true;
                 }
                 GUI.color = Color.white;
@@ -282,8 +266,8 @@ namespace IFramework.UI
                 var selection = this.GetSelection().Select(x => GetGameObject(x)).ToList();
                 //s.RemoveAll(x => sc.IsPrefabInstance(x));
                 if (selection.Count == 0) return;
-                var normal = selection.FindAll(y => !sc.IsPrefabInstance(y));
-                var prefab = selection.FindAll(y => sc.IsPrefabInstance(y));
+                var normal = selection.FindAll(y => sc.CouldMark(y));
+                var prefab = selection.FindAll(y => !sc.CouldMark(y));
 
                 for (int i = 0; i < normal.Count; i++)
                 {
@@ -348,13 +332,13 @@ namespace IFramework.UI
 
                 });
                 menu.AddSeparator("");
-                CreateMenu(menu, "Add To Ignore Path", prefab.Count == 0, () =>
+                CreateMenu(menu, "Add To Ignore", prefab.Count == 0, () =>
                 {
-                    sc.AddToIgnorePath(prefab);
+                    sc.AddToIgnore(prefab);
                 });
-                CreateMenu(menu, "Remove From Ignore Path", prefab.Count == 0, () =>
+                CreateMenu(menu, "Remove From Ignore", prefab.Count == 0, () =>
                 {
-                    sc.RemoveFromIgnorePath(prefab);
+                    sc.RemoveFromIgnore(prefab);
                 });
                 menu.AddSeparator("");
                 CreateMenu(menu, "Fresh FieldNames", false, () =>
@@ -430,9 +414,9 @@ namespace IFramework.UI
         public void OnGUI()
         {
             _tree.SetGameObject(_creator);
-            if (this.containsChildren != _creator.containsChildren)
+            if (this.containsChildren != _creator.executeSubContext)
             {
-                this.containsChildren = _creator.containsChildren;
+                this.containsChildren = _creator.executeSubContext;
                 _tree.Reload();
             }
             _tree.OnGUI(EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true)));

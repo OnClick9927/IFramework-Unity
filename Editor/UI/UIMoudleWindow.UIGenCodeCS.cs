@@ -91,6 +91,7 @@ namespace IFramework.UI
 
             protected override void WriteView()
             {
+                creator.RemoveEmptyMarks();
                 Write(creator, scriptPath, viewDesignScriptOrigin());
             }
 
@@ -160,7 +161,7 @@ namespace IFramework.UI
             private static void Fields(ScriptCreator creater, out string field, out string find)
             {
                 var marks = creater.GetMarks();
-                if (creater.containsChildren)
+                if (creater.executeSubContext)
                     marks = creater.GetAllMarks();
 
                 StringBuilder f = new StringBuilder();
@@ -186,9 +187,9 @@ namespace IFramework.UI
                         else
                         {
                             string path = marks[i].gameObject.transform.GetPath();
-                            if (creater.containsChildren)
+                            if (creater.executeSubContext)
                             {
-                                if (creater.IsIgnorePath(path))
+                                if (creater.IsIgnore(marks[i].gameObject))
                                     continue;
                             }
                             path = path.Remove(0, root_path.Length + 1);
