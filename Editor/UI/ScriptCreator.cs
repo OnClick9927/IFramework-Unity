@@ -123,22 +123,7 @@ namespace IFramework.UI
             SaveContext();
         }
 
-        [MenuItem("Tools/IFramework/ScriptMarkCHange")]
-        static void Do()
-        {
-            var goes = AssetDatabase.FindAssets("t:prefab").Select(x => AssetDatabase.GUIDToAssetPath(x)).Select(x => AssetDatabase.LoadAssetAtPath<GameObject>(x));
-            ScriptCreator sc=new ScriptCreator();
-            foreach (var go in goes)
-            {
-                var marks = go.GetComponentsInChildren<ScriptMark>();
-                if (marks != null && marks.Length > 0)
-                {
-                    sc.SetGameObject(go);
-                }
-            }
-            Debug.Log("OK");
 
-        }
         public void SetGameObject(GameObject gameObject)
         {
             if (gameObject != this.gameObject)
@@ -154,24 +139,7 @@ namespace IFramework.UI
                     }
                     this.context = context;
                     context.RemoveEmpty();
-                    var list = this.gameObject.GetComponentsInChildren<ScriptMark>()
-                              .Where(m => !IsPrefabInstance(m.gameObject)).ToList();
-                    if (list.Count > 0)
-                    {
-                        var paths = list.ConvertAll(x => x.transform.GetPath());
-                        foreach (var m in list)
-                        {
-                            var mark = AddMark(m.gameObject, m.fieldType);
-                            mark.fieldName = m.fieldName;
-                        }
-                        var ins = PrefabUtility.InstantiatePrefab(gameObject) as GameObject;
-                        var find = ins.transform.GetComponentsInChildren<ScriptMark>().Where(x => paths.Contains(x.transform.GetPath()));
-                        foreach (var m in find)
-                            GameObject.DestroyImmediate(m);
-                        PrefabUtility.SaveAsPrefabAsset(ins, AssetDatabase.GetAssetPath(gameObject));
-                        GameObject.DestroyImmediate(ins);
-                    }
-
+       
                     SaveContext();
                 }
 
