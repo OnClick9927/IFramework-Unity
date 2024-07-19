@@ -63,6 +63,11 @@ namespace IFramework
         {
             get
             {
+                string packagePath = Path.GetFullPath("Packages/com.woo.iframework");
+                if (Directory.Exists(packagePath))
+                {
+                    return packagePath;
+                }
 
                 string path = GetFilePath();
                 var index = path.LastIndexOf("IFramework");
