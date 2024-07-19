@@ -9,6 +9,7 @@ using UnityEngine;
 
 namespace IFramework.Localization
 {
+
     [UnityEngine.RequireComponent(typeof(UnityEngine.UI.Text))]
     [DisallowMultipleComponent]
     [AddComponentMenu("IFramework/LocalizationText")]

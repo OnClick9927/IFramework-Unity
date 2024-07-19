@@ -4,7 +4,9 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-06-29
 *********************************************************************************/
+using System.IO;
 using UnityEditor;
+using UnityEngine;
 
 namespace IFramework.Localization
 {
@@ -27,7 +29,7 @@ namespace IFramework.Localization
             if (LocalizationSetting.defaultData)
             {
                 var types = LocalizationSetting.defaultData.GetLocalizationTypes();
-                if (types.Count==0)
+                if (types.Count == 0)
                 {
                     return;
                 }
@@ -37,10 +39,15 @@ namespace IFramework.Localization
                 //setting.localizationType = EditorGUILayout.TextField(nameof(setting.localizationType), setting.localizationType);
 
             }
-
-
+            GUILayout.Space(50);
+            if (GUILayout.Button("Import TMP Extend"))
+            {
+                string path = $"{EditorTools.pkgPath}/Package Resources/LocalizationTmp Extend.unitypackage";
+                AssetDatabase.ImportPackage(path, true);
+            }
         }
 
+  
 
 
     }

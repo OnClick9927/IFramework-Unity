@@ -54,7 +54,7 @@ namespace IFramework.UI
             SaveContext();
         }
 
-
+        public string ToValidFiledName(string src)=>context.ToValidFiledName(src);
 
         public void AddToIgnore(List<GameObject> s)
         {

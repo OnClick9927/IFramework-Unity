@@ -95,53 +95,52 @@ namespace IFramework.UI
             {
                 return (GameObject)EditorUtility.InstanceIDToObject(instanceID);
             }
+            private bool CouldDrawChildren(GameObject go)
+            {
+                for (int i = 0; i < go.transform.childCount; i++)
+                    if (drawer.executeSubContext) return true;
+                    else if (sc.CouldMark(go.transform.GetChild(i).gameObject))
+                        return true;
+                return false;
+            }
+            private bool CouldDraw(GameObject go)
+            {
+                if (string.IsNullOrEmpty(this.searchString)) return true;
+                string low = this.searchString.ToLower();
+                var sm = sc.GetMarks().Find(x => x.gameObject == go);
+                switch (searchType)
+                {
+                    case SearchType.Name:
+                        return go.name.ToLower().Contains(low);
+                    case SearchType.FieldName:
+                        return sm != null && sm.fieldName.ToLower().Contains(low);
+                    case SearchType.FieldType:
+                        return sm != null && sm.fieldType.ToLower().Contains(low);
+                    default:
+                        return false;
+                }
+
+            }
             void AddChildrenRecursive(GameObject go, TreeViewItem root, IList<TreeViewItem> rows)
             {
                 if (go == null) return;
-                if (!drawer.containsChildren)
+                if (!drawer.executeSubContext)
                     if (!sc.CouldMark(go))
                         return;
 
-                TreeViewItem item = null;
-                bool create = true;
-                if (!string.IsNullOrEmpty(this.searchString))
-                {
-                    string low = this.searchString.ToLower();
-                    switch (searchType)
-                    {
-                        case SearchType.Name:
-                            create = go.name.ToLower().Contains(low);
-                            break;
-                        case SearchType.FieldName:
-                            {
-                                var sm = sc.GetMarks().Find(x => x.gameObject == go);
-                                create = sm != null && sm.fieldName.ToLower().Contains(low);
-                            }
-                            break;
-                        case SearchType.FieldType:
-                            {
-                                var sm = sc.GetMarks().Find(x => x.gameObject == go);
-                                create = sm != null && sm.fieldType.ToLower().Contains(low);
-                            }
-                            break;
 
-                    }
-                }
+                if (!CouldDraw(go)) return;
+                var item = CreateTreeViewItemForGameObject(go);
+                item.parent = root;
+                if (root.children == null)
+                    root.children = new List<TreeViewItem>();
+                rows.Add(item);
+                root.children.Add(item);
+                item.depth = root.depth + 1;
 
-                if (create)
-                {
 
-                    item = CreateTreeViewItemForGameObject(go);
-                    item.parent = root;
-                    if (root.children == null)
-                        root.children = new List<TreeViewItem>();
-                    rows.Add(item);
-                    root.children.Add(item);
-                    item.depth = root.depth + 1;
-                }
+                if (!CouldDrawChildren(go)) return;
                 int childCount = go.transform.childCount;
-
-
                 if (string.IsNullOrEmpty(this.searchString))
                 {
                     if (IsExpanded(item.id))
@@ -155,33 +154,32 @@ namespace IFramework.UI
                     for (int i = 0; i < childCount; i++)
                         AddChildrenRecursive(go.transform.GetChild(i).gameObject, root, rows);
                 }
-
             }
-            private bool GetActive(GameObject go)
-            {
-                if (go == null) return true;
-                if (!go.gameObject.activeSelf)
-                    return false;
-                return GetActive(go.transform.parent);
-            }
-            private bool GetActive(Transform trans)
-            {
-                if (trans == null) return true;
-                if (!trans.gameObject.activeSelf)
-                    return false;
-                return GetActive(trans.parent);
-            }
+            //private bool GetActive(GameObject go)
+            //{
+            //    if (go == null) return true;
+            //    if (!go.gameObject.activeSelf)
+            //        return false;
+            //    return GetActive(go.transform.parent);
+            //}
+            //private bool GetActive(Transform trans)
+            //{
+            //    if (trans == null) return true;
+            //    if (!trans.gameObject.activeSelf)
+            //        return false;
+            //    return GetActive(trans.parent);
+            //}
             protected override void RowGUI(RowGUIArgs args)
             {
                 var go = GetGameObject(args.item.id);
                 float indet = this.GetContentIndent(args.item);
                 var first = EditorTools.RectEx.Zoom(args.GetCellRect(0), TextAnchor.MiddleRight, new Vector2(-indet, 0));
 
-                if (!GetActive(go))
-                    GUI.color = Color.gray;
+                //if (!GetActive(go))
+                //    GUI.contentColor = Color.grey;
                 if (sc.IsPrefabInstance(go))
-                    GUI.color *= Color.Lerp(Color.cyan, Color.blue, 0.3f);
-
+                    GUI.color = new Color(0.1f, 0.7f, 1f, 1);
+           
                 bool could = sc.CouldMark(go);
                 var image = could ? "greenLight" : "d_redLight";
                 GUI.Label(first, new GUIContent(args.label, EditorGUIUtility.IconContent(image).image));
@@ -241,8 +239,9 @@ namespace IFramework.UI
                 var id = args.itemID;
                 var go = GetGameObject(id);
                 var sm = sc.GetMark(go);
-                sm.fieldName = args.newName;
+                sm.fieldName =  sc.ToValidFiledName(args.newName);
                 sc.SaveContext();
+            
             }
             protected override Rect GetRenameRect(Rect rowRect, int row, TreeViewItem item)
             {
@@ -361,7 +360,7 @@ namespace IFramework.UI
                     if (sc.HandleSameFieldName(out same))
                     {
                         same = "same FieldName\n" + same;
-                        same += "\n err repair ok ";
+                        same += "\n err repair finish ";
                         EditorWindow.focusedWindow.ShowNotification(new GUIContent(same));
                         sc.SaveContext();
                         Reload();
@@ -399,7 +398,7 @@ namespace IFramework.UI
         }
         private ScriptCreator _creator;
         private Tree _tree;
-        private bool containsChildren;
+        private bool executeSubContext;
         public ScriptCreatorFieldsDrawer(ScriptCreator creator, TreeViewState state, SearchType searchType)
         {
             this._creator = creator;
@@ -414,9 +413,9 @@ namespace IFramework.UI
         public void OnGUI()
         {
             _tree.SetGameObject(_creator);
-            if (this.containsChildren != _creator.executeSubContext)
+            if (this.executeSubContext != _creator.executeSubContext)
             {
-                this.containsChildren = _creator.executeSubContext;
+                this.executeSubContext = _creator.executeSubContext;
                 _tree.Reload();
             }
             _tree.OnGUI(EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true)));

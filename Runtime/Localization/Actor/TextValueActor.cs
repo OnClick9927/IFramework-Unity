@@ -13,10 +13,13 @@ namespace IFramework.Localization
     {
         public string key;
         private string _lastKey;
+        public string[] formatArgs = new string[0];
+
         protected override void Execute(string localizationType, LocalizationText component)
         {
             _lastKey = key;
-            component.graphicT.text = component.GetLocalization(key);
+            var format = component.GetLocalization(key);
+            component.graphicT.text = string.Format(format, formatArgs);
         }
         public void SetKey(string key)
         {

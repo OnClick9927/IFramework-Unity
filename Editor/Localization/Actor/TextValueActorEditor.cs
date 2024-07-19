@@ -4,6 +4,7 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-04-25
 *********************************************************************************/
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,6 +22,37 @@ namespace IFramework.Localization
         private Mode _mode;
         private string key;
         private string value;
+
+        UnityEditorInternal.ReorderableList argList;
+        private void SaveArgs(LocalizationBehavior component, TextValueActor context)
+        {
+            context.formatArgs = argList.list as string[];
+            SetDirty(component);
+        }
+        private void CreateList(LocalizationBehavior component, TextValueActor context)
+        {
+            if (argList == null)
+                argList = new UnityEditorInternal.ReorderableList(null, typeof(string));
+
+            argList.onAddCallback = (value) => { SaveArgs(component, context); };
+            argList.onRemoveCallback = (value) => { SaveArgs(component, context); };
+            argList.onChangedCallback = (value) => { SaveArgs(component, context); };
+            argList.onReorderCallback = (value) => { SaveArgs(component, context); };
+            argList.drawHeaderCallback = (rect) => {
+                GUI.Label(rect, "FormatArgs", EditorStyles.boldLabel);
+            };
+            argList.drawElementCallback = (rect, index, isActive, isFocused) =>
+            {
+                var src = context.formatArgs[index];
+                var tmp = EditorGUI.TextField(rect, src);
+                if (tmp != src)
+                {
+                    context.formatArgs[index] = tmp;
+                    SaveArgs(component, context);
+                }
+            };
+            argList.list = context.formatArgs;
+        }
 
         protected override void OnGUI(LocalizationBehavior component, TextValueActor context)
         {
@@ -42,7 +74,7 @@ namespace IFramework.Localization
                     SetDirty(component);
                 }
             }
-            else if (_mode== Mode.ReplaceValue)
+            else if (_mode == Mode.ReplaceValue)
             {
                 value = EditorGUILayout.TextField(nameof(value), value);
                 GUILayout.BeginHorizontal();
@@ -105,13 +137,19 @@ namespace IFramework.Localization
                 GUILayout.EndHorizontal();
             }
 
+            CreateList(component, context);
+            argList.DoLayoutList();
+
+
             GUI.enabled = false;
             GUILayout.Label("Preview");
             EditorGUILayout.TextField("key", context.key);
-            EditorGUILayout.TextField("Localization", component.GetLocalization(context.key));
+
+            var format = component.GetLocalization(context.key);
+            EditorGUILayout.TextField("Localization", string.Format(format, context.formatArgs));
             GUI.enabled = true;
         }
 
-     
+
     }
 }

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.UI;
 namespace IFramework.UI
 {
     [DisallowMultipleComponent]
@@ -74,11 +75,10 @@ namespace IFramework.UI
             if (string.IsNullOrEmpty(self)) return false;
             return Regex.IsMatch(self, @"^[_a-zA-Z][_a-zA-Z0-9]*$");
         }
-        private void ValidateMarkFieldName(MarkContext mark)
-        {
 
-            if (!IsLegalFieldName(mark.fieldName)) mark.fieldName = mark.gameObject.name.Replace(flag, "");
-            var m = Regex.Matches(mark.fieldName, "[_a-zA-Z0-9]");
+        public string ToValidFiledName(string src)
+        {
+            var m = Regex.Matches(src, "[_a-zA-Z0-9]");
             var list = m.Where(x => x.Success).Select(x => x.Value).ToList();
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < list.Count; i++)
@@ -93,14 +93,22 @@ namespace IFramework.UI
                 }
                 sb.Append(list[i]);
             }
-            mark.fieldName = sb.ToString();
+            return sb.ToString();
+
+        }
+        private void ValidateMarkFieldName(MarkContext mark)
+        {
+
+            if (!IsLegalFieldName(mark.fieldName)) mark.fieldName = mark.gameObject.name.Replace(flag, "");
+
+            mark.fieldName = ToValidFiledName(mark.fieldName);
 
         }
 
         public bool HandleSameFieldName(out string same, Func<GameObject, bool> fixedName)
         {
             same = "";
-            
+
             bool exist = false;
             var prefab_list = new List<string>();
             if (this.executeSubContext)

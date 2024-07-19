@@ -5,6 +5,8 @@
  *Date:           2024-06-29
 *********************************************************************************/
 
+using System.Linq;
+using System.Threading.Tasks;
 using UnityEditor;
 
 namespace IFramework.Localization
@@ -17,6 +19,8 @@ namespace IFramework.Localization
         {
             Localization.SetRecorder(context);
         }
+
+
         LocalizationPref ILocalizationPrefRecorder.Read()
         {
             return new LocalizationPref()
