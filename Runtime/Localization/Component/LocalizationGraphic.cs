@@ -16,8 +16,8 @@ namespace IFramework.Localization
     public class LocalizationGraphic : LocalizationBehavior
     {
         public Graphic graphic { get; private set; }
-        public GraphicColorActor color = new GraphicColorActor();
-        public GraphicMaterialActor material = new GraphicMaterialActor();
+        public GraphicColorActor color = new GraphicColorActor(false);
+        public GraphicMaterialActor material = new GraphicMaterialActor(false);
         protected override void Awake()
         {
             graphic = GetComponent<Graphic>();

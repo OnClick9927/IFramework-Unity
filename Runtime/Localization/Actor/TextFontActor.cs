@@ -11,6 +11,10 @@ namespace IFramework.Localization
     [System.Serializable]
     public class TextFontActor : LocalizationMapActor<LocalizationText, Font>
     {
+        public TextFontActor(bool enable) : base(enable)
+        {
+        }
+
         protected override void Execute(string localizationType, LocalizationText component)
         {
             component.graphicT.font = GetValue(localizationType);

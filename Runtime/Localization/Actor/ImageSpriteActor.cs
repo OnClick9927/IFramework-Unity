@@ -9,6 +9,10 @@ namespace IFramework.Localization
     [System.Serializable]
     public class ImageSpriteActor : LocalizationMapActor<LocalizationImage, UnityEngine.Sprite>
     {
+        public ImageSpriteActor(bool enable) : base(enable)
+        {
+        }
+
         protected override void Execute(string localizationType, LocalizationImage component)
         {
             component.graphicT.sprite = GetValue(localizationType);

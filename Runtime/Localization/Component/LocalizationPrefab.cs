@@ -14,7 +14,7 @@ namespace IFramework.Localization
     [AddComponentMenu("IFramework/LocalizationPrefab")]
     public class LocalizationPrefab : LocalizationBehavior
     {
-        public PrefabActor prefab = new PrefabActor();
+        public PrefabActor prefab = new PrefabActor(true);
         protected override List<ILocalizationActor> GetActors()
         {
             return new List<ILocalizationActor>() {

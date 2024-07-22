@@ -12,6 +12,11 @@ namespace IFramework.Localization
     public class GraphicMaterialActor : LocalizationMapActor<LocalizationGraphic, Material>
     {
         public SerializableDictionary<string, Material> materials = new SerializableDictionary<string, Material>();
+
+        public GraphicMaterialActor(bool enable) : base(enable)
+        {
+        }
+
         protected override void Execute(string localizationType, LocalizationGraphic component)
         {
             component.graphic.material = GetValue(localizationType);

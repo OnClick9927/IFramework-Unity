@@ -10,6 +10,10 @@ namespace IFramework.Localization
     {
         public SerializableDictionary<string, Value> map = new SerializableDictionary<string, Value>();
 
+        protected LocalizationMapActor(bool enable) : base(enable)
+        {
+        }
+
         public Value GetValue()
         {
             return GetValue(Localization.GetLocalizationType());

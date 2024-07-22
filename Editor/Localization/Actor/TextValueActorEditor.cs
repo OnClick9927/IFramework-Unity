@@ -4,7 +4,6 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-04-25
 *********************************************************************************/
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,12 +32,32 @@ namespace IFramework.Localization
         {
             if (argList == null)
                 argList = new UnityEditorInternal.ReorderableList(null, typeof(string));
+            argList.multiSelect = true;
+            argList.onAddCallback = (value) =>
+            {
+                var array = argList.list as string[];
+                ArrayUtility.Add(ref array, "newArg");
+                argList.list = array;
+                SaveArgs(component, context);
+            };
+            argList.onRemoveCallback = (value) =>
+            {
+                var indexes = argList.selectedIndices;
+                var array = argList.list as string[];
 
-            argList.onAddCallback = (value) => { SaveArgs(component, context); };
-            argList.onRemoveCallback = (value) => { SaveArgs(component, context); };
+                for (int i = indexes.Count - 1; i >= 0; i--)
+                {
+                    ArrayUtility.RemoveAt(ref array, indexes[i]);
+                }
+                argList.list = array;
+                argList.ClearSelection();
+                SaveArgs(component, context);
+                GUIUtility.ExitGUI();
+            };
             argList.onChangedCallback = (value) => { SaveArgs(component, context); };
             argList.onReorderCallback = (value) => { SaveArgs(component, context); };
-            argList.drawHeaderCallback = (rect) => {
+            argList.drawHeaderCallback = (rect) =>
+            {
                 GUI.Label(rect, "FormatArgs", EditorStyles.boldLabel);
             };
             argList.drawElementCallback = (rect, index, isActive, isFocused) =>
@@ -141,13 +160,25 @@ namespace IFramework.Localization
             argList.DoLayoutList();
 
 
-            GUI.enabled = false;
+            //GUI.enabled = false;
+            GUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Label("Preview");
-            EditorGUILayout.TextField("key", context.key);
+            EditorGUILayout.LabelField("key", context.key);
 
             var format = component.GetLocalization(context.key);
-            EditorGUILayout.TextField("Localization", string.Format(format, context.formatArgs));
-            GUI.enabled = true;
+            try
+            {
+                EditorGUILayout.LabelField("Localization", string.Format(format, context.formatArgs));
+            }
+            catch (System.Exception)
+            {
+                EditorGUILayout.HelpBox("Args Not Fit Format", MessageType.Error, true);
+                EditorGUILayout.LabelField("Localization", format);
+            }
+            GUILayout.Space(5);
+            GUILayout.EndVertical();
+
+            //GUI.enabled = true;
         }
 
 

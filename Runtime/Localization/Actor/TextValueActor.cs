@@ -15,11 +15,24 @@ namespace IFramework.Localization
         private string _lastKey;
         public string[] formatArgs = new string[0];
 
+        public TextValueActor(bool enable) : base(enable)
+        {
+        }
+
         protected override void Execute(string localizationType, LocalizationText component)
         {
             _lastKey = key;
             var format = component.GetLocalization(key);
-            component.graphicT.text = string.Format(format, formatArgs);
+            try
+            {
+                component.graphicT.text = string.Format(format, formatArgs);
+
+            }
+            catch (System.Exception)
+            {
+
+                throw;
+            }
         }
         public void SetKey(string key)
         {

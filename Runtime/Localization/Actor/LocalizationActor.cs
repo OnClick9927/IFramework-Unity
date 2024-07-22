@@ -31,7 +31,10 @@ namespace IFramework.Localization
 
             }
         }
-
+        protected LocalizationActor(bool enable)
+        {
+            this._enable = enable;
+        }
         protected T behavior { get; private set; }
 
         string ILocalizationActor.name => _name;

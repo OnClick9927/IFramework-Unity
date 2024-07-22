@@ -13,6 +13,7 @@ namespace IFramework.Localization
     {
         void ILocalizationActorEditor.OnGUI(string name, LocalizationBehavior component, object value)
         {
+            GUI.enabled = !Application.isPlaying;
             T context = value as T;
             var on = EditorGUILayout.Toggle(context.enable, EditorStyles.toolbarPopup);
             if (on != context.enable)
@@ -30,9 +31,16 @@ namespace IFramework.Localization
             {
                 GUILayout.BeginVertical(EditorStyles.helpBox);
                 OnGUI(component, context);
+
+                if (GUILayout.Button("Execute", GUILayout.Height(30)))
+                {
+                    context.Execute();
+                    SetDirty(component);
+
+                }
                 GUILayout.EndVertical();
             }
-
+            GUI.enabled = true;
 
         }
         protected abstract void OnGUI(LocalizationBehavior component, T context);
@@ -43,6 +51,6 @@ namespace IFramework.Localization
 
         }
 
-    
+
     }
 }

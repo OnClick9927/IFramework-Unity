@@ -40,7 +40,7 @@ namespace IFramework.Localization
                     EditorWindow.focusedWindow.ShowNotification(new GUIContent("Same Name"));
                     return;
                 }
-                comp.objects.Add(new ObjectActor<Object>().SetName(_name).SetCanRemove(true) as ObjectActor<Object>);
+                comp.objects.Add(new ObjectActor<Object>(true).SetName(_name).SetCanRemove(true) as ObjectActor<Object>);
                 EditorUtility.SetDirty(comp);
                 AssetDatabase.SaveAssetIfDirty(comp);
                 LoadFields();

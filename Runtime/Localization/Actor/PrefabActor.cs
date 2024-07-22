@@ -13,6 +13,11 @@ namespace IFramework.Localization
     public class PrefabActor : LocalizationMapActor<LocalizationBehavior,GameObject>
     {
         private GameObject ins;
+
+        public PrefabActor(bool enable) : base(enable)
+        {
+        }
+
         protected override void Execute(string localizationType, LocalizationBehavior component)
         {
 #if UNITY_EDITOR

@@ -11,6 +11,10 @@ namespace IFramework.Localization
     [System.Serializable]
     public class GraphicColorActor : LocalizationMapActor<LocalizationGraphic, Color>
     {
+        public GraphicColorActor(bool enable) : base(enable)
+        {
+        }
+
         protected override void Execute(string localizationType, LocalizationGraphic component)
         {
             component.graphic.color = GetValue(localizationType);

@@ -18,9 +18,9 @@ namespace IFramework.Localization
     {
 
 
-        public TextValueActor text = new TextValueActor();
-        public TextFontActor font = new TextFontActor();
-        public TextFontSizeActor fontSize = new TextFontSizeActor();
+        public TextValueActor text = new TextValueActor(true);
+        public TextFontActor font = new TextFontActor(false);
+        public TextFontSizeActor fontSize = new TextFontSizeActor(false);
 
         protected override List<ILocalizationActor> GetActors()
         {

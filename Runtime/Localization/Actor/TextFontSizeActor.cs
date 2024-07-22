@@ -7,8 +7,12 @@
 namespace IFramework.Localization
 {
     [System.Serializable]
-    public class TextFontSizeActor : LocalizationMapActor<LocalizationText,int>
+    public class TextFontSizeActor : LocalizationMapActor<LocalizationText, int>
     {
+        public TextFontSizeActor(bool enable) : base(enable)
+        {
+        }
+
         protected override void Execute(string localizationType, LocalizationText component)
         {
             component.graphicT.fontSize = GetValue(localizationType);
