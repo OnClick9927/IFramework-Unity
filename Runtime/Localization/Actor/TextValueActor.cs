@@ -4,6 +4,8 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-04-25
 *********************************************************************************/
+using System.Text.RegularExpressions;
+using System;
 using UnityEngine;
 
 namespace IFramework.Localization
@@ -19,20 +21,29 @@ namespace IFramework.Localization
         {
         }
 
+        public string GetTargetText(LocalizationBehavior component, out Exception err)
+        {
+            err = null;
+            var format = component.GetLocalization(key);
+            if (Regex.Match(format, "^{[0-9]*}$") == null) return format;
+            try
+            {
+                return string.Format(format, formatArgs);
+            }
+            catch (System.Exception ex)
+            {
+                err = ex;
+                return format;
+            }
+        }
         protected override void Execute(string localizationType, LocalizationText component)
         {
             _lastKey = key;
-            var format = component.GetLocalization(key);
-            try
-            {
-                component.graphicT.text = string.Format(format, formatArgs);
+            Exception err;
+            component.graphicT.text = GetTargetText(component, out err);
+            if (err != null)
+                throw err;
 
-            }
-            catch (System.Exception)
-            {
-
-                throw;
-            }
         }
         public void SetKey(string key)
         {

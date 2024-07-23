@@ -4,6 +4,7 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-04-25
 *********************************************************************************/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,14 +12,13 @@ using UnityEngine;
 namespace IFramework.Localization
 {
     [CreateAssetMenu]
-    public class LocalizationData : ScriptableObject, ILocalizationContext, ISerializationCallbackReceiver
+    public class LocalizationData : ScriptableObject, ILocalizationContext
     {
-        private Dictionary<string, Dictionary<string, string>> map
-            = new Dictionary<string, Dictionary<string, string>>();
-
         [UnityEngine.SerializeField]
-        private SerializableDictionary<string, SerializableDictionary<int, string>> map_reflect
-= new SerializableDictionary<string, SerializableDictionary<int, string>>();
+        private SerializableDictionary<string, SerializableDictionary<string, string>> map
+            = new SerializableDictionary<string, SerializableDictionary<string, string>>();
+
+
         [UnityEngine.SerializeField]
         private List<string> keys = new List<string>();
 
@@ -43,12 +43,20 @@ namespace IFramework.Localization
         public void Clear()
         {
             map.Clear();
+            keys.Clear();
         }
+        public void ClearLan(string lan)
+        {
+            if (map.ContainsKey(lan))
+                map.Remove(lan);
 
+            if (map.Count == 0)
+                Clear();
+        }
         public void Add(string lan, string key, string value)
         {
             if (!map.ContainsKey(lan))
-                map.Add(lan, new Dictionary<string, string>());
+                map.Add(lan, new SerializableDictionary<string, string>());
             map[lan][key] = value;
             if (!keys.Contains(key)) { keys.Add(key); }
         }
@@ -56,53 +64,25 @@ namespace IFramework.Localization
         public void Add(string lan)
         {
             if (!map.ContainsKey(lan))
-                map.Add(lan, new Dictionary<string, string>());
+                map.Add(lan, new SerializableDictionary<string, string>());
         }
 
-        public void OnBeforeSerialize()
+
+
+        public void ClearKeys(IList<string> list)
         {
-            foreach (var item in map)
+            var lanTypes = this.GetLocalizationTypes();
+            for (int i = list.Count - 1; i >= 0; i--)
             {
-                var lan = item.Key;
-                SerializableDictionary<int, string> _ref;
-                if (!map_reflect.TryGetValue(lan, out _ref))
-                {
-                    _ref = new SerializableDictionary<int, string>();
-                    map_reflect.Add(lan, _ref);
-                }
-                foreach (var pair in item.Value)
-                {
-                    var key = pair.Key;
-                    var value = pair.Value;
-                    var key_index = keys.IndexOf(key);
-                    if (key_index != -1)
-                    {
-                        _ref[key_index] = value;
-                    }
-                }
-            }
-        }
+                var key = list[i];
 
-        public void OnAfterDeserialize()
-        {
-            foreach (var item in map_reflect)
-            {
-                var lan = item.Key;
-                Dictionary<string, string> _ref;
-                if (!map.TryGetValue(lan, out _ref))
+                for (int j = 0; j < lanTypes.Count; j++)
                 {
-                    _ref = new Dictionary<string, string>();
-                    map.Add(lan, _ref);
-                }
-                foreach (var pair in item.Value)
-                {
-                    var key = pair.Key;
-                    var value = pair.Value;
-                    var key_value = keys[key];
-                    _ref[key_value] = value;
-
+                    var type = lanTypes[j];
+                    map[type].Remove(key);
                 }
 
+                keys.Remove(key);
             }
         }
     }

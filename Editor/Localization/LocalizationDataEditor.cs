@@ -5,6 +5,8 @@
  *Date:           2024-04-25
 *********************************************************************************/
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -45,8 +47,9 @@ namespace IFramework.Localization
                     });
                 }
                 this.multiColumnHeader = new MultiColumnHeader(new MultiColumnHeaderState(columns.ToArray()));
-                return new TreeViewItem() { depth = -1 };
+                return new TreeViewItem() { depth = -1, id = 1 };
             }
+            private List<TreeViewItem> _rows = new List<TreeViewItem>();
             protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
             {
 
@@ -63,13 +66,16 @@ namespace IFramework.Localization
                         if (!build) continue;
                         rows.Add(new TreeViewItem()
                         {
+                            id = i + 2,
                             displayName = keys[i],
                             depth = 0,
+                            parent = root,
                         }); ;
                     }
                 }
 
                 SetupDepthsFromParentsAndChildren(root);
+                _rows = rows;
                 return rows;
             }
             protected override void RowGUI(RowGUIArgs args)
@@ -99,7 +105,36 @@ namespace IFramework.Localization
             }
             protected override bool CanMultiSelect(TreeViewItem item)
             {
-                return false;
+                return true;
+            }
+            protected override void ContextClicked()
+            {
+                GenericMenu menu = new GenericMenu();
+
+                var lanTypes = context.GetLocalizationTypes();
+                for (int i = 0; i < lanTypes.Count; i++)
+                {
+                    var type = lanTypes[i];
+                    menu.AddItem(new GUIContent($"Delete Localization Type/{type}"), false, () =>
+                    {
+                        context.ClearLan(type);
+                        SaveContext();
+                        Reload();
+                    });
+                }
+                var select = this.GetSelection();
+                if (search != null && select.Count > 0)
+                {
+                    var keys = select.Select(x => _rows.Find(y => y.id == x).displayName).ToList();
+                    menu.AddItem(new GUIContent("Delete Select"), false, () =>
+                    {
+                        context.ClearKeys(keys);
+                        SaveContext();
+                        Reload();
+
+                    });
+                }
+                menu.ShowAsContext();
             }
         }
         private Tree tree;
@@ -150,7 +185,7 @@ namespace IFramework.Localization
         {
             var path = EditorUtility.OpenFilePanelWithFilters("Select CSV", LocalizationEditorUserData.lastCSVPath, new string[] { "CSV", "csv" });
             if (string.IsNullOrEmpty(path)) return;
-            LocalizationEditorUserData.lastCSVPath = path;
+            LocalizationEditorUserData.lastCSVPath = Path.GetDirectoryName(path);
             CSVHelper.BeginRead(path);
             int index = 0;
             string[] lanTypes = null;
@@ -187,7 +222,7 @@ namespace IFramework.Localization
         {
 
             var path = EditorUtility.OpenFilePanelWithFilters("Select LocalizationData", LocalizationEditorUserData.lastLocalizationDataPath, new string[] { "LocalizationData", "asset" });
-            if (string.IsNullOrEmpty(path)) return;
+            if (string.IsNullOrEmpty(path)) return; 
             path = path.ToAssetsPath();
             var src = AssetDatabase.LoadAssetAtPath<LocalizationData>(path);
             if (src == null) return;
@@ -234,14 +269,15 @@ namespace IFramework.Localization
             GUILayout.EndHorizontal();
 
 
+            GUILayout.Space(10);
+            GUILayout.BeginVertical(EditorStyles.helpBox);
+
             GUILayout.BeginHorizontal();
             LanType = EditorGUILayout.TextField("LanType", LanType);
             if (GUILayout.Button("+", GUILayout.Width(20)))
             {
-
                 context.Add(LanType);
                 SaveContext();
-
                 tree.Reload();
             }
             GUILayout.EndHorizontal();
@@ -257,8 +293,8 @@ namespace IFramework.Localization
                 tree.Reload();
             }
             GUILayout.EndHorizontal();
-
-            tree.OnGUI(EditorGUILayout.GetControlRect(GUILayout.Height(600)));
+            GUILayout.EndVertical();
+            tree.OnGUI(EditorGUILayout.GetControlRect(GUILayout.MaxHeight(600)));
         }
     }
 }

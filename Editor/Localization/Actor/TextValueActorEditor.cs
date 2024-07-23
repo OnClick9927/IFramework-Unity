@@ -77,83 +77,104 @@ namespace IFramework.Localization
         {
             var lan = Localization.GetLocalizationType();
             EditorGUILayout.LabelField(nameof(Localization), lan);
-            _mode = (Mode)EditorGUILayout.EnumPopup(nameof(Mode), _mode);
-            if (_mode == Mode.Nomal)
+            var __mode = (Mode)EditorGUILayout.EnumPopup(nameof(Mode), _mode);
+            if (__mode != _mode)
             {
-                var keys = component.GetLocalizationKeys();
-
-                if (keys == null || keys.Count == 0) return;
-                var _index = keys.IndexOf(context.key);
-                var index = EditorGUILayout.Popup("Key", _index, keys.ToArray());
-                if (index >= keys.Count || index == -1)
-                    index = 0;
-                if (index != _index)
+                _mode = __mode;
+                switch (_mode)
                 {
-                    context.SetKey(keys[index]);
-                    SetDirty(component);
+                    case Mode.Nomal:
+                    case Mode.NewKey:
+                        key = value = string.Empty;
+                        break;
+                    case Mode.ReplaceValue:
+                        key = context.key;
+                        value = component.GetLocalization(key);
+                        break;
                 }
             }
-            else if (_mode == Mode.ReplaceValue)
+            switch (_mode)
             {
-                value = EditorGUILayout.TextField(nameof(value), value);
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("go", GUILayout.Width(30)))
-                {
-                    var data = component.context;
-                    key = context.key;
-                    bool bo = EditorUtility.DisplayDialog("same key exist", $"replace \n key {key} \n" +
-                              $"value: {data.GetLocalization(lan, key)} => {value}", "yes", "no");
-                    if (!bo)
+                case Mode.Nomal:
                     {
-                        GUIUtility.ExitGUI();
-                        return;
-                    }
+                        var keys = component.GetLocalizationKeys();
 
-                    data.Add(lan, key, value);
-                    EditorUtility.SetDirty(data);
-                    AssetDatabase.SaveAssetIfDirty(data);
-                    context.SetKey(key);
-                    SetDirty(component);
-                }
-                GUILayout.EndHorizontal();
-            }
-            else
-            {
-                key = EditorGUILayout.TextField(nameof(key), key);
-                value = EditorGUILayout.TextField(nameof(value), value);
-
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("+", GUILayout.Width(20)))
-                {
-                    var data = component.context;
-                    if (string.IsNullOrEmpty(key))
-                    {
-                        EditorWindow.focusedWindow.ShowNotification(new GUIContent("value can not be null"));
-                        GUIUtility.ExitGUI();
-                        return;
-                    }
-                    var keys = data.GetLocalizationKeys();
-                    if (keys.Contains(key))
-                    {
-                        bool bo = EditorUtility.DisplayDialog("same key exist", $"replace \n key {key} \n" +
-                              $"value: {data.GetLocalization(lan, key)} => {value}", "yes", "no");
-                        if (!bo)
+                        if (keys == null || keys.Count == 0) return;
+                        var _index = keys.IndexOf(context.key);
+                        var index = EditorGUILayout.Popup("Key", _index, keys.ToArray());
+                        if (index >= keys.Count || index == -1)
+                            index = 0;
+                        if (index != _index)
                         {
-                            GUIUtility.ExitGUI();
-                            return;
+                            context.SetKey(keys[index]);
+                            SetDirty(component);
                         }
                     }
+                    break;
+                case Mode.NewKey:
+                    {
+                        key = EditorGUILayout.TextField(nameof(key), key);
+                        value = EditorGUILayout.TextField(nameof(value), value);
 
-                    data.Add(lan, key, value);
-                    EditorUtility.SetDirty(data);
-                    AssetDatabase.SaveAssetIfDirty(data);
-                    context.SetKey(key);
-                    SetDirty(component);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("+", GUILayout.Width(20)))
+                        {
+                            var data = component.context;
+                            if (string.IsNullOrEmpty(key))
+                            {
+                                EditorWindow.focusedWindow.ShowNotification(new GUIContent("value can not be null"));
+                                GUIUtility.ExitGUI();
+                                return;
+                            }
+                            var keys = data.GetLocalizationKeys();
+                            if (keys.Contains(key))
+                            {
+                                bool bo = EditorUtility.DisplayDialog("same key exist", $"replace \n key {key} \n" +
+                                      $"value: {data.GetLocalization(lan, key)} => {value}", "yes", "no");
+                                if (!bo)
+                                {
+                                    GUIUtility.ExitGUI();
+                                    return;
+                                }
+                            }
 
-                }
-                GUILayout.EndHorizontal();
+                            data.Add(lan, key, value);
+                            EditorUtility.SetDirty(data);
+                            AssetDatabase.SaveAssetIfDirty(data);
+                            context.SetKey(key);
+                            SetDirty(component);
+
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                    break;
+                case Mode.ReplaceValue:
+                    {
+                        value = EditorGUILayout.TextField(nameof(value), value);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("go", GUILayout.Width(30)))
+                        {
+                            var data = component.context;
+                            //key = context.key;
+                            bool bo = EditorUtility.DisplayDialog("same key exist", $"replace \n key {key} \n" +
+                                      $"value: {data.GetLocalization(lan, key)} => {value}", "yes", "no");
+                            if (!bo)
+                            {
+                                GUIUtility.ExitGUI();
+                                return;
+                            }
+
+                            data.Add(lan, key, value);
+                            EditorUtility.SetDirty(data);
+                            AssetDatabase.SaveAssetIfDirty(data);
+                            context.SetKey(key);
+                            SetDirty(component);
+                        }
+                        GUILayout.EndHorizontal();
+                    }
+                    break;
             }
 
             CreateList(component, context);
@@ -164,17 +185,12 @@ namespace IFramework.Localization
             GUILayout.BeginVertical(EditorStyles.helpBox);
             GUILayout.Label("Preview");
             EditorGUILayout.LabelField("key", context.key);
+            System.Exception err = null;
+            var format = context.GetTargetText(component, out err);
+            if (err != null)
+                EditorGUILayout.HelpBox(err.Message, MessageType.Error, true);
+            EditorGUILayout.LabelField("Localization", format);
 
-            var format = component.GetLocalization(context.key);
-            try
-            {
-                EditorGUILayout.LabelField("Localization", string.Format(format, context.formatArgs));
-            }
-            catch (System.Exception)
-            {
-                EditorGUILayout.HelpBox("Args Not Fit Format", MessageType.Error, true);
-                EditorGUILayout.LabelField("Localization", format);
-            }
             GUILayout.Space(5);
             GUILayout.EndVertical();
 

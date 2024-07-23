@@ -34,7 +34,7 @@ namespace IFramework.Localization
                     return;
                 }
                 var index = EditorGUILayout.Popup("LanguageType", types.IndexOf(LocalizationSetting.localizationType), types.ToArray());
-                Localization.SetLocalizationType(types[index]);
+                Localization.SetLocalizationType(types[Mathf.Clamp(index, 0, types.Count)]);
                 //GUI.enabled = false;
                 //setting.localizationType = EditorGUILayout.TextField(nameof(setting.localizationType), setting.localizationType);
 
@@ -47,7 +47,7 @@ namespace IFramework.Localization
             }
         }
 
-  
+
 
 
     }

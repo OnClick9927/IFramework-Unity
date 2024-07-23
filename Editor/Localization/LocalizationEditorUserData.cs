@@ -49,7 +49,7 @@ namespace IFramework.Localization
             {
                 if (_context == null)
                 {
-                    _context = EditorTools.GetFromPrefs<LocalizationEditorUserData>(nameof(LocalizationEditorUserData), false);
+                    _context = EditorTools.GetFromPrefs<LocalizationEditorUserData>(nameof(LocalizationEditorUserData));
                     if (_context == null)
                         _context = new LocalizationEditorUserData();
                 }
