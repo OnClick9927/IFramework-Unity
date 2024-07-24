@@ -39,7 +39,10 @@ namespace IFramework.Localization
         [UnityEngine.SerializeField] private string _lineReg = "\"";
         [UnityEngine.SerializeField] private string _fieldReg = "\\G(?:^|,)(?:\"((?>[^\"]*)(?>\"\"[^\"]*)*)\"|([^\",]*))";
         [UnityEngine.SerializeField] private string _quotesReg = "\"\"";
+        [UnityEngine.SerializeField] private string _youDaoAppId = "";
+        [UnityEngine.SerializeField] private string _youDaoAppSecret = "";
 
+        [UnityEngine.SerializeField] private SerializableDictionary<string, string> reflect = new SerializableDictionary<string, string>();
         private static LocalizationSetting _context;
         private static LocalizationSetting context
         {
@@ -100,6 +103,27 @@ namespace IFramework.Localization
                 context.Save();
             }
         }
+        public static string youDaoAppId
+        {
+            get { return context._youDaoAppId; }
+            set
+            {
+                if (context._youDaoAppId == value) return;
+                context._youDaoAppId = value;
+                context.Save();
+            }
+        }
+        public static string youDaoAppSecret
+        {
+            get { return context._youDaoAppSecret; }
+            set
+            {
+                if (context._youDaoAppSecret == value) return;
+                context._youDaoAppSecret = value;
+                context.Save();
+            }
+        }
+
         private static LocalizationData __defaultData;
         public static LocalizationData defaultData
         {
@@ -121,6 +145,22 @@ namespace IFramework.Localization
                 context.Save();
 
             }
+        }
+
+
+        public static string GetLocalizationTypeReflect(string src)
+        {
+            if (context.reflect.ContainsKey(src))
+                return context.reflect[src];
+            return src;
+        }
+        public static void SetLocalizationTypeReflect(string src, string dst)
+        {
+            if (context.reflect.ContainsKey(src))
+                context.reflect[src] = dst;
+            else
+                context.reflect.Add(src, dst);
+            context.Save();
         }
     }
 }

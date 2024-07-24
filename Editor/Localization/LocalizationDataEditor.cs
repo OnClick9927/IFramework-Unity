@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -122,10 +123,45 @@ namespace IFramework.Localization
                         Reload();
                     });
                 }
+
+                for (int i = 0; lanTypes.Count > i; i++)
+                {
+                    for (int j = 0; lanTypes.Count > j; j++)
+                    {
+                        var src = lanTypes[i];
+                        var dst = lanTypes[j];
+                        if (src == dst) continue;
+
+                        menu.AddItem(new GUIContent($"Translate/{src}To{dst}"), false, () =>
+                        {
+                            Translate(context.GetLocalizationKeys(), src, dst);
+
+                        });
+                    }
+
+                }
                 var select = this.GetSelection();
                 if (search != null && select.Count > 0)
                 {
                     var keys = select.Select(x => _rows.Find(y => y.id == x).displayName).ToList();
+
+
+                    for (int i = 0; lanTypes.Count > i; i++)
+                    {
+                        for (int j = 0; lanTypes.Count > j; j++)
+                        {
+                            var src = lanTypes[i];
+                            var dst = lanTypes[j];
+                            if (src == dst) continue;
+
+                            menu.AddItem(new GUIContent($"TranslateSelect/{src}To{dst}"), false, () =>
+                            {
+                                Translate(keys, src, dst);
+                            });
+                        }
+
+                    }
+
                     menu.AddItem(new GUIContent("Delete Select"), false, () =>
                     {
                         context.ClearKeys(keys);
@@ -148,6 +184,30 @@ namespace IFramework.Localization
         private string LanType = "";
         private string Key = "";
         private string VAL = "";
+
+        private static async void Translate(List<string> keys, string src, string dest)
+        {
+            for (int i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                var from = context.GetLocalization(src, key);
+                var result = await YouDao.Translate(from,
+                    LocalizationSetting.GetLocalizationTypeReflect(src), LocalizationSetting.GetLocalizationTypeReflect(dest));
+                if (result.errorCode == 0)
+                {
+                    var value = result.translation[0];
+                    context.Add(dest, key, value);
+                }
+                else
+                {
+                    Debug.LogError($"key:{key}\t from:{from}\t ErrCode:{result.errorCode}");
+                }
+            }
+
+            SaveContext();
+            EditorWindow.focusedWindow.ShowNotification(new GUIContent("Translate  Complete"));
+
+        }
         private static void SaveContext()
         {
             EditorUtility.SetDirty(context);
@@ -178,8 +238,6 @@ namespace IFramework.Localization
                 }
                 result.Add(_content);
             }
-
-            CSVHelper.Write(path, result);
         }
         private static void ReadCSV()
         {
@@ -222,7 +280,7 @@ namespace IFramework.Localization
         {
 
             var path = EditorUtility.OpenFilePanelWithFilters("Select LocalizationData", LocalizationEditorUserData.lastLocalizationDataPath, new string[] { "LocalizationData", "asset" });
-            if (string.IsNullOrEmpty(path)) return; 
+            if (string.IsNullOrEmpty(path)) return;
             path = path.ToAssetsPath();
             var src = AssetDatabase.LoadAssetAtPath<LocalizationData>(path);
             if (src == null) return;
