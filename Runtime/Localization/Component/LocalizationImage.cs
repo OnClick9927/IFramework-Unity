@@ -14,6 +14,24 @@ namespace IFramework.Localization
     [AddComponentMenu("IFramework/LocalizationImage")]
     public class LocalizationImage : LocalizationGraphic<UnityEngine.UI.Image>
     {
+
+        [System.Serializable]
+        public class ImageSpriteActor : LocalizationMapActor<LocalizationImage, UnityEngine.Sprite>
+        {
+            public ImageSpriteActor(bool enable) : base(enable)
+            {
+            }
+
+            public override Sprite GetDefault()
+            {
+                return null;
+            }
+
+            protected override void Execute(string localizationType, LocalizationImage component)
+            {
+                component.graphicT.sprite = GetValue(localizationType);
+            }
+        }
         public ImageSpriteActor sprite = new ImageSpriteActor(true);
 
         protected override List<ILocalizationActor> GetActors()

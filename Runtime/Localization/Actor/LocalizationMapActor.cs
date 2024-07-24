@@ -13,7 +13,15 @@ namespace IFramework.Localization
         protected LocalizationMapActor(bool enable) : base(enable)
         {
         }
-
+        protected sealed override void BeforeExecute(string localizationType)
+        {
+            Value value;
+            if (!map.TryGetValue(localizationType ,out value))
+            {
+                map.Add(localizationType, GetDefault());
+            }
+        }
+        public abstract Value GetDefault();
         public Value GetValue()
         {
             return GetValue(Localization.GetLocalizationType());

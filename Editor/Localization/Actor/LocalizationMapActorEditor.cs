@@ -21,7 +21,7 @@ namespace IFramework.Localization
                 var key = keys[i];
                 if (!map.ContainsKey(key))
                 {
-                    map.Add(key, GetDefault());
+                    map.Add(key, context.GetDefault());
                     SetDirty(component);
                 }
             }
@@ -48,7 +48,6 @@ namespace IFramework.Localization
 
             }
         }
-        protected abstract Value GetDefault();
         protected abstract Value Draw(string lan, Value value);
     }
 }

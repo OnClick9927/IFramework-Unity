@@ -7,6 +7,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using static IFramework.Localization.LocalizationAssets;
 
 namespace IFramework.Localization
 {

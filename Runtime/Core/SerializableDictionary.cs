@@ -157,6 +157,11 @@ namespace IFramework
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        internal void Add(string localizationType, object getDefault)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 

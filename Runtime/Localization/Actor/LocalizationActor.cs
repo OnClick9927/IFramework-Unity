@@ -78,10 +78,11 @@ namespace IFramework.Localization
             _localizationType = localizationType;
             T behavior = component as T;
             if (behavior == null) return;
+            BeforeExecute(localizationType);
             Execute(localizationType, behavior);
         }
         protected abstract void Execute(string localizationType, T component);
-
+        protected virtual void BeforeExecute(string localizationType) { }
 
     }
 }

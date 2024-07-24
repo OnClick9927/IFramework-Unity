@@ -10,12 +10,19 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using static IFramework.Localization.LocalizationAssets;
 
 namespace IFramework.Localization
 {
 
     public abstract class LocalizationBehaviorEditor<T> : UnityEditor.Editor where T : LocalizationBehavior
     {
+        [LocalizationActorEditorAttribute]
+
+        class ObjectActorEditor<T> : LocalizationMapActorEditor<ObjectActor<T>, T, LocalizationBehavior> where T : UnityEngine.Object
+        {
+            protected override T Draw(string lan, T value) => EditorGUILayout.ObjectField(lan, value, typeof(T), false) as T;
+        }
 
         protected T comp { get; private set; }
         protected void LoadFields()
@@ -170,6 +177,8 @@ namespace IFramework.Localization
         {
             comp.context = EditorGUILayout.ObjectField(nameof(LocalizationBehavior.context),
       comp.context, typeof(LocalizationData), false) as LocalizationData;
+            EditorGUILayout.LabelField(nameof(Localization), Localization.GetLocalizationType());
+
         }
         public override void OnInspectorGUI()
         {

@@ -13,6 +13,26 @@ namespace IFramework.Localization
     [AddComponentMenu("IFramework/LocalizationAssets")]
     public class LocalizationAssets : LocalizationBehavior
     {
+
+        [System.Serializable]
+        public class ObjectActor<T> : LocalizationMapActor<LocalizationBehavior, T> where T : UnityEngine.Object
+        {
+            public SerializableDictionary<string, T> objects = new SerializableDictionary<string, T>();
+
+            public ObjectActor(bool enable) : base(enable)
+            {
+            }
+
+            public override T GetDefault()
+            {
+                return null;
+            }
+
+            protected override void Execute(string localizationType, LocalizationBehavior component)
+            {
+
+            }
+        }
         public List<ObjectActor<Object>> objects = new List<ObjectActor<Object>>();
         private Dictionary<string, ObjectActor<Object>> objectMap = new Dictionary<string, ObjectActor<Object>>();
      

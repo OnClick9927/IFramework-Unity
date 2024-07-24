@@ -15,6 +15,44 @@ namespace IFramework.Localization
     [AddComponentMenu("IFramework/LocalizationGraphic")]
     public class LocalizationGraphic : LocalizationBehavior
     {
+        [System.Serializable]
+        public class GraphicColorActor : LocalizationMapActor<LocalizationGraphic, Color>
+        {
+            public GraphicColorActor(bool enable) : base(enable)
+            {
+            }
+
+            public override Color GetDefault()
+            {
+                return Color.white;
+            }
+
+            protected override void Execute(string localizationType, LocalizationGraphic component)
+            {
+                component.graphic.color = GetValue(localizationType);
+
+            }
+        }
+        [System.Serializable]
+        public class GraphicMaterialActor : LocalizationMapActor<LocalizationGraphic, Material>
+        {
+            public SerializableDictionary<string, Material> materials = new SerializableDictionary<string, Material>();
+
+            public GraphicMaterialActor(bool enable) : base(enable)
+            {
+            }
+
+            protected override void Execute(string localizationType, LocalizationGraphic component)
+            {
+                component.graphic.material = GetValue(localizationType);
+
+            }
+
+            public override Material GetDefault()
+            {
+                return UnityEngine.UI.Graphic.defaultGraphicMaterial;
+            }
+        }
         public Graphic graphic { get; private set; }
         public GraphicColorActor color = new GraphicColorActor(false);
         public GraphicMaterialActor material = new GraphicMaterialActor(false);
