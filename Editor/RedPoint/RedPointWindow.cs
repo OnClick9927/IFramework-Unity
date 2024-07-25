@@ -18,7 +18,7 @@ namespace IFramework.RedPoint
     {
         private class ViewTree : TreeView, ITreeViewer
         {
-            private List<RedPoint> root;
+            private List<InternalRedPoint> root;
             private SearchField field = new SearchField();
             private string _ping;
 
@@ -31,7 +31,7 @@ namespace IFramework.RedPoint
                 this.multiColumnHeader.ResizeToFit();
             }
 
-            public void FreshView(List<RedPoint> root)
+            public void FreshView(List<InternalRedPoint> root)
             {
                 this.root = root;
                 Reload();
@@ -46,7 +46,7 @@ namespace IFramework.RedPoint
                 };
             }
 
-            private void LoopBuild(TreeViewItem parent, RedPoint point, IList<TreeViewItem> list)
+            private void LoopBuild(TreeViewItem parent, InternalRedPoint point, IList<TreeViewItem> list)
             {
 
 
@@ -114,7 +114,7 @@ namespace IFramework.RedPoint
             {
                 if (string.IsNullOrEmpty(searchString)) return;
                 var _ping = FindItem(id, rootItem).displayName;
-                char separator = Tree.separator;
+                char separator = RedTree.separator;
                 var columns = _ping.Split(separator);
                 for (int j = 0; j < columns.Length; j++)
                 {
@@ -154,7 +154,7 @@ namespace IFramework.RedPoint
             {
                 float indent = this.GetContentIndent(args.item);
                 GUI.Label(EditorTools.RectEx.Zoom(args.GetCellRect(0), TextAnchor.MiddleRight, new Vector2(-indent, 0)), args.item.displayName);
-                GUI.Label(args.GetCellRect(1), Tree.GetCount(args.item.displayName).ToString());
+                GUI.Label(args.GetCellRect(1), RedTree.GetCount(args.item.displayName).ToString());
 
 
                 if (args.item.displayName == _ping)
@@ -198,7 +198,7 @@ namespace IFramework.RedPoint
                     }
                 });
             _tree = new ViewTree(state, headerState);
-            Tree.SetViewer(_tree);
+            RedTree.SetViewer(_tree);
         }
         private void OnGUI()
         {

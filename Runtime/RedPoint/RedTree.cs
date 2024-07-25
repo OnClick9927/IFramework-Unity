@@ -10,25 +10,25 @@ namespace IFramework.RedPoint
 {
     public interface ITreeViewer
     {
-        void FreshView(List<RedPoint> root);
+        void FreshView(List<InternalRedPoint> root);
     }
-    public class Tree
+    public class RedTree
     {
         private static ITreeViewer viewer;
 
         public static void SetViewer(ITreeViewer viewer)
         {
 #if UNITY_EDITOR
-            Tree.viewer = viewer;
+            RedTree.viewer = viewer;
             if (viewer == null) return;
-            Tree.viewer.FreshView(Tree.root);
+            RedTree.viewer.FreshView(RedTree.root);
 #endif
         }
 
         private static Dictionary<string, List<RedDot>> red_dot_map = new Dictionary<string, List<RedDot>>();
-        private static Dictionary<string, RedPoint> key_map = new Dictionary<string, RedPoint>();
+        private static Dictionary<string, InternalRedPoint> key_map = new Dictionary<string, InternalRedPoint>();
 
-        private static List<RedPoint> root = new List<RedPoint>();
+        private static List<InternalRedPoint> root = new List<InternalRedPoint>();
         internal static void AddDot(RedDot dot)
         {
             var path = dot.path;
@@ -55,19 +55,19 @@ namespace IFramework.RedPoint
         }
         public static char separator = '/';
 
-        private static RedPoint Find(string key)
+        private static InternalRedPoint Find(string key)
         {
             if (key_map.ContainsKey(key))
                 return key_map[key];
             return null;
         }
 
-        private static RedPoint AddPoint(string parentKey, string key)
+        private static InternalRedPoint AddPoint(string parentKey, string key)
         {
             var _new = Find(key);
             if (_new == null)
             {
-                _new = new RedPoint(key, parentKey);
+                _new = new InternalRedPoint(key, parentKey);
                 key_map.Add(key, _new);
             }
 #if UNITY_EDITOR
@@ -111,7 +111,7 @@ namespace IFramework.RedPoint
         public static void ReadPath(string key)
         {
             var columns = key.Split(separator);
-            RedPoint last = null;
+            InternalRedPoint last = null;
             for (int j = 0; j < columns.Length; j++)
             {
                 var _pkey = string.Join(separator.ToString(), columns, 0, j);
@@ -121,7 +121,7 @@ namespace IFramework.RedPoint
                     last.AddChild(point);
                 last = point;
             }
-            SetViewer(Tree.viewer);
+            SetViewer(RedTree.viewer);
         }
         public static void ClearPath(string key)
         {
@@ -135,7 +135,7 @@ namespace IFramework.RedPoint
 #if UNITY_EDITOR
             if (root.RemoveAll(x => x.key == key) > 0)
             {
-                SetViewer(Tree.viewer);
+                SetViewer(RedTree.viewer);
             }
 #endif
         }
@@ -147,7 +147,7 @@ namespace IFramework.RedPoint
             red_dot_map.Clear();
             key_map.Clear();
             root.Clear();
-            SetViewer(Tree.viewer);
+            SetViewer(RedTree.viewer);
         }
     }
 

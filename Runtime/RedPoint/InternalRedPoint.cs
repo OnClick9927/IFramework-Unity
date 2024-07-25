@@ -8,15 +8,15 @@ using System.Collections.Generic;
 
 namespace IFramework.RedPoint
 {
-    public class RedPoint
+    public class InternalRedPoint
     {
         public string parent_key;
         public string key;
-        public Dictionary<string, RedPoint> children = new Dictionary<string, RedPoint>();
+        public Dictionary<string, InternalRedPoint> children = new Dictionary<string, InternalRedPoint>();
         private int count;
         private bool hasValue = false;
 
-        public RedPoint(string key, string parent_key)
+        public InternalRedPoint(string key, string parent_key)
         {
             this.parent_key = parent_key;
             this.key = key;
@@ -26,7 +26,7 @@ namespace IFramework.RedPoint
         {
             return hasValue ? count : 0;
         }
-        public void AddChild(RedPoint p)
+        public void AddChild(InternalRedPoint p)
         {
             var p_key = p.key;
             if (children.ContainsKey(p_key))
@@ -39,7 +39,7 @@ namespace IFramework.RedPoint
             if (hasValue && count == this.count) return false;
             this.count = count;
             hasValue = true;
-            Tree.FreshDot(key, count);
+            RedTree.FreshDot(key, count);
             return true;
         }
     }

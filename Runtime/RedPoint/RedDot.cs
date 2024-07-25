@@ -14,14 +14,14 @@ namespace IFramework.RedPoint
         public void SetPath(string path)
         {
             this.path = path;
-            Tree.AddDot(this);
+            RedTree.AddDot(this);
             this.FreshView(this.GetCount());
         }
-        public int GetCount() => Tree.GetCount(this.path);
+        public int GetCount() => RedTree.GetCount(this.path);
         public abstract void FreshView(int count);
         public void Dispose()
         {
-            Tree.RemoveDot(this);
+            RedTree.RemoveDot(this);
             FreshView(0);
         }
     }
