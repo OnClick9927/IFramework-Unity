@@ -193,5 +193,16 @@ namespace IFramework.UI
             ignore.RemoveAll(x => x.gameObject == null);
 
         }
+        public void CollectFlagGameObjects(Transform transform, List<GameObject> goes)
+        {
+            if (transform.name.Contains(flag))
+            {
+                goes.Add(transform.gameObject);
+            }
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                CollectFlagGameObjects(transform.GetChild(i), goes);
+            }
+        }
     }
 }

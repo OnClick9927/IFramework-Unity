@@ -28,6 +28,7 @@ namespace IFramework.UI
         private Dictionary<string, UIPanel> panels = new Dictionary<string, UIPanel>();
         private Empty4Raycast raycast;
         private bool _loading = false;
+        private bool _force_show_raycast;
         private IUIDelegate del;
 
         protected override void Awake()
@@ -248,7 +249,18 @@ namespace IFramework.UI
         }
         public void HideRayCast()
         {
+            if (_force_show_raycast) return;
             raycast.raycastTarget = false;
+        }
+        public void ForceShowRayCast()
+        {
+            _force_show_raycast = true;
+            ShowRayCast();
+        }
+        public void ForceHideRayCast()
+        {
+            _force_show_raycast = false;
+            HideRayCast();
         }
 
         public void CreateCanvas()

@@ -54,7 +54,7 @@ namespace IFramework.UI
             SaveContext();
         }
 
-        public string ToValidFiledName(string src)=>context.ToValidFiledName(src);
+        public string ToValidFiledName(string src) => context.ToValidFiledName(src);
 
         public void AddToIgnore(List<GameObject> s)
         {
@@ -117,6 +117,23 @@ namespace IFramework.UI
             var all = context.GetAllMarks();
             return all.Find(m => m.gameObject == go);
         }
+
+
+        public void RemoveUselessMarkFlag()
+        {
+            List<GameObject> result = new List<GameObject>();
+            context.CollectFlagGameObjects(gameObject.transform, result);
+            result.RemoveAll(x => IsPrefabInstance(x));
+
+            result.RemoveAll(x => context.marks.Find(y => y.gameObject == x) != null);
+            if (result.Count == 0) return;
+            for (int i = 0; i < result.Count; i++)
+                context.RemoveMark(result[i], true);
+            SaveContext();
+
+        }
+
+
         public void RemoveEmptyMarks()
         {
             context.RemoveEmpty();
@@ -139,7 +156,7 @@ namespace IFramework.UI
                     }
                     this.context = context;
                     context.RemoveEmpty();
-       
+
                     SaveContext();
                 }
 
@@ -184,6 +201,8 @@ namespace IFramework.UI
             }
             return true;
         }
+
+
 
     }
 }

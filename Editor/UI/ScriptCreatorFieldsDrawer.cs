@@ -179,7 +179,7 @@ namespace IFramework.UI
                 //    GUI.contentColor = Color.grey;
                 if (sc.IsPrefabInstance(go))
                     GUI.color = new Color(0.1f, 0.7f, 1f, 1);
-           
+
                 bool could = sc.CouldMark(go);
                 var image = could ? "greenLight" : "d_redLight";
                 GUI.Label(first, new GUIContent(args.label, EditorGUIUtility.IconContent(image).image));
@@ -239,9 +239,9 @@ namespace IFramework.UI
                 var id = args.itemID;
                 var go = GetGameObject(id);
                 var sm = sc.GetMark(go);
-                sm.fieldName =  sc.ToValidFiledName(args.newName);
+                sm.fieldName = sc.ToValidFiledName(args.newName);
                 sc.SaveContext();
-            
+
             }
             protected override Rect GetRenameRect(Rect rowRect, int row, TreeViewItem item)
             {
@@ -258,7 +258,9 @@ namespace IFramework.UI
             }
             protected override void ContextClicked()
             {
+                if (sc.gameObject == null) return;
                 GenericMenu menu = new GenericMenu();
+
                 Dictionary<Type, int> help = new Dictionary<Type, int>();
                 List<GameObject> gameobjects = new List<GameObject>();
                 var marks = new List<GameObject>();
@@ -371,6 +373,12 @@ namespace IFramework.UI
                     }
                     EditorWindow.focusedWindow.ShowNotification(new GUIContent(same));
                 });
+                CreateMenu(menu, "Remove Useless Mark Flag", false, () =>
+                {
+                    sc.RemoveUselessMarkFlag();
+                    Reload();
+                });
+
                 menu.ShowAsContext();
             }
             GameObject _ping;
