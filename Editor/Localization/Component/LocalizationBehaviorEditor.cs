@@ -19,9 +19,9 @@ namespace IFramework.Localization
     {
         [LocalizationActorEditorAttribute]
 
-        class ObjectActorEditor<T> : LocalizationMapActorEditor<ObjectActor<T>, T, LocalizationBehavior> where T : UnityEngine.Object
+        class ObjectActorEditor<V> : LocalizationMapActorEditor<ObjectActor<V>, V, LocalizationBehavior> where V : UnityEngine.Object
         {
-            protected override T Draw(string lan, T value) => EditorGUILayout.ObjectField(lan, value, typeof(T), false) as T;
+            protected override V Draw(string lan, V value) => EditorGUILayout.ObjectField(lan, value, typeof(V), false) as V;
         }
 
         protected T comp { get; private set; }
@@ -121,7 +121,7 @@ namespace IFramework.Localization
         }
         private void OnEnable()
         {
-           
+
         }
         private ILocalizationActorEditor CreateEditor(Type type)
         {
