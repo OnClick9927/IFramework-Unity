@@ -155,6 +155,7 @@ namespace IFramework.RedPoint
                 float indent = this.GetContentIndent(args.item);
                 GUI.Label(EditorTools.RectEx.Zoom(args.GetCellRect(0), TextAnchor.MiddleRight, new Vector2(-indent, 0)), args.item.displayName);
                 GUI.Label(args.GetCellRect(1), RedTree.GetCount(args.item.displayName).ToString());
+                GUI.Label(args.GetCellRect(2), RedTree.GetDotCount(args.item.displayName).ToString());
 
 
                 if (args.item.displayName == _ping)
@@ -191,6 +192,14 @@ namespace IFramework.RedPoint
                     new MultiColumnHeaderState.Column()
                     {
                         headerContent=new GUIContent("Count"),
+                        width=80,
+                        maxWidth=80,
+                        minWidth=80,
+
+                    },
+                    new MultiColumnHeaderState.Column()
+                    {
+                        headerContent=new GUIContent("Dot"),
                         width=80,
                         maxWidth=80,
                         minWidth=80,

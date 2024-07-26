@@ -24,7 +24,13 @@ namespace IFramework.RedPoint
             RedTree.viewer.FreshView(RedTree.root);
 #endif
         }
-
+        public static int GetDotCount(string key)
+        {
+            List<RedDot> result;
+            if (red_dot_map.TryGetValue(key, out result))
+                return result.Count;
+            return 0;
+        }
         private static Dictionary<string, List<RedDot>> red_dot_map = new Dictionary<string, List<RedDot>>();
         private static Dictionary<string, InternalRedPoint> key_map = new Dictionary<string, InternalRedPoint>();
 
