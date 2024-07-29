@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 
 namespace IFramework
 {
@@ -7,14 +6,6 @@ namespace IFramework
     {
         public class UnityLogger : ILogger
         {
-            public static string GetLogFilePath()
-            {
-                return GetFilePath().ToAssetsPath();
-            }
-            private static string GetFilePath([CallerFilePath] string path = "")
-            {
-                return path;
-            }
             public void Error(string messages, params object[] paras)
             {
                 UnityEngine.Debug.LogErrorFormat(messages, paras);

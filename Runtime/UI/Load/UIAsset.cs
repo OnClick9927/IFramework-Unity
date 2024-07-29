@@ -3,7 +3,6 @@
  *Version:        0.0.1
  *UnityVersion:   2017.2.3p3
  *Date:           2019-07-02
- *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
 
@@ -16,12 +15,24 @@ namespace IFramework.UI
     /// </summary>
     public abstract class UIAsset
     {
+
+        private PanelCollection collection;
+
+        protected UIAsset(PanelCollection collection)
+        {
+            this.collection = collection;
+            if (collection != null)
+            {
+                collection.ListToMap();
+            }
+        }
+
         /// <summary>
         /// 加载
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public abstract UIPanel LoadPanel(RectTransform parent,string name);
+        public abstract UIPanel LoadPanel(RectTransform parent, string name);
 
         public abstract bool LoadPanelAsync(string path, LoadPanelAsyncOperation op);
 
@@ -31,18 +42,40 @@ namespace IFramework.UI
         {
             GameObject.Destroy(gameObject);
         }
-        public virtual void DestoryPanel(GameObject gameObject)
+        public virtual void DestroyPanel(GameObject gameObject)
         {
             GameObject.Destroy(gameObject);
         }
         public virtual Canvas GetCanvas() { return null; }
         public virtual UILayer GetPanelLayer(string path)
         {
+            if (collection == null)
+            {
+                var data = collection.GetData(path);
+                if (data != null)
+                    return data.layer;
+            }
             return UILayer.Background;
         }
         public virtual int GetPanelLayerOrder(string path)
         {
+            if (collection == null)
+            {
+                var data = collection.GetData(path);
+                if (data != null)
+                    return data.order;
+            }
             return 0;
+        }
+        public virtual bool GetPanelHideScene(string path)
+        {
+            if (collection == null)
+            {
+                var data = collection.GetData(path);
+                if (data != null)
+                    return data.fullScreen;
+            }
+            return false;
         }
     }
 }

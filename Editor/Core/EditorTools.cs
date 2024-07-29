@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 
@@ -55,9 +54,10 @@ namespace IFramework
 
         public const string projectMemoryPath = "Assets/Editor/IFramework";
 
-        private static string GetFilePath([CallerFilePath] string path = "")
+        private static string GetFilePath()
         {
-            return path;
+            return AssetDatabase.GetAllAssetPaths().FirstOrDefault(x => x.Contains(nameof(IFramework))
+            && x.EndsWith($"{nameof(EditorTools)}.cs"));
         }
         public static string pkgPath
         {

@@ -68,7 +68,7 @@ namespace IFramework.UI
                 var last = _last as UIGenCodeCS;
                 this._type = last._type;
             }
-            public override void GenPanelNames(PanelPathCollect collect, string scriptGenPath, string scriptName)
+            public override void GenPanelNames(PanelCollection collect, string scriptGenPath, string scriptName)
             {
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"public class {scriptName}");

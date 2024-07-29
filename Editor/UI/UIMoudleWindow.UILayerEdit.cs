@@ -12,7 +12,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using static IFramework.UI.PanelPathCollect;
+using static IFramework.UI.PanelCollection;
 using static IFramework.UI.UIModuleWindow.UICollectData;
 
 namespace IFramework.UI
@@ -22,7 +22,7 @@ namespace IFramework.UI
         private TreeViewState layer_state = new TreeViewState();
         public class UILayerEdit : UIModuleWindowTab
         {
-            private static PanelPathCollect collect;
+            private static PanelCollection collect;
             private class LayerView : TreeView
             {
                 private List<Data> datas { get { return collect.datas; } }
@@ -75,7 +75,15 @@ namespace IFramework.UI
                             maxWidth=30,
                             width=30,
                         },
-                          new MultiColumnHeaderState.Column()
+                
+                        new MultiColumnHeaderState.Column()
+                        {
+                            headerContent=new GUIContent("FullScreen"),
+                            width=100,
+                                      minWidth=100,
+                            maxWidth=100,
+                        },
+                                new MultiColumnHeaderState.Column()
                         {
                             headerContent=new GUIContent("Order"),
                             minWidth=40,
@@ -193,8 +201,10 @@ namespace IFramework.UI
                     if (data.isResourcePath)
                         GUI.Label(args.GetCellRect(5), EditorGUIUtility.IconContent("d_P4_CheckOutRemote"));
                     //GUI.Toggle(args.GetCellRect(5), data.isResourcePath, "");
-                    GUI.Label(args.GetCellRect(6), data.order.ToString());
-                    GUI.Label(args.GetCellRect(7), data.path);
+                    data.fullScreen= GUI.Toggle(args.GetCellRect(6), data.fullScreen,"");
+                    GUI.Label(args.GetCellRect(7), data.order.ToString());
+                    GUI.Label(args.GetCellRect(8), data.path);
+
                     if (GUI.Button(args.GetCellRect(1), EditorGUIUtility.IconContent("Search Icon"), EditorStyles.iconButton))
                     {
                         var p = Resources.FindObjectsOfTypeAll(typeof(UIPanel)).Select(x => x as UIPanel).FirstOrDefault(x => x.name == data.name && !AssetDatabase.Contains(x));
@@ -402,17 +412,17 @@ namespace IFramework.UI
                 GUILayout.EndHorizontal();
 
 
-                GenF.SetPath(plan.GenPath);
-                CollectF.SetPath(plan.CollectPath);
+                GenF.SetPath(plan.ConfigGenPath);
+                CollectF.SetPath(plan.PanelCollectPath);
                 ScriptGenF.SetPath(plan.ScriptGenPath);
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(nameof(UICollectData.Plan.GenPath), GUILayout.Width(150));
+                GUILayout.Label(nameof(UICollectData.Plan.ConfigGenPath), GUILayout.Width(150));
                 GenF.OnGUI(EditorGUILayout.GetControlRect());
                 GUILayout.EndHorizontal();
 
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label(nameof(UICollectData.Plan.CollectPath), GUILayout.Width(150));
+                GUILayout.Label(nameof(UICollectData.Plan.PanelCollectPath), GUILayout.Width(150));
                 CollectF.OnGUI(EditorGUILayout.GetControlRect());
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
@@ -421,21 +431,21 @@ namespace IFramework.UI
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
 
+
                 string scriptName = EditorGUILayout.TextField(nameof(plan.ScriptName), plan.ScriptName);
                 var typeIndex = EditorGUILayout.Popup(plan.typeIndex, Plan.shortTypes, GUILayout.Width(150));
                 GUILayout.EndHorizontal();
+                string configName = EditorGUILayout.TextField(nameof(plan.ConfigName), plan.ConfigName);
 
 
-                UICollectData.SavePlan(_name, GenF.path, CollectF.path, ScriptGenF.path, scriptName, typeIndex);
+                UICollectData.SavePlan(_name, GenF.path, CollectF.path, ScriptGenF.path, scriptName, configName, typeIndex);
 
                 GUILayout.BeginHorizontal();
                 {
                     if (GUILayout.Button(nameof(Fresh))) Fresh();
-          
+
                     if (GUILayout.Button(nameof(UICollectData.SavePlan)))
-                    {
                         UICollectData.SavePlan(collect);
-                    }
                     if (GUILayout.Button(nameof(UICollectData.SavePlans)))
                     {
                         UICollectData.SavePlans();

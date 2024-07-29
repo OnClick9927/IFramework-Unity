@@ -16,8 +16,8 @@ namespace IFramework.UI
 {
     public partial class UIModule : UpdateModule
     {
-        const string item_layer = "items";
-        const string raycast_layer = "raycast";
+        const string item_layer = "Items";
+        const string raycast_layer = "RayCast";
         public Canvas canvas { get; private set; }
         private IGroups _groups;
         private UIAsset _asset;
@@ -30,6 +30,7 @@ namespace IFramework.UI
         private bool _loading = false;
         private bool _force_show_raycast;
         private IUIDelegate del;
+        private int _hideSceneCount;
 
         protected override void Awake()
         {
@@ -111,28 +112,41 @@ namespace IFramework.UI
         }
         UIPanel layer_top = null;
         UIPanel layer_top_visible = null;
-
+        int last_hide_scene_count;
         private void BeginChangeLayerTopChangeCheck(UILayer layer)
         {
             layer_top = GetTopPanel(layer);
             layer_top_visible = GetTopVisiblePanel(layer);
+            last_hide_scene_count = _hideSceneCount;
         }
-        private void EndChangeLayerTopChangeCheck(UILayer layer)
+        private void CalcHideSceneCount(string path, bool show)
         {
+            var bo = GetPanelHideScene(path);
+            if (!bo) return;
+            if (show)
+                _hideSceneCount++;
+            else
+                _hideSceneCount--;
+        }
+        private void EndChangeLayerTopChangeCheck(UILayer layer, string path, bool show)
+        {
+            CalcHideSceneCount(path, show);
             var top = GetTopPanel(layer);
             var top_visible = GetTopVisiblePanel(layer);
 
-            if (top != layer_top)
-                if (del != null)
-                    del.OnLayerTopChange(layer, top?.GetPath());
 
+
+            if (top != layer_top)
+                del?.OnLayerTopChange(layer, top?.GetPath());
             if (top_visible != layer_top_visible)
-            {
-                if (del != null)
-                    del.OnLayerTopVisibleChange(layer, top_visible?.GetPath());
-            }
+                del?.OnLayerTopVisibleChange(layer, top_visible?.GetPath());
+            if (last_hide_scene_count != _hideSceneCount)
+                del?.OnHideSceneCount(_hideSceneCount > 0, _hideSceneCount);
+
             layer_top = null;
             layer_top_visible = null;
+            last_hide_scene_count = -1;
+
         }
         private UIPanel GetTopVisiblePanel(UILayer layer)
         {
@@ -161,18 +175,11 @@ namespace IFramework.UI
             var layer = GetPanelLayer(path);
             var list = _panelOrders[layer];
             list.Remove(panel);
-            _asset.DestoryPanel(panel.gameObject);
+            _asset.DestroyPanel(panel.gameObject);
         }
-        private UILayer GetPanelLayer(string path)
-        {
-            return this._asset.GetPanelLayer(path);
-
-        }
-        private int GetPanelLayerOrder(string path)
-        {
-            return this._asset.GetPanelLayerOrder(path);
-        }
-
+        private UILayer GetPanelLayer(string path) => this._asset.GetPanelLayer(path);
+        private int GetPanelLayerOrder(string path) => this._asset.GetPanelLayerOrder(path);
+        private bool GetPanelHideScene(string path) => this._asset.GetPanelHideScene(path);
 
 
 
@@ -300,7 +307,7 @@ namespace IFramework.UI
             }
             UILayer layer = GetPanelLayer(path);
 
-            EndChangeLayerTopChangeCheck(layer);
+            EndChangeLayerTopChangeCheck(layer, path, true);
             if (op != null)
                 op.SetCompelete();
         }
@@ -353,7 +360,7 @@ namespace IFramework.UI
                 panel.SetState(PanelState.OnHide);
                 if (del != null)
                     del.OnPanelHide(path);
-                EndChangeLayerTopChangeCheck(layer);
+                EndChangeLayerTopChangeCheck(layer, path, false);
             }
         }
 
@@ -373,7 +380,7 @@ namespace IFramework.UI
                 DestroyPanel(path, panel);
                 if (del != null)
                     del.OnPanelClose(path);
-                EndChangeLayerTopChangeCheck(layer);
+                EndChangeLayerTopChangeCheck(layer, path, false);
             }
         }
 

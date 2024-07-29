@@ -10,8 +10,9 @@ namespace IFramework.UI
 {
     public interface IUIDelegate
     {
-        void OnLayerTopChange(UILayer layer, string top);
-        void OnLayerTopVisibleChange(UILayer layer, string v);
+        void OnHideSceneCount(bool hide, int count);
+        void OnLayerTopChange(UILayer layer, string path);
+        void OnLayerTopVisibleChange(UILayer layer, string path);
         void OnPanelClose(string path);
         void OnPanelHide(string path);
         void OnPanelLoad(string pannelName);

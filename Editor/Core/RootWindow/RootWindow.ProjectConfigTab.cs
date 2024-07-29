@@ -40,21 +40,7 @@ namespace IFramework
 
             public override string Name => "ProjectConfig";
 
-            private FileField GetFileField(int index)
-            {
-                if (!_files.ContainsKey(index))
-                {
-                    _files[index] = new FileField();
-                    _files[index].onValueChange += (str) => { OnValueChange(index, str); };
-                }
-                return _files[index];
-            }
 
-            private void OnValueChange(int index, string str)
-            {
-                EditorTools.ProjectConfig.Info.logIgnoreFiles[index] = str;
-                EditorTools.ProjectConfig.Save();
-            }
 
             Vector2 scroll;
             private void Sys()
@@ -121,34 +107,10 @@ namespace IFramework
                 Info.enable_A = EditorGUILayout.Toggle(Contents.aenable, Info.enable_A);
 
                 GUI.enabled &= true;
-                GUILayout.Space(5);
-                GUILayout.BeginHorizontal();
-                {
-                    GUILayout.Label(Contents.Ignore, GUIStyles.largeLabel);
-                    if (GUILayout.Button("", GUIStyles.plus, GUILayout.Width(20)))
-                    {
-                        Info.logIgnoreFiles.Add(string.Empty);
-                    }
-                    GUILayout.EndHorizontal();
-                }
-                for (var i = Info.logIgnoreFiles.Count - 1; i >= 0; i--)
-                {
-                    GUILayout.BeginHorizontal();
-                    var f = GetFileField(i);
-                    f.SetPath(Info.logIgnoreFiles[i]);
-                    f.OnGUI(EditorGUILayout.GetControlRect());
-                    if (GUILayout.Button("", GUIStyles.minus, GUILayout.Width(20)))
-                    {
-                        Info.logIgnoreFiles.RemoveAt(i);
-                        GUI.FocusControl("");
-                    }
-                    GUILayout.EndHorizontal();
-                }
                 if (EditorGUI.EndChangeCheck())
                 {
                     EditorTools.ProjectConfig.Save();
                 }
-                GUILayout.Space(10);
                 Sys();
 
 

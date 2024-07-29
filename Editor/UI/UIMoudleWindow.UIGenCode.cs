@@ -19,7 +19,7 @@ namespace IFramework.UI
     {
         public abstract class UIGenCode : UIModuleWindowTab
         {
-            public abstract void GenPanelNames(PanelPathCollect collect, string scriptGenPath, string scriptName);
+            public abstract void GenPanelNames(PanelCollection collect, string scriptGenPath, string scriptName);
         }
         public abstract class UIGenCode<T> : UIGenCode where T : UnityEngine.Object
         {

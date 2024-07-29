@@ -6,13 +6,13 @@
  *Description:    Description
  *History:        2022-08-07--
 *********************************************************************************/
-using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace IFramework.UI
 {
     [System.Serializable]
-    public class PanelPathCollect
+    public class PanelCollection
     {
         [System.Serializable]
         public class Data
@@ -22,13 +22,20 @@ namespace IFramework.UI
             public string path;
             public bool isResourcePath;
             public UILayer layer;
+            public bool fullScreen;
             public int order;
         }
         public List<Data> datas = new List<Data>();
 
+        private Dictionary<string, Data> map;
+        public void ListToMap()
+        {
+            map = datas.ToDictionary(x => x.path);
+        }
         public Data GetData(string path)
         {
-            return datas.Find(x => x.path == path);
+            map.TryGetValue(path, out Data data);
+            return data;
         }
     }
 }

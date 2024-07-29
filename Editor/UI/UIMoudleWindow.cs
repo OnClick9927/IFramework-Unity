@@ -28,8 +28,8 @@ namespace IFramework.UI
             [System.Serializable]
             public class Plan
             {
-                public string GenPath;
-                public string CollectPath;
+                public string ConfigGenPath;
+                public string PanelCollectPath;
                 public string ScriptGenPath;
                 public string ScriptName;
                 public string name;
@@ -55,7 +55,8 @@ namespace IFramework.UI
                 }
                 public int typeIndex;
                 public static Type baseType = typeof(UIGenCode);
-         
+                public string ConfigName;
+
                 private static void Enable()
                 {
                     var list = EditorTools.GetSubTypesInAssemblies(baseType)
@@ -74,7 +75,7 @@ namespace IFramework.UI
                     return type;
                 }
 
-      
+
             }
 
 
@@ -143,18 +144,19 @@ namespace IFramework.UI
                 plans.Add(new Plan()
                 {
                     name = DateTime.Now.ToString("yy_MM_dd_hh_mm_ss"),
-                    CollectPath = EditorTools.projectPath,
-                    GenPath = EditorTools.projectConfigPath,
+                    PanelCollectPath = EditorTools.projectPath,
+                    ConfigGenPath = EditorTools.projectConfigPath,
                     ScriptGenPath = EditorTools.projectScriptPath,
+                    ConfigName = "UICollect",
                     ScriptName = "PanelNames",
                 });
                 SetPlanIndex(plans.Count - 1);
                 SavePlansData();
             }
 
-            private static string UICollectPath { get { return plan.GenPath.CombinePath("UICollect.json"); } }
+            private static string UICollectPath { get { return plan.ConfigGenPath.CombinePath($"{plan.ConfigName}.json"); } }
 
-     
+
             public static void SavePlans()
             {
                 var index = planIndex;
@@ -166,7 +168,7 @@ namespace IFramework.UI
                 SetPlanIndex(index);
             }
 
-            public static void SavePlan(PanelPathCollect collect)
+            public static void SavePlan(PanelCollection collect)
             {
                 var selectType = plan.GetSelectType();
                 foreach (var item in window._tabs.Values)
@@ -178,24 +180,24 @@ namespace IFramework.UI
                 }
                 SaveConfig(collect);
             }
-            private static void SaveConfig(PanelPathCollect collect)
+            private static void SaveConfig(PanelCollection collect)
             {
                 File.WriteAllText(UICollectPath, JsonUtility.ToJson(collect, true));
-          
+
                 AssetDatabase.Refresh();
             }
-            public static PanelPathCollect Collect()
+            public static PanelCollection Collect()
             {
                 string path = UICollectPath;
-                PanelPathCollect collect = null;
+                PanelCollection collect = null;
                 if (!File.Exists(path))
-                    collect = new PanelPathCollect();
+                    collect = new PanelCollection();
                 else
-                    collect = JsonUtility.FromJson<PanelPathCollect>(File.ReadAllText(path));
+                    collect = JsonUtility.FromJson<PanelCollection>(File.ReadAllText(path));
 
                 var paths = AssetDatabase.GetAllAssetPaths()
                     .Where(x => x.EndsWith("prefab") && AssetDatabase.LoadAssetAtPath<UIPanel>(x) != null)
-                    .Where(x => x.Contains(plan.CollectPath))
+                    .Where(x => x.Contains(plan.PanelCollectPath))
                     .ToList()
                     .ConvertAll(x =>
                     {
@@ -213,7 +215,7 @@ namespace IFramework.UI
                 paths.FindAll(x => collect.datas.Find(y => y.path == x.path) == null)
                 .ForEach(x =>
                 {
-                    collect.datas.Add(new PanelPathCollect.Data()
+                    collect.datas.Add(new PanelCollection.Data()
                     {
                         isResourcePath = x.isResourcePath,
                         path = x.path,
@@ -224,17 +226,19 @@ namespace IFramework.UI
             }
 
             internal static void SavePlan(string name, string GenPath, string CollectPath, string ScriptGenPath,
-                string scriptName, int typeIndex)
+                string scriptName, string configName, int typeIndex)
             {
-                if (plan.name != name || plan.GenPath != GenPath || plan.CollectPath != CollectPath
+                if (plan.name != name || plan.ConfigGenPath != GenPath || plan.PanelCollectPath != CollectPath
+                    || plan.ConfigName != configName
                     || plan.ScriptGenPath != ScriptGenPath || plan.ScriptName != scriptName || plan.typeIndex != typeIndex)
                 {
                     plan.name = name;
-                    plan.GenPath = GenPath;
-                    plan.CollectPath = CollectPath;
+                    plan.ConfigGenPath = GenPath;
+                    plan.PanelCollectPath = CollectPath;
                     plan.ScriptGenPath = ScriptGenPath;
                     plan.ScriptName = scriptName;
                     plan.typeIndex = typeIndex;
+                    plan.ConfigName = configName;
                     SavePlansData();
                 }
             }
