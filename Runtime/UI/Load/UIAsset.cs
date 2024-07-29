@@ -47,34 +47,27 @@ namespace IFramework.UI
             GameObject.Destroy(gameObject);
         }
         public virtual Canvas GetCanvas() { return null; }
+
+        public PanelCollection.Data GetData(string path) => collection?.GetData(path);
         public virtual UILayer GetPanelLayer(string path)
         {
-            if (collection == null)
-            {
-                var data = collection.GetData(path);
-                if (data != null)
-                    return data.layer;
-            }
+            var data = GetData(path);
+            if (data != null)
+                return data.layer;
             return UILayer.Background;
         }
         public virtual int GetPanelLayerOrder(string path)
         {
-            if (collection == null)
-            {
-                var data = collection.GetData(path);
-                if (data != null)
-                    return data.order;
-            }
+            var data = GetData(path);
+            if (data != null)
+                return data.order;
             return 0;
         }
         public virtual bool GetPanelHideScene(string path)
         {
-            if (collection == null)
-            {
-                var data = collection.GetData(path);
-                if (data != null)
-                    return data.fullScreen;
-            }
+            var data = GetData(path);
+            if (data != null)
+                return data.fullScreen;
             return false;
         }
     }
