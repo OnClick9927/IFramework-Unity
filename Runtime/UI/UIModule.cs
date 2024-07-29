@@ -30,7 +30,7 @@ namespace IFramework.UI
         private bool _loading = false;
         private bool _force_show_raycast;
         private IUIDelegate del;
-        private int _hideSceneCount;
+        private int _fullScreenCount;
 
         protected override void Awake()
         {
@@ -112,21 +112,21 @@ namespace IFramework.UI
         }
         UIPanel layer_top = null;
         UIPanel layer_top_visible = null;
-        int last_hide_scene_count;
+        int lastfullScreenCount;
         private void BeginChangeLayerTopChangeCheck(UILayer layer)
         {
             layer_top = GetTopPanel(layer);
             layer_top_visible = GetTopVisiblePanel(layer);
-            last_hide_scene_count = _hideSceneCount;
+            lastfullScreenCount = _fullScreenCount;
         }
         private void CalcHideSceneCount(string path, bool show)
         {
             var bo = GetPanelHideScene(path);
             if (!bo) return;
             if (show)
-                _hideSceneCount++;
+                _fullScreenCount++;
             else
-                _hideSceneCount--;
+                _fullScreenCount--;
         }
         private void EndChangeLayerTopChangeCheck(UILayer layer, string path, bool show)
         {
@@ -140,12 +140,12 @@ namespace IFramework.UI
                 del?.OnLayerTopChange(layer, top?.GetPath());
             if (top_visible != layer_top_visible)
                 del?.OnLayerTopVisibleChange(layer, top_visible?.GetPath());
-            if (last_hide_scene_count != _hideSceneCount)
-                del?.OnHideSceneCount(_hideSceneCount > 0, _hideSceneCount);
+            if (lastfullScreenCount != _fullScreenCount)
+                del?.OnFullScreenCount(_fullScreenCount > 0, _fullScreenCount);
 
             layer_top = null;
             layer_top_visible = null;
-            last_hide_scene_count = -1;
+            lastfullScreenCount = -1;
 
         }
         private UIPanel GetTopVisiblePanel(UILayer layer)
