@@ -3,22 +3,22 @@
 namespace IFramework
 {
 
-    public abstract class Module : IGenericPriorityQueueNode<int>,IDisposable
+    public abstract class Module : IGenericPriorityQueueNode<int>, IDisposable
     {
- 
+
         public const string defaultName = "default";
 
         private bool _binded;
         private int _priority;
- 
+
         int IGenericPriorityQueueNode<int>.priority { get => _priority; set => _priority = value; }
         int IGenericPriorityQueueNode<int>.position { get; set; }
         long IGenericPriorityQueueNode<int>.insertPosition { get; set; }
 
-        public int priority { get { return _priority; } }
+        internal int priority { get { return _priority; } }
 
 
-        public bool binded { get { return _binded; } internal set { _binded = value; } }
+        internal bool binded { get { return _binded; }  set { _binded = value; } }
 
 
         public string name { get; set; }
@@ -38,10 +38,6 @@ namespace IFramework
                 moudle.name = name;
                 moudle._priority = moudle.OnGetDefaultPriority().value + priority;
                 moudle.Awake();
-                if (moudle is UpdateModule)
-                {
-                    (moudle as UpdateModule).enable = true;
-                }
             }
             else
                 Log.E(string.Format("Type: {0} Non Public Ctor With 0 para Not Find", type));
@@ -60,11 +56,11 @@ namespace IFramework
         }
         private bool _disposed;
 
-        public bool disposed { get { return _disposed; } }
+        protected bool disposed { get { return _disposed; } }
 
         protected abstract void OnDispose();
 
-        public virtual void Dispose()
+        public void Dispose()
         {
             if (_disposed) return;
             OnDispose();

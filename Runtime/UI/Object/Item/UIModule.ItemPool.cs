@@ -39,7 +39,7 @@ namespace IFramework.UI
             private async void Wait(LoadItemAsyncOperation op)
             {
                 await op;
-                base.SetCompelete();
+                base.SetComplete();
 
             }
 

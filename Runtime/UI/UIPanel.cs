@@ -9,14 +9,19 @@
 using UnityEngine;
 namespace IFramework.UI
 {
+
     [DisallowMultipleComponent]
     [AddComponentMenu("IFramework/UIPanel")]
 
     public class UIPanel:MonoBehaviour
     {
+        public enum PanelState
+        {
+            None, OnLoad, OnShow, OnHide, OnClose
+        }
         private string path;
         public int GetSiblingIndex() => transform.GetSiblingIndex();
-        public void SetSiblingIndex(int sbindex) => transform.SetSiblingIndex(sbindex);
+        public void SetSiblingIndex(int index) => transform.SetSiblingIndex(index);
         public void SetPath(string path)
         {
             this.path = path;

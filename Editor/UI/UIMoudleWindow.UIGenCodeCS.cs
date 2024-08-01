@@ -12,7 +12,6 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
-using System.Linq;
 
 namespace IFramework.UI
 {
@@ -24,7 +23,6 @@ namespace IFramework.UI
             {
                 UIItem,
                 GameObject,
-                //UIObject,
                 MVCView
             }
             public override string name => "CS";
@@ -32,8 +30,6 @@ namespace IFramework.UI
 
 
             [SerializeField] private ItemType _type;
-
-
             protected override GameObject gameObject => panel;
 
             protected override void OnFindDirFail()
@@ -53,8 +49,6 @@ namespace IFramework.UI
             protected override void OnFindDirSuccess()
             {
                 string txt = File.ReadAllText(scriptPath);
-                //if (txt.Contains($": {typeof(UIObjectView)}"))
-                //    _type = ItemType.UIObject;
                 if (txt.Contains($"{typeof(IFramework.UI.GameObjectView).FullName}"))
                     _type = ItemType.GameObject;
                 if (txt.Contains($"{typeof(IFramework.UI.UIItemView).FullName}"))
@@ -84,161 +78,73 @@ namespace IFramework.UI
             }
             protected override void Draw()
             {
-
                 _type = (ItemType)EditorGUILayout.EnumPopup("Type", _type);
             }
-       
 
-            protected override void WriteView()
+            protected override string GetScriptTemplate()
             {
-                creator.RemoveEmptyMarks();
-                Write(creator, scriptPath, viewDesignScriptOrigin());
-            }
-
-            public static void Write(ScriptCreator creator, string path, string origin)
-            {
-                if (File.Exists(path))
+                string MoreMethod = "#MoreMethod#";
+                Type pa = null;
+                switch (_type)
                 {
-                    var all = File.ReadAllLines(path).ToList();
-                    int cs, ce, fe, fs;
-                    cs = ce = fs = fe = 0;
-                    for (int i = 0; i < all.Count; i++)
-                    {
-                        if (all[i].Contains(FieldsStart))
-                            fs = i;
-                        if (all[i].Contains(FieldsEnd))
-                            fe = i;
-                        if (all[i].Contains(InitComponentsStart))
-                            cs = i;
-                        if (all[i].Contains(InitComponentsEnd))
-                        {
-                            ce = i; break;
-                        }
-                    }
-
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < all.Count; i++)
-                    {
-                        if (i < fs)
-                            sb.AppendLine(all[i]);
-                        else if (i == fs)
-                        {
-                            sb.AppendLine(all[i]);
-
-                            sb.AppendLine(Field);
-                        }
-                        else if (i < fe) { }
-                        else if (i < cs)
-                            sb.AppendLine(all[i]);
-
-                        else if (i == cs)
-                        {
-                            sb.AppendLine(all[i]);
-                            sb.AppendLine(FindField);
-                        }
-
-                        else if (i < ce) { }
-                        else
-                            sb.AppendLine(all[i]);
-
-                    }
-                    origin = sb.ToString();
+                    case ItemType.UIItem:
+                        pa = typeof(UIItemView);
+                        break;
+                    case ItemType.GameObject:
+                        pa = typeof(GameObjectView);
+                        break;
+                    case ItemType.MVCView:
+                        pa = typeof(IFramework.UI.MVC.UIView);
+                        break;
+                    default:
+                        break;
                 }
-                WriteTxt(path, origin.ToUnixLineEndings(),
-                   (str) =>
-                   {
-                       string field;
-                       string find;
-                       Fields(creator, out field, out find);
-                       return str
-                       //.Replace("#PanelType#", panelName)
-                       .Replace(Field, field)
-                       .Replace(FindField, find);
-                   });
-
-            }
-
-            private static void Fields(ScriptCreator creater, out string field, out string find)
-            {
-                var marks = creater.GetMarks();
-                if (creater.executeSubContext)
-                    marks = creater.GetAllMarks();
-
-                StringBuilder f = new StringBuilder();
-                StringBuilder functionField = new StringBuilder();
-                if (marks != null)
-                {
-                    string root_path = creater.gameObject.transform.GetPath();
-
-                    for (int i = 0; i < marks.Count; i++)
-                    {
-                        string fieldType = marks[i].fieldType;
-                        string fieldName = marks[i].fieldName;
-                        if (marks[i].gameObject == creater.gameObject)
-                        {
-                            f.AppendLine($"\t\tprivate {fieldType} {fieldName};");
-                            if (fieldType == typeof(GameObject).FullName)
-                                functionField.AppendLine($"\t\t\t{fieldName} = gameObject;");
-                            else if (fieldType == typeof(Transform).FullName)
-                                functionField.AppendLine($"\t\t\t{fieldName} = transform;");
-                            else
-                                functionField.AppendLine($"\t\t\t{fieldName} = transform.GetComponent<{fieldType}>();");
-                        }
-                        else
-                        {
-                            string path = marks[i].gameObject.transform.GetPath();
-                            if (creater.executeSubContext)
-                            {
-                                if (creater.IsIgnore(marks[i].gameObject))
-                                    continue;
-                            }
-                            path = path.Remove(0, root_path.Length + 1);
-                            f.AppendLine($"\t\tprivate {fieldType} {fieldName};");
-                            if (fieldType == typeof(GameObject).FullName)
-                                functionField.AppendLine($"\t\t\t{fieldName} = transform.Find(\"{path}\").gameObject;");
-                            else if (fieldType == typeof(Transform).FullName)
-                                functionField.AppendLine($"\t\t\t{fieldName} = transform.Find(\"{path}\");");
-                            else
-                                functionField.AppendLine($"\t\t\t{fieldName} = transform.Find(\"{path}\").GetComponent<{fieldType}>();");
-                        }
-
-                    }
-                }
-                field = f.ToString();
-                find = functionField.ToString();
-
-            }
-
-
-            private static void WriteTxt(string writePath, string source, Func<string, string> func)
-            {
-                source = source.Replace("#User#", EditorTools.ProjectConfig.UserName)
-                         .Replace("#UserSCRIPTNAME#", Path.GetFileNameWithoutExtension(writePath))
-                           .Replace("#UserNameSpace#", EditorTools.ProjectConfig.NameSpace)
-                           .Replace("#UserVERSION#", EditorTools.ProjectConfig.Version)
-                           .Replace("#UserUNITYVERSION#", Application.unityVersion)
-                           .Replace("#UserDATE#", DateTime.Now.ToString("yyyy-MM-dd"));
-                if (func != null)
-                    source = func.Invoke(source);
-                File.WriteAllText(writePath, source.ToUnixLineEndings(), Encoding.UTF8);
-            }
-
-
-            public const string head = "/*********************************************************************************\n" +
-            " *Author:         #User#\n" +
-            " *Version:        #UserVERSION#\n" +
-            " *UnityVersion:   #UserUNITYVERSION#\n" +
-            " *Date:           #UserDATE#\n" +
+                string target = "/*********************************************************************************\n" +
+            $" *Author:         {Author}\n" +
+            $" *Version:        {Version}\n" +
+            $" *UnityVersion:   {UnityVersion}\n" +
+            $" *Date:           {Date}\n" +
             "*********************************************************************************/\n" +
-                "using static IFramework.UI.UnityEventHelper;\r\n";
+                "using static IFramework.UI.UnityEventHelper;\r\n" +
+            $"namespace {ScriptNameSpace}\n" +
+            "{\n" +
+            $"\tpublic class {ScriptName} : {pa.FullName} \n" +
+            "\t{\n" +
+             $"//{FieldsStart}\n" +
+             $"{Field}\n" +
+             $"//{FieldsEnd}\n" +
 
-            public const string InitComponentsStart = "InitComponentsStart";
-            public const string InitComponentsEnd = "InitComponentsEnd";
-            public const string FieldsStart = "FieldsStart";
-            public const string FieldsEnd = "FieldsEnd";
-            public const string Field = "#field#";
-            public const string FindField = "#findfield#";
-            private const string UIItem = "#UIItem#";
+            "\t\tprotected override void InitComponents()\n" +
+            "\t\t{\n" +
+             $"\t\t//{InitComponentsStart}\n" +
+            $"{FindField}\n" +
+            $"\t\t//{InitComponentsEnd}\n" +
+            "\t\t}\n" +
+            MoreMethod +
+            "\t}\n" +
+            "}";
+                return target.Replace(MoreMethod, ViewTxt());
+            }
+
+            protected override string GetFieldCode(string fieldType, string fieldName)
+            {
+                return $"\t\tprivate {fieldType} {fieldName};";
+
+            }
+            protected override string GetFindFieldCode(string fieldType, string fieldName, string path)
+            {
+                if (fieldType == typeof(GameObject).FullName)
+                    return $"\t\t\t{fieldName} = GetGameObject({path});";
+                else if (fieldType == typeof(Transform).FullName)
+                    return $"\t\t\t{fieldName} = GetTransform({path});";
+                else
+                    return $"\t\t\t{fieldName} = GetComponent<{fieldType}>({path});";
+            }
+
+
+
+
+
 
 
             private string ViewTxt()
@@ -272,46 +178,7 @@ namespace IFramework.UI
             "\t\t}\n";
                 return string.Empty;
             }
-            private string viewDesignScriptOrigin()
-            {
-                Type pa = null;
-                switch (_type)
-                {
-                    case ItemType.UIItem:
-                        pa = typeof(UIItemView);
-                        break;
-                    case ItemType.GameObject:
-                        pa = typeof(GameObjectView);
-                        break;
-                    //case ItemType.UIObject:
-                    //    pa = typeof(UIObjectView);
-                    //    break;
-                    case ItemType.MVCView:
-                        pa = typeof(IFramework.UI.MVC.UIView);
-                        break;
-                    default:
-                        break;
-                }
-                string target = head +
-            "namespace #UserNameSpace#\n" +
-            "{\n" +
-            $"\tpublic class #UserSCRIPTNAME# : {pa.FullName} \n" +
-            "\t{\n" +
-             $"//{FieldsStart}\n" +
-             $"{Field}\n" +
-             $"//{FieldsEnd}\n" +
 
-            "\t\tprotected override void InitComponents()\n" +
-            "\t\t{\n" +
-             $"\t\t//{InitComponentsStart}\n" +
-            $"{FindField}\n" +
-            $"\t\t//{InitComponentsEnd}\n" +
-            "\t\t}\n" +
-            UIItem +
-            "\t}\n" +
-            "}";
-                return target.Replace(UIItem, ViewTxt());
-            }
 
         }
     }

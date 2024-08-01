@@ -12,6 +12,8 @@ using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using System.IO;
+using System.Text;
+using System;
 
 namespace IFramework.UI
 {
@@ -23,7 +25,7 @@ namespace IFramework.UI
         }
         public abstract class UIGenCode<T> : UIGenCode where T : UnityEngine.Object
         {
-            [SerializeField] protected string GenPath = "";
+            [SerializeField] private string GenPath = "";
             [SerializeField] private string panelPath;
             private T _panel;
             protected T panel
@@ -60,23 +62,21 @@ namespace IFramework.UI
             }
 
 
-            [SerializeField] protected TreeViewState state = new TreeViewState();
+            [SerializeField] private TreeViewState state = new TreeViewState();
             [SerializeField] private ScriptCreatorFieldsDrawer.SearchType _searchType;
             private ScriptCreatorFieldsDrawer fields;
             private FolderField FloderField;
             protected abstract GameObject gameObject { get; }
-
-            protected string panelName { get { return panel.name.Replace("@sm", ""); } }
+            private ScriptCreator creator = new ScriptCreator();
+            private string viewName => PanelToViewName(panelName);
+            private string panelName { get { return panel.name.Replace("@sm", ""); } }
+            private string viewScriptName => GetViewScriptName(viewName);
+            protected virtual string scriptPath { get { return GenPath.CombinePath(viewScriptName); } }
             private string PanelToViewName(string panelName) => $"{panelName}View";
-
-            protected string viewName => PanelToViewName(panelName);
             public sealed override string GetPanelScriptName(string panelName) => GetViewScriptName(PanelToViewName(panelName));
             protected abstract string GetViewScriptName(string viewName);
-            protected string viewScriptName => GetViewScriptName(viewName);
-            protected virtual string scriptPath { get { return GenPath.CombinePath(viewScriptName); } }
 
 
-            protected ScriptCreator creator = new ScriptCreator();
             public override void OnEnable()
             {
                 var last = EditorTools.GetFromPrefs(this.GetType(), name) as UIGenCode<T>;
@@ -99,7 +99,8 @@ namespace IFramework.UI
 
             protected abstract void OnFindDirSuccess();
             protected abstract void LoadLastData(UIGenCode<T> last);
-            protected abstract void WriteView();
+
+
             public override void OnDisable()
             {
                 _searchType = fields.GetSearchType();
@@ -207,6 +208,133 @@ namespace IFramework.UI
 
             }
 
+
+
+
+            public const string ScriptName = "#ScriptName#";
+            public const string ScriptNameSpace = "#ScriptNameSpace#";
+
+
+            public const string Version = "#UserVERSION#";
+            public const string UnityVersion = "#UserUNITYVERSION#";
+            public const string Date = "#Date#";
+
+
+            public const string Author = "#Author#";
+            public const string InitComponentsStart = "InitComponentsStart";
+            public const string InitComponentsEnd = "InitComponentsEnd";
+            public const string FieldsStart = "FieldsStart";
+            public const string FieldsEnd = "FieldsEnd";
+            public const string Field = "#field#";
+            public const string FindField = "#findfield#";
+
+            protected abstract string GetFieldCode(string fieldType, string fieldName);
+            protected abstract string GetFindFieldCode(string fieldType, string fieldName, string path);
+
+            private void Fields(ScriptCreator creater, out string field, out string find)
+            {
+                var marks = creater.GetMarks();
+                if (creater.executeSubContext)
+                    marks = creater.GetAllMarks();
+
+                StringBuilder sb_field = new StringBuilder();
+                StringBuilder sb_find = new StringBuilder();
+                if (marks != null)
+                {
+                    string root_path = creater.gameObject.transform.GetPath();
+
+                    for (int i = 0; i < marks.Count; i++)
+                    {
+                        var mark = marks[i];
+                        if (creater.executeSubContext)
+                        {
+                            if (creater.IsIgnore(mark.gameObject))
+                                continue;
+                        }
+                        string fieldType = mark.fieldType;
+                        string fieldName = mark.fieldName;
+
+                        string path = mark.gameObject.transform.GetPath();
+                        if (path == root_path)
+                            path = string.Empty;
+                        else
+                            path = path.Remove(0, root_path.Length + 1);
+                        path = $"\"{path}\"";
+                        sb_field.AppendLine(GetFieldCode(fieldType, fieldName));
+                        sb_find.AppendLine(GetFindFieldCode(fieldType, fieldName, path));
+                    }
+                }
+                field = sb_field.ToString();
+                find = sb_find.ToString();
+
+            }
+
+            protected virtual void WriteView()
+            {
+                creator.RemoveEmptyMarks();
+                var file = ReadFromFile(scriptPath);
+                var source = string.IsNullOrEmpty(file) ? GetScriptTemplate() : file;
+                string field;
+                string find;
+                Fields(creator, out field, out find);
+                source = source.Replace(Author, EditorTools.ProjectConfig.UserName)
+                .Replace(ScriptName, Path.GetFileNameWithoutExtension(scriptPath))
+                  .Replace(ScriptNameSpace, EditorTools.ProjectConfig.NameSpace)
+                  .Replace(Version, EditorTools.ProjectConfig.Version)
+                  .Replace(UnityVersion, Application.unityVersion)
+                  .Replace(Date, DateTime.Now.ToString("yyyy-MM-dd")).Replace(Field, field)
+                       .Replace(FindField, find).ToUnixLineEndings();
+                File.WriteAllText(scriptPath, source, Encoding.UTF8);
+            }
+            protected abstract string GetScriptTemplate();
+            private string ReadFromFile(string path)
+            {
+                if (!File.Exists(path)) return string.Empty;
+                var all = File.ReadAllLines(path).ToList();
+                int cs, ce, fe, fs;
+                cs = ce = fs = fe = 0;
+                for (int i = 0; i < all.Count; i++)
+                {
+                    if (all[i].Contains(FieldsStart))
+                        fs = i;
+                    if (all[i].Contains(FieldsEnd))
+                        fe = i;
+                    if (all[i].Contains(InitComponentsStart))
+                        cs = i;
+                    if (all[i].Contains(InitComponentsEnd))
+                    {
+                        ce = i; break;
+                    }
+                }
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < all.Count; i++)
+                {
+                    if (i < fs)
+                        sb.AppendLine(all[i]);
+                    else if (i == fs)
+                    {
+                        sb.AppendLine(all[i]);
+
+                        sb.AppendLine(Field);
+                    }
+                    else if (i < fe) { }
+                    else if (i < cs)
+                        sb.AppendLine(all[i]);
+
+                    else if (i == cs)
+                    {
+                        sb.AppendLine(all[i]);
+                        sb.AppendLine(FindField);
+                    }
+
+                    else if (i < ce) { }
+                    else
+                        sb.AppendLine(all[i]);
+
+                }
+                return sb.ToString();
+            }
 
         }
     }

@@ -42,7 +42,7 @@ namespace IFramework.Localization
                         ins = null;
                     }
 
-                    ins = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity, component.transform);
+                    ins = GameObject.Instantiate(prefab, component.transform);
                 }
 
             }

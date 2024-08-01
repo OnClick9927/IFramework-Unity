@@ -42,7 +42,7 @@ namespace IFramework.UI
                 op.path = path;
                 ItemPool pool = new ItemPool(op, module);
                 pools.Add(path, pool);
-                if (_loader.LoadItemAsync(path, op))
+                if (_loader.LoadItemAsync(op))
                 {
                     return pool.Get();
                 }

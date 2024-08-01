@@ -213,5 +213,9 @@ namespace IFramework.RedPoint
         {
             _tree.OnGUI(new UnityEngine.Rect(Vector2.zero, this.position.size));
         }
+        private void OnInspectorUpdate()
+        {
+            Repaint();
+        }
     }
 }

@@ -27,16 +27,12 @@ namespace IFramework.UI
             }
         }
 
-        /// <summary>
-        /// 加载
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public abstract UIPanel LoadPanel(RectTransform parent, string name);
 
-        public abstract bool LoadPanelAsync(string path, LoadPanelAsyncOperation op);
+        public abstract UIPanel LoadPanel(RectTransform parent, string path);
 
-        public abstract bool LoadItemAsync(string path, LoadItemAsyncOperation op);
+        public abstract bool LoadPanelAsync(LoadPanelAsyncOperation op);
+
+        public abstract bool LoadItemAsync(LoadItemAsyncOperation op);
 
         public virtual void ReleaseItemAsset(GameObject gameObject)
         {

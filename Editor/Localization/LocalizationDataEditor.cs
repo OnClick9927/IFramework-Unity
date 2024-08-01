@@ -238,6 +238,7 @@ namespace IFramework.Localization
                 }
                 result.Add(_content);
             }
+            CSVHelper.Write(path, result);
         }
         private static void ReadCSV()
         {

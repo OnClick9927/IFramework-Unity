@@ -23,7 +23,7 @@ namespace IFramework.Singleton
                 return instance;
             }
         }
-        static T CreateMonoSingleton() 
+        static T CreateMonoSingleton()
         {
             T instance = null;
             if (!Application.isPlaying) return instance;
@@ -53,12 +53,14 @@ namespace IFramework.Singleton
                         client = new GameObject(subPath[i]);
                     if (obj != null)
                         client.transform.SetParent(obj.transform);
-                    GameObject.DontDestroyOnLoad(client);
+                    if (i == 0)
+                        GameObject.DontDestroyOnLoad(client);
                     obj = client;
                 }
             }
             instance = obj.AddComponent<T>();
-            UnityEngine.Object.DontDestroyOnLoad(instance.gameObject);
+            if (instance.transform.parent == null)
+                UnityEngine.Object.DontDestroyOnLoad(instance.gameObject);
             instance.OnSingletonInit();
             return instance;
         }

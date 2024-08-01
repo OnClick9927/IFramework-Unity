@@ -5,13 +5,13 @@ namespace IFramework
     public interface IAwaitable<out TAwaiter> where TAwaiter : IAwaiter
     {
 
-        TAwaiter GetAwaiter();
+        IAwaiter GetAwaiter();
     }
 
 
     public interface IAwaitable<out TAwaiter, out TResult> where TAwaiter : IAwaiter<TResult>
     {
-        TAwaiter GetAwaiter();
+        IAwaiter<TResult> GetAwaiter();
     }
     public interface IAwaiter : INotifyCompletion, ICriticalNotifyCompletion
     {

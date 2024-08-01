@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using static IFramework.UI.UIPanel;
 
 namespace IFramework.UI
 {
@@ -309,7 +310,7 @@ namespace IFramework.UI
 
             EndChangeLayerTopChangeCheck(layer, path, true);
             if (op != null)
-                op.SetCompelete();
+                op.SetComplete();
         }
 
         public ShowPanelAsyncOperation Show(string path)
@@ -337,7 +338,7 @@ namespace IFramework.UI
                     op.path = path;
                     op.parent = parent;
                     op.show = show_op;
-                    if (_asset.LoadPanelAsync(path, op))
+                    if (_asset.LoadPanelAsync(op))
                     {
                         _loading = true;
                         asyncLoadQueue.Enqueue(op);

@@ -15,55 +15,11 @@ namespace IFramework.UI
 {
     public static class UIEx
     {
-        public struct UIItemViewAwaiter : IAwaiter<UIItemView>, ICriticalNotifyCompletion 
-        {
-            private UIItemView task;
-            private Queue<Action> calls;
-            public UIItemViewAwaiter(UIItemView task)
-            {
-                if (task == null) throw new ArgumentNullException("task");
-                this.task = task;
-                calls = new Queue<Action>();
-                this.task.completed += Task_completed;
-            }
-
-            private void Task_completed()
-            {
-                while (calls.Count != 0)
-                {
-                    calls.Dequeue()?.Invoke();
-                }
-            }
-
-            public bool IsCompleted => task.isDone;
-
-            public UIItemView GetResult()
-            {
-                if (!IsCompleted)
-                    throw new Exception("The task is not finished yet");
-                return task;
-            }
-
-            public void OnCompleted(Action continuation)
-            {
-                UnsafeOnCompleted(continuation);
-            }
-
-            public void UnsafeOnCompleted(Action continuation)
-            {
-                if (continuation == null)
-                    throw new ArgumentNullException("continuation");
-                calls.Enqueue(continuation);
-            }
-
-
-        }
-
-        public struct UIAsyncOperationAwaiter<T> : IAwaiter<T>, ICriticalNotifyCompletion where T : UIAsyncOperation
+         struct UIItemViewAwaiter<T> : IAwaiter<T>, ICriticalNotifyCompletion where T : UIItemView
         {
             private T task;
             private Queue<Action> calls;
-            public UIAsyncOperationAwaiter(T task)
+            public UIItemViewAwaiter(T task)
             {
                 if (task == null) throw new ArgumentNullException("task");
                 this.task = task;
@@ -102,25 +58,10 @@ namespace IFramework.UI
 
 
         }
-        public static IAwaiter<ShowPanelAsyncOperation> GetAwaiter(this ShowPanelAsyncOperation target)
+
+        public static IAwaiter<T> GetAwaiter<T>(this T target) where T : UIItemView
         {
-            return new UIAsyncOperationAwaiter<ShowPanelAsyncOperation>(target);
-        }
-        public static IAwaiter<LoadItemAsyncOperation> GetAwaiter(this LoadItemAsyncOperation target)
-        {
-            return new UIAsyncOperationAwaiter<LoadItemAsyncOperation>(target);
-        }
-        public static IAwaiter<ItemPool> GetAwaiter(this ItemPool target)
-        {
-            return new UIAsyncOperationAwaiter<ItemPool>(target);
-        }
-        public static IAwaiter<UIItemOperation> GetAwaiter(this UIItemOperation target)
-        {
-            return new UIAsyncOperationAwaiter<UIItemOperation>(target);
-        }
-        public static UIItemViewAwaiter GetAwaiter(this UIItemView target)
-        {
-            return new UIItemViewAwaiter(target);
+            return new UIItemViewAwaiter<T>(target);
         }
     }
 

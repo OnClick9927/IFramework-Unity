@@ -146,7 +146,7 @@ namespace IFramework.RedPoint
 #endif
         }
 #if UNITY_EDITOR
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 #endif
         public static void ClearAll()
         {

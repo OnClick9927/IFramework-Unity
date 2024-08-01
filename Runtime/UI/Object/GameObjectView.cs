@@ -26,6 +26,25 @@ namespace IFramework.UI
             transform = gameObject.transform;
             InitComponents();
         }
+
+        protected Transform GetTransform(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return transform;
+            return transform.Find(path);
+        }
+        protected GameObject GetGameObject(string path)
+        {
+            return GetTransform(path)?.gameObject;
+        }
+
+        protected T GetComponent<T>(string path)
+        {
+            var trans = GetTransform(path);
+            if (trans != null)
+                return trans.GetComponent<T>();
+            return default;
+        }
         protected abstract void InitComponents();
     }
 }

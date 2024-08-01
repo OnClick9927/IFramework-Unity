@@ -9,10 +9,11 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace IFramework.UI
 {
-    public struct UIAsyncOperationAwaitor : IAwaiter<UIAsyncOperation>
+    struct UIAsyncOperationAwaitor : IAwaiter<UIAsyncOperation>
     {
         private UIAsyncOperation op;
         private Queue<Action> actions;
@@ -56,14 +57,14 @@ namespace IFramework.UI
         public bool IsCompleted => _isDone;
 
 
-        public  void SetCompelete()
+        public void SetComplete()
         {
             _isDone = true;
             completed?.Invoke();
             completed = null;
         }
 
-        public UIAsyncOperationAwaitor GetAwaiter()
+        public IAwaiter<UIAsyncOperation> GetAwaiter()
         {
             return new UIAsyncOperationAwaitor(this);
         }
@@ -77,7 +78,18 @@ namespace IFramework.UI
         public void SetValue(T value)
         {
             this.value = value;
-            base.SetCompelete();
+            base.SetComplete();
         }
+    }
+    public class ShowPanelAsyncOperation : UIAsyncOperation { }
+    public class LoadPanelAsyncOperation : UIAsyncOperation<UIPanel>
+    {
+        public string path;
+        public RectTransform parent;
+        internal ShowPanelAsyncOperation show;
+    }
+    public class LoadItemAsyncOperation : UIAsyncOperation<GameObject>
+    {
+        public string path;
     }
 }
