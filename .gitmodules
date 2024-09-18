@@ -1,0 +1,4 @@
+[submodule "CS"]
+	path = Assets/IFramework/Core/Runtime/CS
+	url = https://github.com/OnClick9927/IFramework
+	branch = src

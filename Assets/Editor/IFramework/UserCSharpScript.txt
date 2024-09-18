@@ -1,0 +1,18 @@
+/*********************************************************************************
+ *Author:         #User#
+ *Version:        #UserVERSION#
+ *UnityVersion:   #UserUNITYVERSION#
+ *Date:           #UserDATE#
+*********************************************************************************/
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using IFramework;
+
+namespace #UserNameSpace#
+{
+	public class #UserSCRIPTNAME#
+	{
+	
+	}
+}

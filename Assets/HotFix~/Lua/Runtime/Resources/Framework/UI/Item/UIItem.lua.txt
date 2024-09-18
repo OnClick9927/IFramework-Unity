@@ -1,0 +1,16 @@
+---@class UIItem:UIObject
+UIItem = class("UIItem", UIObject)
+function UIItem:ctor(gameObject, path)
+    self.path = path
+    self:SetGameObject(gameObject)
+end
+
+function UIItem:SetParent(parent)
+    local transform = self.transform
+    transform:SetParent(parent)
+    transform:LocalIdentity()
+end
+
+function UIItem:OnGet() end
+
+function UIItem:OnSet() end

@@ -1,0 +1,21 @@
+{
+    "_localizationType": "CN",
+    "_defaultData": "Assets/Project/Examples/Localization/New Localization Data.asset",
+    "_lineReg": "\"",
+    "_fieldReg": "\\G(?:^|,)(?:\"((?>[^\"]*)(?>\"\"[^\"]*)*)\"|([^\",]*))",
+    "_quotesReg": "\"\"",
+    "_youDaoAppId": "",
+    "_youDaoAppSecret": "",
+    "reflect": {
+        "list": [
+            {
+                "Key": "CN",
+                "Value": "zh-CHS"
+            },
+            {
+                "Key": "EN",
+                "Value": "en"
+            }
+        ]
+    }
+}

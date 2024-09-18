@@ -1,0 +1,88 @@
+---@class UIItemPool
+UIItemPool = class("UIItems")
+function UIItemPool:ctor(UI)
+    ---@type IFramework.UI.UIModule
+    self.UI = UI
+end
+
+---@param ui IFramework.UI.UIModule
+---@param path string
+---@param classType Unit|nil
+---@param parent UnityEngine.Transform|nil
+---@param async boolean
+---@return UIItem,UnityEngine.GameObject
+local function Get(ui, path, classType, parent, async)
+    ---@type IFramework.UI.UIItemOperation
+    local item = ui:GetItem(path)
+    if async then
+        await(item)
+    else
+        while not item.completed do end
+    end
+    ---@type UnityEngine.GameObject
+    local gameObject = item.gameObject
+    ---@type UIItem
+    local instance = classType and classType(gameObject, path) or nil
+    if parent then
+        gameObject.transform:SetParent(parent)
+        gameObject.transform:LocalIdentity()
+    end
+    gameObject:SetActive(true)
+    if instance then
+        instance:OnGet()
+    end
+    return instance, gameObject
+end
+
+---@param path string
+---@param parent UnityEngine.Transform
+---@return UnityEngine.GameObject
+function UIItemPool:GetUIGameObject(path, parent)
+    local _, go = Get(self.UI, path, nil, parent, false)
+    return go
+end
+
+---需要写在 async 方法 中
+---@param path string
+---@param parent UnityEngine.Transform
+---@return LuaTask
+function UIItemPool:GetUIGameObjectAsync(path, parent)
+    local func = async(function()
+        local _, go = await(LuaTask.Run(Get, self.UI, path, nil, parent, true))
+        return go
+    end)
+    return func()
+end
+
+---@param path string
+---@param go UnityEngine.GameObject
+function UIItemPool:SetUIGameObject(path, go)
+    self.UI:SetItem(path, go)
+    go:SetActive(false)
+end
+
+---@param path string
+---@param classType Unit
+---@param parent UnityEngine.Transform
+---@return UIItem,UnityEngine.GameObject
+function UIItemPool:Get(path, classType, parent)
+    return Get(self.UI, path, classType, parent, false)
+end
+
+---需要写在 async 方法 中
+---@param path string
+---@param classType Unit
+---@param parent UnityEngine.Transform
+---@return LuaTask
+function UIItemPool:GetAsync(path, classType, parent)
+    return LuaTask.Run(Get, self.UI, path, classType, parent, true)
+end
+
+---@param class UIItem
+function UIItemPool:Set(class)
+    local path = class.path
+    local go = class.gameObject
+    self.UI:SetItem(path, go)
+    go:SetActive(false)
+    class:OnSet()
+end

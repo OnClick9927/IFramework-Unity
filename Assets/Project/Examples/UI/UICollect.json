@@ -1,0 +1,11 @@
+{
+    "datas": [
+        {
+            "path": "Assets/Project/Examples/UI/PanelOne.prefab",
+            "isResourcePath": false,
+            "layer": 0,
+            "fullScreen": false,
+            "order": 0
+        }
+    ]
+}

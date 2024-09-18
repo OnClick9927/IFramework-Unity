@@ -1,0 +1,122 @@
+---@class EventBox
+---@field private events EventEntity[]
+EventBox = class("EventBox")
+
+function EventBox:ctor()
+    ---@type  EventEntity[]
+    self.events = {}
+end
+
+---@param entity EventEntity
+function EventBox:AddEntity(entity)
+    table.insert(self.events, entity)
+end
+
+function EventBox:Dispose()
+    for index, value in ipairs(self.events) do
+        value:Dispose()
+    end
+    self.events = nil
+end
+
+---触发监听
+---@param self EventEntity
+---@param ... any
+local function InvokeEntity(self, ...)
+    self.func(...)
+end
+
+---@class EventEntity 事件实体
+local EventEntity = class("EventEntity")
+
+---@param system EventSystem
+---@param code string|number
+---@param func function
+function EventEntity:ctor(system, code, func)
+    self.system = system
+    self.code = code
+    self.func = func
+    self.disposed = false
+end
+
+--- 释放监听
+function EventEntity:Dispose()
+    if self.disposed then
+        return
+    end
+    self.system:UnSubscribe(self)
+    self.disposed = true
+end
+
+---@param box EventBox
+function EventEntity:AddTo(box)
+    box:AddEntity(self)
+end
+
+---@class EventSystem 事件系统
+EventSystem = class("EventSystem")
+function EventSystem:ctor()
+    ---@type table<number|string, table<number,EventEntity>>
+    self.calllist = {}
+end
+
+---注册监听
+---@param code string|number
+---@param func function
+function EventSystem:Subscribe(code, func, ...)
+    ---@type EventEntity
+    local instance = EventEntity(self, code, Handler(func, ...))
+    if not self.calllist[code] then
+        self.calllist[code] = {}
+    end
+    table.insert(self.calllist[code], instance)
+    return instance
+end
+
+---移除监听
+---@param entity EventEntity
+function EventSystem:UnSubscribe(entity)
+    local code = entity.code
+    if not self.calllist[code] then
+        return
+    end
+    local index = table.IndexOf(self.calllist[code], entity)
+    if index then
+        table.remove(self.calllist[code], index)
+    end
+end
+
+---发布消息
+---@param code string|number
+---@param ... any
+function EventSystem:Publish(code, ...)
+    if not self.calllist[code] then
+        return
+    end
+    for key, value in ipairs(self.calllist[code]) do
+        InvokeEntity(value, ...)
+    end
+end
+
+---去掉监听
+---@param code string|number|nil
+function EventSystem:Clear(code)
+    ---@param _code string|number
+    local _Clear = function(_code)
+        if not self.calllist[_code] then
+            return
+        end
+        for i, v in ipairs(self.calllist[_code]) do
+            v:Dispose()
+            self.calllist[_code][i] = nil
+        end
+        self.calllist[_code] = nil
+    end
+    if code then
+        _Clear(code)
+    else
+        for key, value in pairs(self.calllist) do
+            _Clear(key)
+        end
+    end
+end

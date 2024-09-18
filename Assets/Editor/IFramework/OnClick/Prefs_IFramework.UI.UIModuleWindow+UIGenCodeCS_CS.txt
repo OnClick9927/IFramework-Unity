@@ -1,0 +1,74 @@
+{
+    "GenPath": "Assets/Project/Examples/UI/",
+    "panelPath": "Assets/Project/Examples/UI/PanelOne.prefab",
+    "state": {
+        "scrollPos": {
+            "x": 0.0,
+            "y": 0.0
+        },
+        "m_SelectedIDs": [
+            27230
+        ],
+        "m_LastClickedID": 27230,
+        "m_ExpandedIDs": [
+            17902,
+            17908,
+            17920,
+            17934,
+            17990,
+            17992,
+            18016,
+            18030,
+            18032,
+            18196,
+            18210,
+            18212,
+            18378,
+            18382,
+            18386,
+            18414,
+            18418,
+            18420,
+            18422,
+            18424,
+            18442,
+            18448,
+            18450,
+            18490,
+            18530,
+            18692,
+            18800,
+            18806,
+            19296,
+            19930,
+            20258,
+            27168,
+            27186,
+            27188,
+            27220
+        ],
+        "m_RenameOverlay": {
+            "m_UserAcceptedRename": false,
+            "m_Name": "heihei_0@sm",
+            "m_OriginalName": "heihei_0@sm",
+            "m_EditFieldRect": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "m_UserData": 18426,
+            "m_IsWaitingForDelay": false,
+            "m_IsRenaming": false,
+            "m_OriginalEventType": 0,
+            "m_IsRenamingFilename": false,
+            "m_ClientGUIView": {
+                "instanceID": 0
+            }
+        },
+        "m_SearchString": ""
+    },
+    "_searchType": 2,
+    "_type": 2
+}

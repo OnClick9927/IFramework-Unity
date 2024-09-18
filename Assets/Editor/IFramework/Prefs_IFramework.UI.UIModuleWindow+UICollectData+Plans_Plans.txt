@@ -1,0 +1,14 @@
+{
+    "index": 0,
+    "plans": [
+        {
+            "ConfigGenPath": "Assets/Project/Examples/UI",
+            "PanelCollectPath": "Assets/Project/Examples/UI",
+            "ScriptGenPath": "Assets/Project/Examples/UI",
+            "ScriptName": "PanelNames_UIGame",
+            "name": "UIGame",
+            "typeIndex": 0,
+            "ConfigName": "UICollect"
+        }
+    ]
+}
