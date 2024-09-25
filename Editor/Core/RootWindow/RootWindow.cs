@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using IFramework;
+using static IFramework.EditorTools;
 
 #pragma warning disable
 namespace IFramework
@@ -94,7 +95,7 @@ namespace IFramework
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
             Rect r = EditorGUILayout.GetControlRect(GUILayout.Width(100));
-            if (GUI.Button(r, "Tools", GUIStyles.ToolbarDropDown))
+            if (GUI.Button(r, "Tools", "ToolbarDropDown"))
             {
                 GenericMenu menu = new GenericMenu();
                 Dictionary<string, string> dic = new Dictionary<string, string>();
@@ -137,12 +138,12 @@ namespace IFramework
 
                     position.position = Vector2.zero;
 
-                    GUIStyle style = new GUIStyle(GUIStyles.button)
+                    GUIStyle style = new GUIStyle("button")
                     {
                         richText = true,
                     };
                     GUILayout.Space(10);
-                    GUILayout.Label(showkey, new GUIStyle(GUIStyles.largeLabel)
+                    GUILayout.Label(showkey, new GUIStyle(EditorStyles.largeLabel)
                     {
                         alignment = UnityEngine.TextAnchor.MiddleCenter,
                         fontSize = 20,

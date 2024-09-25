@@ -20,8 +20,8 @@ namespace IFramework
             public class Info
             {
                 public bool dragging;
-                public bool enterArera;
-                public bool compelete;
+                public bool enterArea;
+                public bool complete;
                 public Object[] objectReferences { get { return DragAndDrop.objectReferences; } }
                 public string[] paths { get { return DragAndDrop.paths; } }
                 public DragAndDropVisualMode visualMode { get { return DragAndDrop.visualMode; } }
@@ -61,8 +61,8 @@ namespace IFramework
                         _enterArera = Content.Contains(eve.mousePosition);
                         break;
                 }
-                _info.compelete = _compelete;
-                _info.enterArera = _enterArera;
+                _info.complete = _compelete;
+                _info.enterArea = _enterArera;
                 _info.dragging = _dragging;
                 return _info;
             }
