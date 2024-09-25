@@ -14,6 +14,7 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using System;
+using static IFramework.EditorTools;
 
 namespace IFramework.UI
 {
@@ -72,8 +73,9 @@ namespace IFramework.UI
             private string panelName { get { return panel.name.Replace("@sm", ""); } }
             private string viewScriptName => GetViewScriptName(viewName);
             protected virtual string scriptPath { get { return GenPath.CombinePath(viewScriptName); } }
-            private string PanelToViewName(string panelName) => $"{panelName}View";
+            public override string PanelToViewName(string panelName) => $"{panelName}View";
             public sealed override string GetPanelScriptName(string panelName) => GetViewScriptName(PanelToViewName(panelName));
+        
             protected abstract string GetViewScriptName(string viewName);
 
 
@@ -150,7 +152,7 @@ namespace IFramework.UI
 
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label("Panel Directory", GUIStyles.toolbar);
+                    GUILayout.Label("Panel Directory", EditorStyles.label);
                     GUILayout.Space(20);
 
                     FloderField.OnGUI(EditorGUILayout.GetControlRect());

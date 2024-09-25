@@ -9,10 +9,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using static IFramework.EditorTools;
 using static IFramework.UI.PanelCollection;
 using static IFramework.UI.UIModuleWindow.UICollectData;
 
@@ -83,6 +83,12 @@ namespace IFramework.UI
                             width=100,
                                       minWidth=100,
                             maxWidth=100,
+                        },
+                             new MultiColumnHeaderState.Column()
+                        {
+                            headerContent=new GUIContent("ScriptType"),
+                            width=100,
+                                      minWidth=100,
                         },
                                 new MultiColumnHeaderState.Column()
                         {
@@ -203,8 +209,39 @@ namespace IFramework.UI
                         GUI.Label(args.GetCellRect(5), EditorGUIUtility.IconContent("d_P4_CheckOutRemote"));
                     //GUI.Toggle(args.GetCellRect(5), data.isResourcePath, "");
                     data.fullScreen = GUI.Toggle(args.GetCellRect(6), data.fullScreen, "");
-                    GUI.Label(args.GetCellRect(7), data.order.ToString());
-                    GUI.Label(args.GetCellRect(8), data.path);
+                    GUI.Label(args.GetCellRect(8), data.order.ToString());
+                    GUI.Label(args.GetCellRect(9), data.path);
+
+                    var v_name = window.PanelToViewName(data.name, UICollectData.plan.GetSelectType());
+
+
+
+                    var rect_7 = args.GetCellRect(7);
+                    if (name_TypeMap.TryGetValue(v_name, out var list))
+                    {
+                        if (list.Count == 0)
+                        {
+                            GUI.color = Color.red;
+                            GUI.Label(rect_7, "None Script");
+                            GUI.color = Color.white;
+                        }
+                        else if (list.Count == 1)
+                        {
+                            GUI.Label(rect_7, data.ScriptPath);
+                        }
+                        else
+                        {
+                            var tmp = data.ScriptPath;
+                            var index = list.IndexOf(tmp);
+                            if (index < 0) index = 0;
+                            var _index = EditorGUI.Popup(rect_7, index, list.Select(x=>x.Replace("/","_")).ToArray());
+                            if (_index != index)
+                                data.ScriptPath = list[_index];
+                        }
+                    }
+
+
+
 
                     if (GUI.Button(args.GetCellRect(1), EditorGUIUtility.IconContent("Search Icon"), EditorStyles.iconButton))
                     {
@@ -224,19 +261,13 @@ namespace IFramework.UI
                     }
                     if (GUI.Button(args.GetCellRect(4), EditorGUIUtility.IconContent("d_editicon.sml"), EditorStyles.iconButton))
                     {
-                        var names = window.GetPanelScriptNames(data.name);
-                        var paths = AssetDatabase.GetAllAssetPaths().ToList();
-                        foreach (var name in names)
+                        if (!string.IsNullOrEmpty(data.ScriptPath))
                         {
-                            string find = paths.Find(x => x.EndsWith(name));
-
-                            if (!string.IsNullOrEmpty(find))
-                            {
-                                UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(find, 0);
-                                //EditorUtility.OpenWithDefaultApp(find);
-                                break;
-                            }
-
+                            UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(data.ScriptPath, 0);
+                        }
+                        else
+                        {
+                            window.ShowNotification(new GUIContent($"None Script for {data.name}"));
                         }
                     }
                 }
@@ -399,9 +430,40 @@ namespace IFramework.UI
                 view.OnGUI(rs[0]);
                 Tool(rs[1]);
             }
+            static Dictionary<string, List<string>> name_TypeMap;
+
+
+
             private void Fresh()
             {
                 collect = UICollectData.Collect();
+                name_TypeMap = new Dictionary<string, List<string>>();
+                var paths = AssetDatabase.GetAllAssetPaths().ToList();
+
+                for (int i = 0; i < collect.datas.Count; i++)
+                {
+                    var data = collect.datas[i];
+                    var v_name = window.PanelToViewName(data.name, UICollectData.plan.GetSelectType());
+                    var s_name = window.GetPanelScriptName(data.name, UICollectData.plan.GetSelectType());
+                    var find = paths.FindAll(x => x.EndsWith(s_name)) ?? new List<string>();
+                    name_TypeMap.Add(v_name, find);
+
+                SetEmpty:
+                    if (string.IsNullOrEmpty(data.ScriptPath))
+                    {
+                        if (find.Count > 0)
+                            data.ScriptPath = find[0];
+                    }
+                    else
+                    {
+                        if (!find.Contains(data.ScriptPath))
+                        {
+                            data.ScriptPath = string.Empty;
+                            goto SetEmpty;
+                        }
+                    }
+                }
+                UICollectData.SaveConfig(collect);
                 view?.Reload();
             }
             private void Tool(Rect rect)

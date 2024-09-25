@@ -12,6 +12,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 
 namespace IFramework.UI
 {
@@ -27,7 +28,6 @@ namespace IFramework.UI
             }
             public override string name => "CS";
             protected override string GetViewScriptName(string viewName) => $"{viewName}.cs";
-
 
             [SerializeField] private ItemType _type;
             protected override GameObject gameObject => panel;
@@ -70,10 +70,22 @@ namespace IFramework.UI
                 var datas = collect.datas;
                 foreach (var data in datas)
                 {
-                    sb.AppendLine($"\t public static string {data.name} = \"{data.path}\";");
+                    sb.AppendLine($"\tpublic const string {data.name} = \"{data.path}\";");
                 }
+                sb.AppendLine("\tpublic static System.Collections.Generic.Dictionary<string, System.Type> map = new System.Collections.Generic.Dictionary<string, System.Type>()\n\t{");
+                foreach (var data in datas)
+                {
+                    if (!System.IO.File.Exists(data.ScriptPath)) continue;
+                    var lines = File.ReadAllLines(data.ScriptPath);
+                    var line = lines.First(x => x.Contains("namespace "));
+                    if (line == null) continue;
+                    line = line.Trim();
+                    var ns = line.Split(" ")[1].Trim();
+                    sb.AppendLine($"\t\t{{{data.name},typeof({ns}.{this.PanelToViewName(data.name)})}},");
+                }
+                sb.AppendLine("\t};");
                 sb.AppendLine("}");
-                File.WriteAllText(scriptGenPath.CombinePath($"{scriptName}.cs"), sb.ToString());
+                File.WriteAllText(scriptGenPath.CombinePath($"{scriptName}.cs"), sb.ToString().ToUnixLineEndings());
                 AssetDatabase.Refresh();
             }
             protected override void Draw()

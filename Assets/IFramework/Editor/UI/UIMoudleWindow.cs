@@ -14,6 +14,7 @@ using System.Collections.Generic;
 
 using System.IO;
 using System.Reflection;
+using static IFramework.EditorTools;
 
 namespace IFramework.UI
 {
@@ -180,7 +181,7 @@ namespace IFramework.UI
                 }
                 SaveConfig(collect);
             }
-            private static void SaveConfig(PanelCollection collect)
+            public static void SaveConfig(PanelCollection collect)
             {
                 File.WriteAllText(UICollectPath, JsonUtility.ToJson(collect, true));
 
@@ -314,9 +315,15 @@ namespace IFramework.UI
             _tabs[_name].OnHierarchyChanged();
             Repaint();
         }
-        private List<string> GetPanelScriptNames(string name)
+        private string PanelToViewName(string name,Type type)
         {
-            return _tabs.Values.Select(x => x.GetPanelScriptName(name)).ToList();
+            return _tabs.Values.First(x => x.GetType() == type).PanelToViewName(name);
+
         }
+        private string GetPanelScriptName(string name, Type type)
+        {
+            return _tabs.Values.First(x => x.GetType() == type).GetPanelScriptName(name);
+        }
+
     }
 }

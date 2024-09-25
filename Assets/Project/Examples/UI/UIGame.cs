@@ -16,7 +16,7 @@ public class UIGame : Game, IUIDelegate
         {
         }
 
-        public override bool LoadItemAsync( LoadItemAsyncOperation op)
+        public override bool LoadItemAsync(LoadItemAsyncOperation op)
         {
             op.SetValue(AssetDatabase.LoadAssetAtPath<GameObject>(op.path));
             return true;
@@ -54,11 +54,7 @@ public class UIGame : Game, IUIDelegate
         ui = this.modules.CreateModule<UIModule>();
         ui.SetUIDelegate(this);
         ui.SetAsset(new Asset(JsonUtility.FromJson<PanelCollection>(txt.text)));
-        ui.SetGroups(new MvcGroups(new Dictionary<string, Type>() {
-
-            { PanelNames_UIGame.PanelOne,typeof(PanelOneView)}
-
-        })); ;
+        ui.SetGroups(new MvcGroups(PanelNames_UIGame.map));
         ui.CreateCanvas();
         Log.L("BeginShow");
         await ui.Show(PanelNames_UIGame.PanelOne);

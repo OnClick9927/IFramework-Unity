@@ -96,7 +96,7 @@ namespace IFramework
                 GUILayout.Space(10);
                 Info.dockWindow = EditorGUILayout.Toggle(Contents.dockWindow, Info.dockWindow);
                 EditorGUI.DrawRect(EditorGUILayout.GetControlRect(GUILayout.Height(2)), new Color(0.5f, 0.5f, 0.5f));
-                GUILayout.Label(Contents.logset, GUIStyles.largeLabel);
+                GUILayout.Label(Contents.logset, EditorStyles.largeLabel);
                 Info.enable = EditorGUILayout.Toggle(Contents.enable, Info.enable);
                 GUI.enabled &= Info.enable;
                 Info.enable_L = EditorGUILayout.Toggle(Contents.logenable, Info.enable_L);

@@ -7,6 +7,8 @@
  *History:        2018.11--
 *********************************************************************************/
 
+using System;
+
 namespace IFramework.UI
 {
     public partial class UIModuleWindow
@@ -19,10 +21,16 @@ namespace IFramework.UI
             public virtual void OnDisable() { }
             public virtual void OnHierarchyChanged() { }
 
+            public virtual string PanelToViewName(string name)
+            {
+                return string.Empty;
+            }
             public virtual string GetPanelScriptName(string name)
             {
                 return string.Empty;
             }
+ 
+            
         }
     }
 }
