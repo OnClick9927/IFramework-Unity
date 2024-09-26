@@ -211,14 +211,11 @@ namespace IFramework.UI
                     data.fullScreen = GUI.Toggle(args.GetCellRect(6), data.fullScreen, "");
                     GUI.Label(args.GetCellRect(8), data.order.ToString());
                     GUI.Label(args.GetCellRect(9), data.path);
-
-                    var v_name = window.PanelToViewName(data.name, UICollectData.plan.GetSelectType());
-
-
-
                     var rect_7 = args.GetCellRect(7);
-                    if (name_TypeMap.TryGetValue(v_name, out var list))
+                    var list = UICollectData.GetFitScriptPaths(data.name);
+                    if (list != null)
                     {
+
                         if (list.Count == 0)
                         {
                             GUI.color = Color.red;
@@ -234,7 +231,7 @@ namespace IFramework.UI
                             var tmp = data.ScriptPath;
                             var index = list.IndexOf(tmp);
                             if (index < 0) index = 0;
-                            var _index = EditorGUI.Popup(rect_7, index, list.Select(x=>x.Replace("/","_")).ToArray());
+                            var _index = EditorGUI.Popup(rect_7, index, list.Select(x => x.Replace("/", "_")).ToArray());
                             if (_index != index)
                                 data.ScriptPath = list[_index];
                         }
@@ -321,7 +318,6 @@ namespace IFramework.UI
                         });
                     }
                     menu.ShowAsContext();
-                    //base.ContextClickedItem(id);
                 }
                 private void Set(UILayer layer, int index, Data data)
                 {
@@ -430,40 +426,12 @@ namespace IFramework.UI
                 view.OnGUI(rs[0]);
                 Tool(rs[1]);
             }
-            static Dictionary<string, List<string>> name_TypeMap;
-
 
 
             private void Fresh()
             {
                 collect = UICollectData.Collect();
-                name_TypeMap = new Dictionary<string, List<string>>();
-                var paths = AssetDatabase.GetAllAssetPaths().ToList();
 
-                for (int i = 0; i < collect.datas.Count; i++)
-                {
-                    var data = collect.datas[i];
-                    var v_name = window.PanelToViewName(data.name, UICollectData.plan.GetSelectType());
-                    var s_name = window.GetPanelScriptName(data.name, UICollectData.plan.GetSelectType());
-                    var find = paths.FindAll(x => x.EndsWith(s_name)) ?? new List<string>();
-                    name_TypeMap.Add(v_name, find);
-
-                SetEmpty:
-                    if (string.IsNullOrEmpty(data.ScriptPath))
-                    {
-                        if (find.Count > 0)
-                            data.ScriptPath = find[0];
-                    }
-                    else
-                    {
-                        if (!find.Contains(data.ScriptPath))
-                        {
-                            data.ScriptPath = string.Empty;
-                            goto SetEmpty;
-                        }
-                    }
-                }
-                UICollectData.SaveConfig(collect);
                 view?.Reload();
             }
             private void Tool(Rect rect)

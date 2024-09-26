@@ -181,11 +181,42 @@ namespace IFramework.UI
                 }
                 SaveConfig(collect);
             }
-            public static void SaveConfig(PanelCollection collect)
+            private static void SaveConfig(PanelCollection collect)
             {
                 File.WriteAllText(UICollectPath, JsonUtility.ToJson(collect, true));
 
                 AssetDatabase.Refresh();
+            }
+
+            public static List<string> GetFitScriptPaths(string name) => name_TypeMap.TryGetValue(name, out var list) ? list : null;
+
+            private static Dictionary<string, List<string>> name_TypeMap;
+            private static void GG(PanelCollection collect, List<string> paths)
+            {
+                name_TypeMap = new Dictionary<string, List<string>>();
+                var tab = window.GetTab(UICollectData.plan.GetSelectType());
+                for (int i = 0; i < collect.datas.Count; i++)
+                {
+                    var data = collect.datas[i];
+                    var s_name = tab.GetPanelScriptName(data.name);
+                    var find = paths.FindAll(x => x.EndsWith("/" + s_name)) ?? new List<string>();
+                    name_TypeMap.Add(data.name, find);
+
+                SetEmpty:
+                    if (string.IsNullOrEmpty(data.ScriptPath))
+                    {
+                        if (find.Count > 0)
+                            data.ScriptPath = find[0];
+                    }
+                    else
+                    {
+                        if (!find.Contains(data.ScriptPath))
+                        {
+                            data.ScriptPath = string.Empty;
+                            goto SetEmpty;
+                        }
+                    }
+                }
             }
             public static PanelCollection Collect()
             {
@@ -195,12 +226,11 @@ namespace IFramework.UI
                     collect = new PanelCollection();
                 else
                     collect = JsonUtility.FromJson<PanelCollection>(File.ReadAllText(path));
+                var assetPaths = AssetDatabase.GetAllAssetPaths().ToList();
 
-                var paths = AssetDatabase.GetAllAssetPaths()
-                    .Where(x => x.EndsWith("prefab") && AssetDatabase.LoadAssetAtPath<UIPanel>(x) != null)
-                    .Where(x => x.Contains(plan.PanelCollectPath))
-                    .ToList()
-                    .ConvertAll(x =>
+                var paths = assetPaths
+                    .Where(x => x.Contains(plan.PanelCollectPath) && x.EndsWith("prefab") && AssetDatabase.LoadAssetAtPath<UIPanel>(x) != null)
+                    .Select(x =>
                     {
                         string path = x;
                         var isResourcePath = x.Contains(res);
@@ -212,8 +242,8 @@ namespace IFramework.UI
                         }
                         return new { isResourcePath, path };
                     });
-                collect.datas.RemoveAll(x => paths.Find(y => y.path == x.path) == null);
-                paths.FindAll(x => collect.datas.Find(y => y.path == x.path) == null)
+                collect.datas.RemoveAll(x => paths.FirstOrDefault(y => y.path == x.path) == null);
+                paths.ToList().FindAll(x => collect.datas.Find(y => y.path == x.path) == null)
                 .ForEach(x =>
                 {
                     collect.datas.Add(new PanelCollection.Data()
@@ -222,6 +252,10 @@ namespace IFramework.UI
                         path = x.path,
                     });
                 });
+                GG(collect, assetPaths);
+
+
+
                 SaveConfig(collect);
                 return collect;
             }
@@ -315,14 +349,9 @@ namespace IFramework.UI
             _tabs[_name].OnHierarchyChanged();
             Repaint();
         }
-        private string PanelToViewName(string name,Type type)
+        private UIModuleWindowTab GetTab(Type type)
         {
-            return _tabs.Values.First(x => x.GetType() == type).PanelToViewName(name);
-
-        }
-        private string GetPanelScriptName(string name, Type type)
-        {
-            return _tabs.Values.First(x => x.GetType() == type).GetPanelScriptName(name);
+            return _tabs.Values.First(x => x.GetType() == type);
         }
 
     }

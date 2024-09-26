@@ -77,11 +77,18 @@ namespace IFramework.UI
                 {
                     if (!System.IO.File.Exists(data.ScriptPath)) continue;
                     var lines = File.ReadAllLines(data.ScriptPath);
-                    var line = lines.First(x => x.Contains("namespace "));
-                    if (line == null) continue;
-                    line = line.Trim();
-                    var ns = line.Split(" ")[1].Trim();
-                    sb.AppendLine($"\t\t{{{data.name},typeof({ns}.{this.PanelToViewName(data.name)})}},");
+                    var line = lines.FirstOrDefault(x => x.Contains("namespace "));
+                    var viewName = this.PanelToViewName(data.name);
+                    if (line == null)
+                    {
+                        sb.AppendLine($"\t\t{{{data.name},typeof({viewName})}},");
+                    }
+                    else
+                    {
+                        line = line.Trim();
+                        var ns = line.Split(" ")[1].Trim();
+                        sb.AppendLine($"\t\t{{{data.name},typeof({ns}.{viewName})}},");
+                    }
                 }
                 sb.AppendLine("\t};");
                 sb.AppendLine("}");
