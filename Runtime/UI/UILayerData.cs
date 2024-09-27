@@ -6,14 +6,13 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace IFramework.UI
 {
     [CreateAssetMenu]
-    public class UILayerObject : UnityEngine.ScriptableObject
+    public class UILayerData : UnityEngine.ScriptableObject
     {
         public const string item_layer = "Items";
         public const string rayCast_layer = "RayCast";

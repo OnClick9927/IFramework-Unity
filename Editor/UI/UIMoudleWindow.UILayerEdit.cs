@@ -415,7 +415,7 @@ namespace IFramework.UI
 
             [UnityEngine.SerializeField] private TreeViewState layer_state = new TreeViewState();
             [UnityEngine.SerializeField] private string layerObjectPath;
-            private UILayerObject layerObject;
+            private UILayerData layerObject;
 
             public override void OnEnable()
             {
@@ -424,7 +424,7 @@ namespace IFramework.UI
                 {
                     layer_state = last.layer_state;
                     layerObjectPath = last.layerObjectPath;
-                    layerObject = AssetDatabase.LoadAssetAtPath<UILayerObject>(layerObjectPath);
+                    layerObject = AssetDatabase.LoadAssetAtPath<UILayerData>(layerObjectPath);
                 }
 
                 Fresh();
@@ -442,7 +442,7 @@ namespace IFramework.UI
                 var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
                 var sps = EditorTools.RectEx.HorizontalSplit(rect, 20);
                 var last = layerObject;
-                layerObject = EditorGUI.ObjectField(sps[0], "Layer Object", layerObject, typeof(UILayerObject), false) as UILayerObject;
+                layerObject = EditorGUI.ObjectField(sps[0], "Layer Object", layerObject, typeof(UILayerData), false) as UILayerData;
 
                 if (last != layerObject)
                 {
