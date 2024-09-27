@@ -6,6 +6,7 @@
  *History:        2018.11--
 *********************************************************************************/
 
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace IFramework.UI
@@ -15,12 +16,15 @@ namespace IFramework.UI
     /// </summary>
     public abstract class UIAsset
     {
-
+        private UILayerObject layer;
         private PanelCollection collection;
 
-        protected UIAsset(PanelCollection collection)
+        protected UIAsset(UILayerObject layer, PanelCollection collection)
         {
+            this.layer = layer;
             this.collection = collection;
+            if (layer == null)
+                Log.E("UIAsset layer can not be null");
             if (collection != null)
             {
                 collection.ListToMap();
@@ -45,12 +49,15 @@ namespace IFramework.UI
         public virtual Canvas GetCanvas() { return null; }
 
         public PanelCollection.Data GetData(string path) => collection?.GetData(path);
-        public virtual UILayer GetPanelLayer(string path)
+
+        public bool GetIgnoreOrder() => layer.ignoreOrder;
+        public List<string> GetLayerNames() => layer.GetLayerNames();
+        public virtual int GetPanelLayer(string path)
         {
             var data = GetData(path);
             if (data != null)
                 return data.layer;
-            return UILayer.Background;
+            return 0;
         }
         public virtual int GetPanelLayerOrder(string path)
         {
@@ -65,6 +72,10 @@ namespace IFramework.UI
             if (data != null)
                 return data.fullScreen;
             return false;
+        }
+        public virtual string GetLayerName(int layer)
+        {
+            return this.layer.GetLayerName(layer);
         }
     }
 }

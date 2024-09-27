@@ -11,8 +11,8 @@ namespace IFramework.UI
     public interface IUIDelegate
     {
         void OnFullScreenCount(bool hide, int count);
-        void OnLayerTopChange(UILayer layer, string path);
-        void OnLayerTopVisibleChange(UILayer layer, string path);
+        void OnLayerTopChange(int layer, string path);
+        void OnLayerTopVisibleChange(int layer, string path);
         void OnPanelClose(string path);
         void OnPanelHide(string path);
         void OnPanelLoad(string path);

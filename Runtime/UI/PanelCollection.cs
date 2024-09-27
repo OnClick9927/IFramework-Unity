@@ -17,11 +17,15 @@ namespace IFramework.UI
         [System.Serializable]
         public class Data
         {
-            public string name { get { return System.IO.Path.GetFileNameWithoutExtension(path); } }
+#if UNITY_EDITOR
+            public string name => System.IO.Path.GetFileNameWithoutExtension(path);
+#else
+            public string name=>string.Empty;
+#endif
 
             public string path;
             public bool isResourcePath;
-            public UILayer layer;
+            public int layer;
             public bool fullScreen;
             public int order;
             public string ScriptPath;
