@@ -399,6 +399,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   txt: {fileID: 4900000, guid: e47c5526f9d2f6e409cae0a3caa4c6e8, type: 3}
+  layer: {fileID: 11400000, guid: cbab7a0b4c2cbd44fbf6329c95ab3c21, type: 2}
 --- !u!4 &1682540833
 Transform:
   m_ObjectHideFlags: 0

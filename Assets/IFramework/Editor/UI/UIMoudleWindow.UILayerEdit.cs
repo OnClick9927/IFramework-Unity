@@ -20,7 +20,7 @@ namespace IFramework.UI
 {
     public partial class UIModuleWindow
     {
-        private TreeViewState layer_state = new TreeViewState();
+        [System.Serializable]
         public class UILayerEdit : UIModuleWindowTab
         {
             private static PanelCollection collect;
@@ -28,11 +28,13 @@ namespace IFramework.UI
             {
                 private List<Data> datas { get { return collect.datas; } }
                 private SearchField searchField;
+                private UILayerEdit edit;
                 string[] layerNames;
                 IList<int> draggedItemIDs;
-                public LayerView(TreeViewState state) : base(state)
+                public LayerView(UILayerEdit edit) : base(edit.layer_state)
                 {
-                    layerNames = Enum.GetNames(typeof(UILayer));
+                    this.edit = edit;
+                    layerNames = edit.layerObject.GetLayerNames().ToArray();
                     searchField = new SearchField();
                     this.multiColumnHeader = new MultiColumnHeader(new MultiColumnHeaderState(new MultiColumnHeaderState.Column[] {
                         new MultiColumnHeaderState.Column()
@@ -122,6 +124,7 @@ namespace IFramework.UI
 
                     for (int i = 0; i < layerNames.Length; i++)
                     {
+                        var findList = datas.FindAll(x => x.layer == edit.layerObject.LayerNameToIndex(layerNames[i]));
                         if (string.IsNullOrEmpty(searchString))
                         {
                             TreeViewItem layer = new TreeViewItem()
@@ -132,7 +135,6 @@ namespace IFramework.UI
                             };
                             layer.parent = root;
                             rows.Add(layer);
-                            var findList = datas.FindAll(x => x.layer == (UILayer)Enum.Parse(typeof(UILayer), layerNames[i]));
                             if (findList.Count > 0)
                             {
                                 if (IsExpanded(i))
@@ -165,7 +167,6 @@ namespace IFramework.UI
                         }
                         else
                         {
-                            var findList = datas.FindAll(x => x.layer == (UILayer)Enum.Parse(typeof(UILayer), layerNames[i]));
                             if (findList.Count > 0)
                             {
                                 findList.Sort((x, y) => { return x.order >= y.order ? 1 : -1; });
@@ -312,14 +313,14 @@ namespace IFramework.UI
                         if (data.layer.ToString() == name) continue;
                         menu.AddItem(new GUIContent($"MoveTo/{name}"), false, () =>
                         {
-                            Set((UILayer)Enum.Parse(typeof(UILayer), name), int.MaxValue, data);
+                            Set(edit.layerObject.LayerNameToIndex(name), int.MaxValue, data);
                             Reload();
                             SetExpanded(layerNames.ToList().IndexOf(name), true);
                         });
                     }
                     menu.ShowAsContext();
                 }
-                private void Set(UILayer layer, int index, Data data)
+                private void Set(int layer, int index, Data data)
                 {
                     List<Data> last = datas.FindAll(x => x.layer == layer);
                     int lastCount = last.Count;
@@ -352,7 +353,7 @@ namespace IFramework.UI
                     if (args.performDrop)
                     {
                         var id = args.parentItem.id;
-                        UILayer layer = (UILayer)Enum.Parse(typeof(UILayer), layerNames[id]);
+                        int layer = edit.layerObject.LayerNameToIndex(layerNames[id]);
                         if (args.dragAndDropPosition != DragAndDropPosition.OutsideItems)
                         {
                             var last = datas.FindAll(x => x.layer == layer);
@@ -412,26 +413,64 @@ namespace IFramework.UI
             FolderField CollectF = new FolderField();
             FolderField ScriptGenF = new FolderField();
 
+            [UnityEngine.SerializeField] private TreeViewState layer_state = new TreeViewState();
+            [UnityEngine.SerializeField] private string layerObjectPath;
+            private UILayerObject layerObject;
 
             public override void OnEnable()
             {
-                Fresh();
-                view = new LayerView(window.layer_state);
+                var last = EditorTools.GetFromPrefs<UILayerEdit>(name, false);
+                if (last != null)
+                {
+                    layer_state = last.layer_state;
+                    layerObjectPath = last.layerObjectPath;
+                    layerObject = AssetDatabase.LoadAssetAtPath<UILayerObject>(layerObjectPath);
+                }
 
+                Fresh();
+            }
+            public override void OnDisable()
+            {
+                layerObjectPath = string.Empty;
+                if (layerObject != null)
+                    layerObjectPath = AssetDatabase.GetAssetPath(layerObject);
+
+                EditorTools.SaveToPrefs<UILayerEdit>(this, name, false);
             }
             public override void OnGUI()
             {
                 var rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
-                var rs = EditorTools.RectEx.HorizontalSplit(rect, rect.height - 10);
-                view.OnGUI(rs[0]);
-                Tool(rs[1]);
+                var sps = EditorTools.RectEx.HorizontalSplit(rect, 20);
+                var last = layerObject;
+                layerObject = EditorGUI.ObjectField(sps[0], "Layer Object", layerObject, typeof(UILayerObject), false) as UILayerObject;
+
+                if (last != layerObject)
+                {
+                    Fresh();
+                }
+                if (layerObject == null) return;
+                else
+                {
+
+                    rect = sps[1];
+                    var rs = EditorTools.RectEx.HorizontalSplit(rect, rect.height - 10);
+                    view.OnGUI(rs[0]);
+                    Tool(rs[1]);
+                }
             }
 
 
             private void Fresh()
             {
-                collect = UICollectData.Collect();
-
+                if (layerObject != null)
+                {
+                    collect = UICollectData.Collect();
+                    view = new LayerView(this);
+                }
+                else
+                {
+                    view = null;
+                }
                 view?.Reload();
             }
             private void Tool(Rect rect)

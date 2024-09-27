@@ -55,7 +55,7 @@ namespace IFramework.UI
         {
             if (!pool.Contains(t))
             {
-                var parent = module.GetLayerRectTransform(UIModule.item_layer);
+                var parent = module.GetLayerRectTransform(UILayerObject.item_layer);
                 t.gameObject.transform.SetParent(parent, false);
                 pool.Enqueue(t);
                 return true;

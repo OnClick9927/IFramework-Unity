@@ -12,7 +12,7 @@ public class UIGame : Game, IUIDelegate
 {
     private class Asset : UIAsset
     {
-        public Asset(PanelCollection collection) : base(collection)
+        public Asset(UILayerObject layer, PanelCollection collection) : base(layer, collection)
         {
         }
 
@@ -45,6 +45,7 @@ public class UIGame : Game, IUIDelegate
     }
     public UIModule ui;
     public TextAsset txt;
+    public UILayerObject layer;
     internal void CloseView()
     {
         ui.Close(PanelNames_UIGame.PanelOne);
@@ -52,8 +53,9 @@ public class UIGame : Game, IUIDelegate
     public override async void Init()
     {
         ui = this.modules.CreateModule<UIModule>();
+
         ui.SetUIDelegate(this);
-        ui.SetAsset(new Asset(JsonUtility.FromJson<PanelCollection>(txt.text)));
+        ui.SetAsset(new Asset(layer, JsonUtility.FromJson<PanelCollection>(txt.text)));
         ui.SetGroups(new MvcGroups(PanelNames_UIGame.map));
         ui.CreateCanvas();
         Log.L("BeginShow");
@@ -66,12 +68,12 @@ public class UIGame : Game, IUIDelegate
         Log.L("OnFullScreenCount");
     }
 
-    void IUIDelegate.OnLayerTopChange(UILayer layer, string path)
+    void IUIDelegate.OnLayerTopChange(int layer, string path)
     {
         Log.L("OnLayerTopChange");
     }
 
-    void IUIDelegate.OnLayerTopVisibleChange(UILayer layer, string path)
+    void IUIDelegate.OnLayerTopVisibleChange(int layer, string path)
     {
         Log.L("OnLayerTopVisibleChange");
 

@@ -35,7 +35,7 @@ namespace IFramework.UI
         }
         private UIItemOperation LoadPrefab(string path)
         {
-            var _loader = module._asset;
+            var _loader = module.assetPart;
             LoadItemAsyncOperation op = new LoadItemAsyncOperation();
             op.path = path;
             ItemPool pool = new ItemPool(op, module);
@@ -71,7 +71,7 @@ namespace IFramework.UI
             works.Clear();
             foreach (var item in pools.Keys)
             {
-                module._asset.ReleaseItemAsset(pools[item].prefab);
+                module.assetPart.ReleaseItemAsset(pools[item].prefab);
             }
         }
 
@@ -91,7 +91,7 @@ namespace IFramework.UI
                 var pool = clear.Dequeue();
                 pools.Remove(pool.path);
                 pool.Clear();
-                module._asset.ReleaseItemAsset(pool.prefab);
+                module.assetPart.ReleaseItemAsset(pool.prefab);
             }
         }
     }
