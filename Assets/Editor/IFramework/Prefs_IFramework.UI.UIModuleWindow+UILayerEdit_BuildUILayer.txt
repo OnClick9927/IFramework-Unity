@@ -39,5 +39,5 @@
         },
         "m_SearchString": ""
     },
-    "layerObjectPath": "Assets/Project/Examples/UI/New UI Layer Object.asset"
+    "layerObjectPath": "Assets/Project/Examples/UI/New UI Layer Data.asset"
 }

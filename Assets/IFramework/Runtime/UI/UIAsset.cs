@@ -16,10 +16,10 @@ namespace IFramework.UI
     /// </summary>
     public abstract class UIAsset
     {
-        private UILayerObject layer;
+        private UILayerData layer;
         private PanelCollection collection;
 
-        protected UIAsset(UILayerObject layer, PanelCollection collection)
+        protected UIAsset(UILayerData layer, PanelCollection collection)
         {
             this.layer = layer;
             this.collection = collection;

@@ -12,7 +12,7 @@ public class UIGame : Game, IUIDelegate
 {
     private class Asset : UIAsset
     {
-        public Asset(UILayerObject layer, PanelCollection collection) : base(layer, collection)
+        public Asset(UILayerData layer, PanelCollection collection) : base(layer, collection)
         {
         }
 
@@ -45,7 +45,7 @@ public class UIGame : Game, IUIDelegate
     }
     public UIModule ui;
     public TextAsset txt;
-    public UILayerObject layer;
+    public UILayerData layer;
     internal void CloseView()
     {
         ui.Close(PanelNames_UIGame.PanelOne);

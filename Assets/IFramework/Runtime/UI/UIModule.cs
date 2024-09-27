@@ -233,11 +233,11 @@ namespace IFramework.UI
             {
                 foreach (var item in module.GetLayerNames())
                     CreateLayer(item, parent);
-                var items = CreateLayer(UILayerObject.item_layer, parent);
+                var items = CreateLayer(UILayerData.item_layer, parent);
                 CanvasGroup group = items.gameObject.AddComponent<CanvasGroup>();
                 group.alpha = 0f;
                 group.interactable = false;
-                var ray = CreateLayer(UILayerObject.rayCast_layer, parent);
+                var ray = CreateLayer(UILayerData.rayCast_layer, parent);
                 raycast = ray.gameObject.AddComponent<Empty4Raycast>();
                 HideRayCast();
             }
