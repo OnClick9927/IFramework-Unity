@@ -472,12 +472,12 @@ namespace IFramework.UI
         public RectTransform GetLayerRectTransform(string layer) => layerPart.GetLayerRectTransform(layer);
 
 
-        private int GetPanelLayer(string path) => this.assetPart.GetPanelLayer(path);
-        private int GetPanelLayerOrder(string path) => this.assetPart.GetPanelLayerOrder(path);
+        public int GetPanelLayer(string path) => this.assetPart.GetPanelLayer(path);
+        public int GetPanelLayerOrder(string path) => this.assetPart.GetPanelLayerOrder(path);
         private bool GetPanelHideScene(string path) => this.assetPart.GetPanelHideScene(path);
-        private List<string> GetLayerNames() => this.assetPart.GetLayerNames();
+        public List<string> GetLayerNames() => this.assetPart.GetLayerNames();
         public bool GetIgnoreOrder() => this.assetPart.GetIgnoreOrder();
-        private string GetLayerName(int layer) => this.assetPart.GetLayerName(layer);
+        public string GetLayerName(int layer) => this.assetPart.GetLayerName(layer);
         public bool GetIsPanelOpen(string path) => loadPart.Find(path) != null;
 
     }
