@@ -13,7 +13,7 @@ namespace IFramework.UI
     [DisallowMultipleComponent]
     [AddComponentMenu("IFramework/UIPanel")]
 
-    public class UIPanel:MonoBehaviour
+    public class UIPanel : MonoBehaviour
     {
         public enum PanelState
         {
@@ -34,7 +34,20 @@ namespace IFramework.UI
         public void SetState(PanelState type)
         {
             _lastState = type;
+            if (type == PanelState.OnLoad)
+            {
+                _canvasGroup = gameObject.GetComponent<CanvasGroup>();
+                if (_canvasGroup == null)
+                    _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
         }
+        public void SwitchVisible(bool visible)
+        {
+            _canvasGroup.alpha = visible ? 1 : 0;
+            _canvasGroup.blocksRaycasts = visible ? true : false;
+            _canvasGroup.interactable = visible ? true : false;
+        }
+        private CanvasGroup _canvasGroup;
         //public UIPanel Clone(Transform parent) => UnityEngine.Object.Instantiate(this, parent);
     }
 }

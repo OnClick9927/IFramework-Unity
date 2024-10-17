@@ -39,7 +39,7 @@ namespace IFramework.UI
             }
             this.path = path;
             this.SetGameObject(go);
-            go.SetActive(true);
+            //go.SetActive(true);
             this.OnGet();
             Compelete();
         }

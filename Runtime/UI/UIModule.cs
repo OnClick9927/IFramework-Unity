@@ -72,7 +72,7 @@ namespace IFramework.UI
         }
         private void CalcHideSceneCount(string path, bool show)
         {
-            var bo = GetPanelHideScene(path);
+            var bo = GetPanelFullScreen(path);
             if (!bo) return;
             if (show)
                 _fullScreenCount++;
@@ -90,7 +90,10 @@ namespace IFramework.UI
             if (top != data.layer_top)
                 delPart?.OnLayerTopChange(layer, top?.GetPath());
             if (top_visible != data.layer_top_visible)
+            {
                 delPart?.OnLayerTopVisibleChange(layer, top_visible?.GetPath());
+                layerPart.LegalLayerPanelVisible(layer);
+            }
             if (data.fullScreenCount != _fullScreenCount)
                 delPart?.OnFullScreenCount(_fullScreenCount > 0, _fullScreenCount);
 
@@ -198,27 +201,34 @@ namespace IFramework.UI
 
 
 
-
+    public class RTUILayerData
+    {
+        public RectTransform rect;
+        public CanvasGroup group;
+        public Transform parent;
+        public string name;
+    }
     partial class UIModule
     {
         private class LayerPart
         {
-            private Dictionary<int, List<UIPanel>> _panelOrders;
-            private Dictionary<string, RectTransform> _layers;
+            private Dictionary<string, List<UIPanel>> _panelOrders;
+            private Dictionary<string, RTUILayerData> _layers;
             private UIModule module;
             private Empty4Raycast raycast;
             private bool _force_show_raycast;
-
+            private List<string> layerNames;
             public LayerPart(UIModule module)
             {
                 this.module = module;
-                _panelOrders = new Dictionary<int, List<UIPanel>>();
-                _layers = new Dictionary<string, RectTransform>();
+                _panelOrders = new Dictionary<string, List<UIPanel>>();
+                _layers = new Dictionary<string, RTUILayerData>();
             }
-            private RectTransform CreateLayer(string layerName, Transform parent)
+            private RTUILayerData CreateLayer(string layerName, Transform parent)
             {
                 GameObject go = new GameObject(layerName);
                 RectTransform rect = go.AddComponent<RectTransform>();
+                var group = rect.gameObject.AddComponent<CanvasGroup>();
                 rect.SetParent(parent);
                 rect.anchorMin = Vector2.zero;
                 rect.anchorMax = Vector2.one;
@@ -226,23 +236,36 @@ namespace IFramework.UI
                 rect.sizeDelta = Vector3.zero;
                 rect.localRotation = Quaternion.identity;
                 rect.localScale = Vector3.one;
-                _layers.Add(layerName, rect);
-                return rect;
+                RTUILayerData data = new RTUILayerData()
+                {
+                    group = group,
+                    rect = rect,
+                    parent = parent,
+                    name = layerName,
+                };
+                _layers.Add(layerName, data);
+
+                return data;
             }
             public void CreateLayers(Transform parent)
             {
-                foreach (var item in module.GetLayerNames())
+                layerNames = module.GetLayerNames();
+                foreach (var item in layerNames)
                     CreateLayer(item, parent);
-                var items = CreateLayer(UILayerData.item_layer, parent);
-                CanvasGroup group = items.gameObject.AddComponent<CanvasGroup>();
-                group.alpha = 0f;
-                group.interactable = false;
+                CreateLayer(UILayerData.item_layer, parent);
+                SwitchLayerVisible(UILayerData.item_layer, false);
                 var ray = CreateLayer(UILayerData.rayCast_layer, parent);
-                raycast = ray.gameObject.AddComponent<Empty4Raycast>();
+                raycast = ray.rect.gameObject.AddComponent<Empty4Raycast>();
                 HideRayCast();
             }
-
-            public RectTransform GetLayerRectTransform(string layer) => _layers[layer];
+            private void SwitchLayerVisible(string layerName, bool visible)
+            {
+                var layer = GetRTLayerData(layerName);
+                layer.group.alpha = visible ? 1 : 0;
+                layer.group.blocksRaycasts = visible ? true : false;
+                layer.group.interactable = visible ? true : false;
+            }
+            public RTUILayerData GetRTLayerData(string layer) => _layers[layer];
 
 
             public void ShowRayCast() => raycast.raycastTarget = true;
@@ -269,9 +292,11 @@ namespace IFramework.UI
             public void SetAsLastOrder(string path, UIPanel panel)
             {
                 var layer = module.GetPanelLayer(path);
-                if (!_panelOrders.ContainsKey(layer))
-                    _panelOrders.Add(layer, new List<UIPanel>());
-                var list = _panelOrders[layer];
+                var layerName = module.GetLayerName(layer);
+
+                if (!_panelOrders.ContainsKey(layerName))
+                    _panelOrders.Add(layerName, new List<UIPanel>());
+                var list = _panelOrders[layerName];
                 list.Remove(panel);
                 list.Add(panel);
                 panel.SetSiblingIndex(list.Count);
@@ -279,9 +304,10 @@ namespace IFramework.UI
             public void SetOrder(string path, UIPanel panel)
             {
                 var layer = module.GetPanelLayer(path);
-                if (!_panelOrders.ContainsKey(layer))
-                    _panelOrders.Add(layer, new List<UIPanel>());
-                var list = _panelOrders[layer];
+                var layerName = module.GetLayerName(layer);
+                if (!_panelOrders.ContainsKey(layerName))
+                    _panelOrders.Add(layerName, new List<UIPanel>());
+                var list = _panelOrders[layerName];
                 if (module.GetIgnoreOrder())
                 {
                     SetAsLastOrder(path, panel);
@@ -310,9 +336,11 @@ namespace IFramework.UI
             }
             public UIPanel GetTopVisiblePanel(int layer)
             {
-                if (!_panelOrders.ContainsKey(layer))
+                var layerName = module.GetLayerName(layer);
+
+                if (!_panelOrders.ContainsKey(layerName))
                     return null;
-                var list = _panelOrders[layer];
+                var list = _panelOrders[layerName];
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
                     if (list[i].lastState == PanelState.OnShow)
@@ -324,18 +352,61 @@ namespace IFramework.UI
             }
             public UIPanel GetTopPanel(int layer)
             {
-                if (!_panelOrders.ContainsKey(layer))
+                var layerName = module.GetLayerName(layer);
+                if (!_panelOrders.ContainsKey(layerName))
                     return null;
-                var list = _panelOrders[layer];
+                var list = _panelOrders[layerName];
                 if (list.Count == 0) return null;
                 return list[list.Count - 1];
             }
             public void RemovePanel(string path, UIPanel panel)
             {
                 var layer = module.GetPanelLayer(path);
-                var list = _panelOrders[layer];
+                var layerName = module.GetLayerName(layer);
+
+                var list = _panelOrders[layerName];
                 list.Remove(panel);
             }
+            private bool IsLayerExistFullScreen(string layerName)
+            {
+                if (_panelOrders.TryGetValue(layerName, out var list))
+                {
+                    bool exist = false;
+
+                    for (int i = list.Count - 1; i >= 0; i--)
+                    {
+                        var panel = list[i];
+                        var path = panel.GetPath();
+                        panel.SwitchVisible(!exist);
+                        if (!exist)
+                        {
+                            if (module.GetPanelFullScreen(path))
+                            {
+                                exist = true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            public void LegalLayerPanelVisible(int layer)
+            {
+                bool exist = false;
+
+                for (int i = layerNames.Count - 1; i >= 0; i--)
+                {
+                    var layerName = layerNames[i];
+                    SwitchLayerVisible(layerName, !exist);
+                    if (!exist)
+                    {
+                        if (IsLayerExistFullScreen(layerName))
+                        {
+                            exist = true;
+                        }
+                    }
+                }
+            }
+
         }
 
         private class LoadPart
@@ -377,7 +448,7 @@ namespace IFramework.UI
                     OnShowCallBack(true, path, panel, show_op);
                 else
                 {
-                    RectTransform parent = module.GetLayerRectTransform(module.GetLayerName(layer));
+                    RectTransform parent = module.GetRTLayerData(module.GetLayerName(layer)).rect;
                     var result = module.assetPart.LoadPanel(parent, path);
                     if (result != null)
                         UILoadComplete(result, path, show_op);
@@ -469,14 +540,15 @@ namespace IFramework.UI
         public void HideRayCast() => layerPart.HideRayCast();
         public void ForceShowRayCast() => layerPart.ForceShowRayCast();
         public void ForceHideRayCast() => layerPart.ForceHideRayCast();
-        public RectTransform GetLayerRectTransform(string layer) => layerPart.GetLayerRectTransform(layer);
+        public RTUILayerData GetRTLayerData(string layer) => layerPart.GetRTLayerData(layer);
 
 
         public int GetPanelLayer(string path) => this.assetPart.GetPanelLayer(path);
         public int GetPanelLayerOrder(string path) => this.assetPart.GetPanelLayerOrder(path);
-        private bool GetPanelHideScene(string path) => this.assetPart.GetPanelHideScene(path);
+        private bool GetPanelFullScreen(string path) => this.assetPart.GetPanelFullScreen(path);
         public List<string> GetLayerNames() => this.assetPart.GetLayerNames();
         public bool GetIgnoreOrder() => this.assetPart.GetIgnoreOrder();
+        public int LayerNameToIndex(string layerName) => this.assetPart.LayerNameToIndex(layerName);
         public string GetLayerName(int layer) => this.assetPart.GetLayerName(layer);
         public bool GetIsPanelOpen(string path) => loadPart.Find(path) != null;
 
