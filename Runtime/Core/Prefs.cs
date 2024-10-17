@@ -92,11 +92,12 @@ namespace IFramework
         }
         private class EditorPrefsRecorder : IPrefsRecorder
         {
-            private static string EditPath => $"Assets/Editor/Prefs{key}.txt";
-            private static string EditPath2 => $"Assets/Editor/PrefsE{key}.txt";
+            private static string EditPath => "Assets/Editor/Prefs{0}.txt";
+            private static string EditPath2 => "Assets/Editor/PrefsE{0}.txt";
             public string Read(string key)
             {
                 var _path = compress ? EditPath2 : EditPath;
+                _path = string.Format(_path, key);
                 if (File.Exists(_path))
                     return File.ReadAllText(_path);
                 return string.Empty;
@@ -106,6 +107,8 @@ namespace IFramework
             {
 #if UNITY_EDITOR
                 var _path = compress ? EditPath2 : EditPath;
+                _path = string.Format(_path, key);
+
                 File.WriteAllText(_path, value);
                 UnityEditor.AssetDatabase.Refresh();
 #endif
