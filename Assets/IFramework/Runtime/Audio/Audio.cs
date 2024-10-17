@@ -13,7 +13,7 @@ namespace IFramework.Audio
     public class AudioPref
     {
         public SerializableDictionary<int, float> pairs = new SerializableDictionary<int, float>();
-
+        public bool HasValue => pairs.Count > 0;
         public float GetVolume(int channel)
         {
             float vol = -1;
@@ -54,14 +54,12 @@ namespace IFramework.Audio
         public static void SetConfig(IAudioConfig config)
         {
             Audio.config = config;
-            if (config != null)
+            if (config != null && !pref.HasValue)
             {
                 var values = config.GetChannels();
                 foreach (var channel in values)
                 {
-                    var vol = GetVolume(channel);
-                    if (vol != -1)
-                        vol = config.GetDefaultVolume(channel);
+                    var vol = config.GetDefaultVolume(channel);
                     SetVolume(channel, vol);
                 }
             }
