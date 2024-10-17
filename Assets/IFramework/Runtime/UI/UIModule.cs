@@ -92,7 +92,7 @@ namespace IFramework.UI
             if (top_visible != data.layer_top_visible)
             {
                 delPart?.OnLayerTopVisibleChange(layer, top_visible?.GetPath());
-                layerPart.LegalLayerPanelVisible(layer);
+                layerPart.LegalLayerPanelVisible();
             }
             if (data.fullScreenCount != _fullScreenCount)
                 delPart?.OnFullScreenCount(_fullScreenCount > 0, _fullScreenCount);
@@ -390,7 +390,7 @@ namespace IFramework.UI
                 }
                 return false;
             }
-            public void LegalLayerPanelVisible(int layer)
+            public void LegalLayerPanelVisible()
             {
                 bool exist = false;
 
@@ -552,6 +552,6 @@ namespace IFramework.UI
         public int LayerNameToIndex(string layerName) => this.assetPart.LayerNameToIndex(layerName);
         public string GetLayerName(int layer) => this.assetPart.GetLayerName(layer);
         public bool GetIsPanelOpen(string path) => loadPart.Find(path) != null;
-
+        public void LegalLayerPanelVisible() => this.layerPart.LegalLayerPanelVisible();
     }
 }
