@@ -380,7 +380,7 @@ namespace IFramework.UI
                         panel.SwitchVisible(!exist);
                         if (!exist)
                         {
-                            if (module.GetPanelFullScreen(path))
+                            if (module.GetPanelFullScreen(path) && panel.lastState == PanelState.OnShow)
                             {
                                 exist = true;
                             }
