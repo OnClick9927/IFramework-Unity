@@ -12,7 +12,7 @@ namespace IFramework.Audio
     [System.Serializable]
     public class AudioPref
     {
-        public Dictionary<int, float> pairs = new Dictionary<int, float>();
+        public SerializableDictionary<int, float> pairs = new SerializableDictionary<int, float>();
 
         public float GetVolume(int channel)
         {
