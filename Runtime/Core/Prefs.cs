@@ -217,7 +217,7 @@ namespace IFramework
             if (pairMap.TryGetValue(key_1, out var pairs))
             {
                 bool change = pairs.Save(key_2, value);
-                if (change) Save(pairs);
+                if (change) Save(key_1, pairs);
             }
             else
             {
@@ -249,7 +249,7 @@ namespace IFramework
         }
 
 
-        private static void Save(Pairs pairs)
+        private static void Save(string key, Pairs pairs)
         {
             var str = JsonUtility.ToJson(pairs);
             if (compress)
