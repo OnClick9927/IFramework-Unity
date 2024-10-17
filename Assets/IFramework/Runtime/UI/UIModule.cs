@@ -386,6 +386,7 @@ namespace IFramework.UI
                             }
                         }
                     }
+                    return exist;
                 }
                 return false;
             }
