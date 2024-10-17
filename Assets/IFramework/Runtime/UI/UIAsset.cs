@@ -66,16 +66,14 @@ namespace IFramework.UI
                 return data.order;
             return 0;
         }
-        public virtual bool GetPanelHideScene(string path)
+        public virtual bool GetPanelFullScreen(string path)
         {
             var data = GetData(path);
             if (data != null)
                 return data.fullScreen;
             return false;
         }
-        public virtual string GetLayerName(int layer)
-        {
-            return this.layer.GetLayerName(layer);
-        }
+        public virtual string GetLayerName(int layer) => this.layer.GetLayerName(layer);
+        public virtual int LayerNameToIndex(string layerName) => this.layer.LayerNameToIndex(layerName);
     }
 }

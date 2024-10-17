@@ -37,7 +37,7 @@ namespace IFramework.UI
         public void Set(UIItemView view)
         {
             this.ui.SetItem(view.path, view.gameObject);
-            view.SetActive(false);
+            //view.SetActive(false);
             view.OnSet();
         }
     }
