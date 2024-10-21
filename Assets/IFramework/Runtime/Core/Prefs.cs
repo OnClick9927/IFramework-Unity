@@ -110,7 +110,7 @@ namespace IFramework
                 _path = string.Format(_path, key);
 
                 File.WriteAllText(_path, value);
-                UnityEditor.AssetDatabase.Refresh();
+                //UnityEditor.AssetDatabase.Refresh();
 #endif
             }
         }
