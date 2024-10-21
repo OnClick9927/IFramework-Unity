@@ -264,7 +264,7 @@ namespace IFramework
             }
             return default;
         }
-        private static string ObjectToString<T>(T t, bool prettyPrint) => JsonUtility.ToJson(t, true);
+        private static string ObjectToString<T>(T t, bool prettyPrint) => JsonUtility.ToJson(t, prettyPrint);
         private static T StringToObject<T>(string json) => JsonUtility.FromJson<T>(json);
     }
 
