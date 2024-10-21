@@ -216,7 +216,7 @@ namespace IFramework
         public static void Save<T>(string key, T Obj) => Save<T>(Prefs.key, key, Obj);
         public static void Save<T>(string key_1, string key_2, T Obj)
         {
-            var value = ObjectToString(Obj);
+            var value = ObjectToString(Obj, false);
 
             if (pairMap.TryGetValue(key_1, out var pairs))
             {
@@ -245,7 +245,7 @@ namespace IFramework
 
         private static string PairToString(Pairs pairs)
         {
-            var str = ObjectToString(pairs);
+            var str = ObjectToString(pairs, true);
             if (compress)
                 str = DataCompress.GZipCompressString(str);
             return str;
@@ -264,7 +264,7 @@ namespace IFramework
             }
             return default;
         }
-        private static string ObjectToString<T>(T t) => JsonUtility.ToJson(t, true);
+        private static string ObjectToString<T>(T t, bool prettyPrint) => JsonUtility.ToJson(t, true);
         private static T StringToObject<T>(string json) => JsonUtility.FromJson<T>(json);
     }
 
