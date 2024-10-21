@@ -189,56 +189,70 @@ namespace IFramework
 
         private static void Init(string key)
         {
-            Pairs pairs;
             string value = GetRecorder().Read(key);
-            if (!string.IsNullOrEmpty(value))
-            {
-                if (compress)
-                    value = DataCompress.GZipDecompressString(value);
-                pairs = JsonUtility.FromJson<Pairs>(value);
-            }
-            else
-            {
-                pairs = new Pairs();
-            }
+            Pairs pairs = PairFromString(value);
             if (pairMap.ContainsKey(key))
                 pairMap[key] = pairs;
             else
                 pairMap.Add(key, pairs);
         }
-
-
-
-        public static void Save<T>(string key, T Obj)
+        public static string GetPairString(string key)
         {
-            Save<T>(Prefs.key, key, Obj);
+            if (pairMap.TryGetValue(key, out var pairs))
+                return PairToString(pairs);
+            return string.Empty;
         }
+        public static void SetPair(string key, string value)
+        {
+            var pairs = PairFromString(value);
+            if (pairMap.ContainsKey(key))
+                pairMap[key] = pairs;
+            else
+                pairMap.Add(key, pairs);
+            SavePair(key, pairs);
+        }
+
+
+        public static void Save<T>(string key, T Obj) => Save<T>(Prefs.key, key, Obj);
         public static void Save<T>(string key_1, string key_2, T Obj)
         {
-            var value = JsonUtility.ToJson(Obj);
+            var value = ObjectToString(Obj);
 
             if (pairMap.TryGetValue(key_1, out var pairs))
             {
                 bool change = pairs.Save(key_2, value);
-                if (change) Save(key_1, pairs);
+                if (change) SavePair(key_1, pairs);
             }
             else
             {
                 Init(key_1);
                 Save(key_1, key_2, Obj);
             }
-
-
         }
-
-
-
-
-
-        public static T Read<T>(string key)
+        private static void SavePair(string key, Pairs pairs) => GetRecorder().Save(key, PairToString(pairs));
+        private static Pairs PairFromString(string value)
         {
-            return Read<T>(Prefs.key, key);
+            Pairs pairs = new Pairs();
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                if (compress)
+                    value = DataCompress.GZipDecompressString(value);
+                pairs = StringToObject<Pairs>(value);
+            }
+            return pairs;
         }
+
+        private static string PairToString(Pairs pairs)
+        {
+            var str = ObjectToString(pairs);
+            if (compress)
+                str = DataCompress.GZipCompressString(str);
+            return str;
+        }
+
+
+        public static T Read<T>(string key) => Read<T>(Prefs.key, key);
         public static T Read<T>(string key_1, string key_2)
         {
             if (pairMap.TryGetValue(key_1, out var pairs))
@@ -246,19 +260,12 @@ namespace IFramework
                 var str = pairs.Get(key_2);
                 if (string.IsNullOrEmpty(str))
                     return default;
-                return JsonUtility.FromJson<T>(str);
+                return StringToObject<T>(str);
             }
             return default;
         }
-
-
-        private static void Save(string key, Pairs pairs)
-        {
-            var str = JsonUtility.ToJson(pairs);
-            if (compress)
-                str = DataCompress.GZipCompressString(str);
-            GetRecorder().Save(key, str);
-        }
+        private static string ObjectToString<T>(T t) => JsonUtility.ToJson(t, true);
+        private static T StringToObject<T>(string json) => JsonUtility.FromJson<T>(json);
     }
 
 }
