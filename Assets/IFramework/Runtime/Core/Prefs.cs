@@ -89,43 +89,45 @@ namespace IFramework
         {
             void Save(string key, string value);
             string Read(string key);
+
+            bool HasKey(string key);
+
+            void DeleteKey(string key);
         }
         private class EditorPrefsRecorder : IPrefsRecorder
         {
             private static string EditPath => "Assets/Editor/Prefs{0}.txt";
             private static string EditPath2 => "Assets/Editor/PrefsE{0}.txt";
+
+            private string GetFilePath(string key) => string.Format(compress ? EditPath2 : EditPath, key);
+            public void DeleteKey(string key)
+            {
+                var _path = GetFilePath(key);
+                if (File.Exists(_path))
+                    File.Delete(_path);
+            }
+
+            public bool HasKey(string key) => File.Exists(GetFilePath(key));
+
             public string Read(string key)
             {
-                var _path = compress ? EditPath2 : EditPath;
-                _path = string.Format(_path, key);
+                var _path = GetFilePath(key);
                 if (File.Exists(_path))
                     return File.ReadAllText(_path);
                 return string.Empty;
             }
 
-            public void Save(string key, string value)
-            {
-#if UNITY_EDITOR
-                var _path = compress ? EditPath2 : EditPath;
-                _path = string.Format(_path, key);
-
-                File.WriteAllText(_path, value);
-                //UnityEditor.AssetDatabase.Refresh();
-#endif
-            }
+            public void Save(string key, string value) => File.WriteAllText(GetFilePath(key), value);
         }
         private class PlayerPrefsRecorder : IPrefsRecorder
         {
+            public void DeleteKey(string key) => PlayerPrefs.DeleteKey(key);
 
-            public string Read(string key)
-            {
-                return PlayerPrefs.GetString(key);
-            }
+            public bool HasKey(string key) => PlayerPrefs.HasKey(key);
 
-            public void Save(string key, string value)
-            {
-                PlayerPrefs.SetString(key, value);
-            }
+            public string Read(string key) => PlayerPrefs.GetString(key);
+
+            public void Save(string key, string value) => PlayerPrefs.SetString(key, value);
         }
 
 
@@ -184,10 +186,12 @@ namespace IFramework
         public static void SetKey(string key)
         {
             Prefs.key = key;
-            Init(key);
+            LoadPref(key);
         }
+        public static bool HasPref(string key) => GetRecorder().HasKey(key);
+        public static void DeletePref(string key) => GetRecorder().DeleteKey(key);
 
-        private static void Init(string key)
+        public static void LoadPref(string key)
         {
             string value = GetRecorder().Read(key);
             Pairs pairs = PairFromString(value);
@@ -196,13 +200,13 @@ namespace IFramework
             else
                 pairMap.Add(key, pairs);
         }
-        public static string GetPairString(string key)
+        public static string GetPrefString(string key)
         {
             if (pairMap.TryGetValue(key, out var pairs))
                 return PairToString(pairs);
             return string.Empty;
         }
-        public static void SetPair(string key, string value)
+        public static void SetPref(string key, string value)
         {
             var pairs = PairFromString(value);
             if (pairMap.ContainsKey(key))
@@ -212,6 +216,7 @@ namespace IFramework
             SavePair(key, pairs);
         }
 
+        public static event Action<string> OnSave;
 
         public static void Save<T>(string key, T Obj) => Save<T>(Prefs.key, key, Obj);
         public static void Save<T>(string key_1, string key_2, T Obj)
@@ -220,12 +225,13 @@ namespace IFramework
 
             if (pairMap.TryGetValue(key_1, out var pairs))
             {
+                OnSave?.Invoke(key_2);
                 bool change = pairs.Save(key_2, value);
                 if (change) SavePair(key_1, pairs);
             }
             else
             {
-                Init(key_1);
+                LoadPref(key_1);
                 Save(key_1, key_2, Obj);
             }
         }
