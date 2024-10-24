@@ -29,10 +29,7 @@ namespace IFramework.UI
         }
         public T Get<T>(string path, Transform parent) where T : UIItemView, new()
         {
-            var op = ui.GetItem(path);
-            var ins = new T();
-            ins.Load(path, op, parent);
-            return ins;
+            return Get(typeof(T),path,parent) as T;
         }
         public void Set(UIItemView view)
         {

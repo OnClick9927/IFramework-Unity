@@ -43,7 +43,12 @@ namespace IFramework.UI
             this.OnGet();
             Compelete();
         }
-        public abstract void OnSet();
+        public virtual void OnSet()
+        {
+            this.DisposeEvents();
+            this.DisposeUIEvents();
+
+        }
 
         protected abstract void OnGet();
 

@@ -75,7 +75,7 @@ namespace IFramework.UI
             protected virtual string scriptPath { get { return GenPath.CombinePath(viewScriptName); } }
             public override string PanelToViewName(string panelName) => $"{panelName}View";
             public sealed override string GetPanelScriptName(string panelName) => GetViewScriptName(PanelToViewName(panelName));
-        
+
             protected abstract string GetViewScriptName(string viewName);
 
 
@@ -230,10 +230,10 @@ namespace IFramework.UI
             public const string Field = "#field#";
             public const string FindField = "#findfield#";
 
-            protected abstract string GetFieldCode(string fieldType, string fieldName);
-            protected abstract string GetFindFieldCode(string fieldType, string fieldName, string path);
+            protected abstract string GetFieldCode(string source, string fieldType, string fieldName);
+            protected abstract string GetFindFieldCode(string source, string fieldType, string fieldName, string path);
 
-            private void Fields(ScriptCreator creater, out string field, out string find)
+            private void Fields(string source, ScriptCreator creater, out string field, out string find)
             {
                 var marks = creater.GetMarks();
                 if (creater.executeSubContext)
@@ -262,8 +262,8 @@ namespace IFramework.UI
                         else
                             path = path.Remove(0, root_path.Length + 1);
                         path = $"\"{path}\"";
-                        sb_field.AppendLine(GetFieldCode(fieldType, fieldName));
-                        sb_find.AppendLine(GetFindFieldCode(fieldType, fieldName, path));
+                        sb_field.AppendLine(GetFieldCode(source, fieldType, fieldName));
+                        sb_find.AppendLine(GetFindFieldCode(source, fieldType, fieldName, path));
                     }
                 }
                 field = sb_field.ToString();
@@ -278,7 +278,7 @@ namespace IFramework.UI
                 var source = string.IsNullOrEmpty(file) ? GetScriptTemplate() : file;
                 string field;
                 string find;
-                Fields(creator, out field, out find);
+                Fields(source, creator, out field, out find);
                 source = source.Replace(Author, EditorTools.ProjectConfig.UserName)
                 .Replace(ScriptName, Path.GetFileNameWithoutExtension(scriptPath))
                   .Replace(ScriptNameSpace, EditorTools.ProjectConfig.NameSpace)

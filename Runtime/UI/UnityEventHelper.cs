@@ -16,9 +16,15 @@ namespace IFramework.UI
     {
         public abstract class UIEventEntity : IDisposable
         {
-            public void AddTo(UIEventBox box)
+            public UIEventEntity AddTo(GameObjectView box)
+            {
+                box.AddUIEvent(this);
+                return this;
+            }
+            public UIEventEntity AddTo(UIEventBox box)
             {
                 box.Add(this);
+                return this;
             }
             public abstract void Dispose();
         }
@@ -76,7 +82,11 @@ namespace IFramework.UI
                 if (uIEventEntities.Contains(entity)) return;
                 uIEventEntities.Add(entity);
             }
-
+            public void Dispose(UIEventEntity entity)
+            {
+                entity.Dispose();
+                uIEventEntities.Remove(entity);
+            }
             public void Dispose()
             {
                 for (int i = 0; i < uIEventEntities.Count; i++)

@@ -166,6 +166,7 @@ namespace IFramework
         private static Dictionary<string, Pairs> pairMap = new Dictionary<string, Pairs>();
 
         private static string key = "Perfs";
+        public static string GetKey() => key;
         private static bool compress = false;
         public static void SetPrefsRecorder(IPrefsRecorder _recorder)
         {
