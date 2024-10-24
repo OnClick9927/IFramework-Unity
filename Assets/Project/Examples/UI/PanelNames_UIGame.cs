@@ -4,6 +4,6 @@ public class PanelNames_UIGame
 	public const string PanelOneTWO = "Assets/Project/Examples/UI/PanelOneTWO.prefab";
 	public static System.Collections.Generic.Dictionary<string, System.Type> map = new System.Collections.Generic.Dictionary<string, System.Type>()
 	{
-		{PanelOne,typeof(Test.HH.PanelOneView)},
+		{PanelOne,typeof(IFramework.PanelOneView)},
 	};
 }

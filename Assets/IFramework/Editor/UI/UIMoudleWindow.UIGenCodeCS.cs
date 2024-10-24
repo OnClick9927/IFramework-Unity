@@ -129,35 +129,64 @@ namespace IFramework.UI
             "{\n" +
             $"\tpublic class {ScriptName} : {pa.FullName} \n" +
             "\t{\n" +
+
+            "\t\tclass View {\n" +
              $"//{FieldsStart}\n" +
              $"{Field}\n" +
              $"//{FieldsEnd}\n" +
+             "\t\tpublic View(IFramework.UI.GameObjectView context){\n" +
+             $"//{InitComponentsStart}\n" +
+            $"{FindField}\n" +
+            $"//{InitComponentsEnd}\n" +
+             "\t\t\t}\n" +
+             "\t\t}\n" +
+
+             "\t\tprivate View view;\n" +
 
             "\t\tprotected override void InitComponents()\n" +
             "\t\t{\n" +
-             $"\t\t//{InitComponentsStart}\n" +
-            $"{FindField}\n" +
-            $"\t\t//{InitComponentsEnd}\n" +
+            "\t\t\tview = new View(this);\n" +
+
+
+
             "\t\t}\n" +
+
+
             MoreMethod +
             "\t}\n" +
             "}";
                 return target.Replace(MoreMethod, ViewTxt());
             }
 
-            protected override string GetFieldCode(string fieldType, string fieldName)
+            protected override string GetFieldCode(string source, string fieldType, string fieldName)
             {
-                return $"\t\tprivate {fieldType} {fieldName};";
+                if (source.Contains("class View"))
+                    return $"\t\tpublic {fieldType} {fieldName};";
+                else
+                    return $"\t\tprivate {fieldType} {fieldName};";
 
             }
-            protected override string GetFindFieldCode(string fieldType, string fieldName, string path)
+            protected override string GetFindFieldCode(string source, string fieldType, string fieldName, string path)
             {
-                if (fieldType == typeof(GameObject).FullName)
-                    return $"\t\t\t{fieldName} = GetGameObject({path});";
-                else if (fieldType == typeof(Transform).FullName)
-                    return $"\t\t\t{fieldName} = GetTransform({path});";
+                if (source.Contains("class View"))
+                {
+                    if (fieldType == typeof(GameObject).FullName)
+                        return $"\t\t\t{fieldName} = context.GetGameObject({path});";
+                    else if (fieldType == typeof(Transform).FullName)
+                        return $"\t\t\t{fieldName} = context.GetTransform({path});";
+                    else
+                        return $"\t\t\t{fieldName} = context.GetComponent<{fieldType}>({path});";
+                }
                 else
-                    return $"\t\t\t{fieldName} = GetComponent<{fieldType}>({path});";
+                {
+
+                    if (fieldType == typeof(GameObject).FullName)
+                        return $"\t\t\t{fieldName} = GetGameObject({path});";
+                    else if (fieldType == typeof(Transform).FullName)
+                        return $"\t\t\t{fieldName} = GetTransform({path});";
+                    else
+                        return $"\t\t\t{fieldName} = GetComponent<{fieldType}>({path});";
+                }
             }
 
 

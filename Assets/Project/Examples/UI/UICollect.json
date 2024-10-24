@@ -6,7 +6,7 @@
             "layer": 0,
             "fullScreen": false,
             "order": 0,
-            "ScriptPath": "Assets/Project/Examples/PanelOneView.cs"
+            "ScriptPath": "Assets/Project/Examples/UI/PanelOneView.cs"
         },
         {
             "path": "Assets/Project/Examples/UI/PanelOneTWO.prefab",

@@ -11,7 +11,8 @@ namespace IFramework.UI.MVC
 {
 
     public abstract class UIView : GameObjectView, IViewEventHandler
-    {     
+    {
+
         protected abstract void OnLoad();
         protected abstract void OnShow();
         protected abstract void OnHide();
@@ -23,6 +24,11 @@ namespace IFramework.UI.MVC
 
         void IViewEventHandler.OnHide() => OnHide();
 
-        void IViewEventHandler.OnClose() => OnClose();
+        void IViewEventHandler.OnClose()
+        {
+            DisposeUIEvents();
+            DisposeEvents();
+            OnClose();
+        }
     }
 }

@@ -4,29 +4,28 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-07-31
 *********************************************************************************/
-using IFramework;
 using IFramework.UI;
 using System.Collections.Generic;
 using UnityEngine;
 using static IFramework.UI.UnityEventHelper;
-namespace Test.HH
+namespace IFramework
 {
-    public class PanelOneView : IFramework.UI.MVC.UIView
+    public class PanelOneView_1 : IFramework.UI.MVC.UIView
     {
         //FieldsStart
-        private UnityEngine.UI.Button Close;
-        private UnityEngine.UI.Button add;
-        private UnityEngine.UI.Button remove;
-        private UnityEngine.Transform items;
+		private UnityEngine.UI.Button Close;
+		private UnityEngine.UI.Button add;
+		private UnityEngine.UI.Button remove;
+		private UnityEngine.Transform items;
 
         //FieldsEnd
         protected override void InitComponents()
         {
             //InitComponentsStart
-            Close = GetComponent<UnityEngine.UI.Button>("Close@sm");
-            add = GetComponent<UnityEngine.UI.Button>("add@sm");
-            remove = GetComponent<UnityEngine.UI.Button>("remove@sm");
-            items = GetTransform("items@sm");
+			Close = GetComponent<UnityEngine.UI.Button>("Close@sm");
+			add = GetComponent<UnityEngine.UI.Button>("add@sm");
+			remove = GetComponent<UnityEngine.UI.Button>("remove@sm");
+			items = GetTransform("items@sm");
 
             //InitComponentsEnd
         }

@@ -2,30 +2,34 @@
  *Author:         OnClick
  *Version:        1.0
  *UnityVersion:   2021.3.33f1c1
- *Date:           2024-07-31
+ *Date:           2024-10-24
 *********************************************************************************/
-using System;
 using UnityEngine;
 using static IFramework.UI.UnityEventHelper;
 namespace IFramework
 {
 	public class PanelOneItemView : IFramework.UI.UIItemView 
 	{
+		class View {
 //FieldsStart
-		private UnityEngine.UI.Image PanelOneItem;
+		public UnityEngine.UI.Image PanelOneItem;
 
+//FieldsEnd
+		public View(IFramework.UI.GameObjectView context){
+//InitComponentsStart
+			PanelOneItem = context.GetComponent<UnityEngine.UI.Image>("");
 
-        //FieldsEnd
-        protected override void InitComponents()
-		{
-		//InitComponentsStart
-			PanelOneItem = GetComponent<UnityEngine.UI.Image>("");
-
-		//InitComponentsEnd
+//InitComponentsEnd
+			}
 		}
-
+		private View view;
+		protected override void InitComponents()
+		{
+			view = new View(this);
+		}
         public override void OnSet()
         {
+            base.OnSet();
             Log.L("OnSet");
         }
 
@@ -36,7 +40,7 @@ namespace IFramework
 
         internal void SetColor(Color color)
         {
-            this.PanelOneItem.color = color;
+            this.view.PanelOneItem.color = color;
         }
     }
 }

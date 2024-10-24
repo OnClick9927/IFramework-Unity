@@ -2,7 +2,7 @@
  *Author:         OnClick
  *Version:        1.0
  *UnityVersion:   2021.3.33f1c1
- *Date:           2024-07-31
+ *Date:           2024-10-24
 *********************************************************************************/
 using IFramework.UI;
 using System.Collections.Generic;
@@ -12,39 +12,43 @@ namespace IFramework
 {
     public class PanelOneView : IFramework.UI.MVC.UIView
     {
-        //FieldsStart
-        private UnityEngine.UI.Button Close;
-        private UnityEngine.UI.Button add;
-        private UnityEngine.UI.Button remove;
-        private UnityEngine.Transform items;
+        class View
+        {
+            //FieldsStart
+		public UnityEngine.UI.Button Close;
+		public UnityEngine.UI.Button add;
+		public UnityEngine.UI.Button remove;
+		public UnityEngine.Transform items;
 
-        //FieldsEnd
+            //FieldsEnd
+            public View(IFramework.UI.GameObjectView context)
+            {
+                //InitComponentsStart
+			Close = context.GetComponent<UnityEngine.UI.Button>("Close@sm");
+			add = context.GetComponent<UnityEngine.UI.Button>("add@sm");
+			remove = context.GetComponent<UnityEngine.UI.Button>("remove@sm");
+			items = context.GetTransform("items@sm");
+
+                //InitComponentsEnd
+            }
+        }
+        private View view;
+        private UIItemViewCollection collection;
+        const string eve_key_remove = "eve_key_remove";
         protected override void InitComponents()
         {
-            //InitComponentsStart
-            Close = GetComponent<UnityEngine.UI.Button>("Close@sm");
-            add = GetComponent<UnityEngine.UI.Button>("add@sm");
-            remove = GetComponent<UnityEngine.UI.Button>("remove@sm");
-            items = GetTransform("items@sm");
-
-            //InitComponentsEnd
+            view = new View(this);
         }
-        private UIItemViewCollection collection;
-        private UIEventBox eve_ui;
-        private EventBox eve;
-        const string eve_key_remove = "eve_key_remove";
         protected override void OnLoad()
         {
-            eve_ui = new UIEventBox();
-            eve = new EventBox();
-            BindButton(this.Close, (Launcher.Instance.game as UIGame).CloseView).AddTo(eve_ui);
-            BindButton(this.add, Add).AddTo(eve_ui);
-            BindButton(this.remove, () =>
+            BindButton(this.view.Close, (Launcher.Instance.game as UIGame).CloseView).AddTo(this);
+            BindButton(this.view.add, Add).AddTo(this);
+            BindButton(this.view.remove, () =>
             {
                 Events.Publish(eve_key_remove, null);
-            }).AddTo(eve_ui);
+            }).AddTo(this);
             collection = new UIItemViewCollection((Launcher.Instance.game as UIGame).ui);
-            eve.Subscribe(eve_key_remove, (e) =>
+            SubscribeEvent(eve_key_remove, (e) =>
             {
                 Remove();
             });
@@ -57,7 +61,7 @@ namespace IFramework
         }
         private async void Add()
         {
-            var result = await collection.Get<PanelOneItemView>("Assets/Project/Examples/UI/PanelOneItem.prefab", this.items);
+            var result = await collection.Get<PanelOneItemView>("Assets/Project/Examples/UI/PanelOneItem.prefab", this.view.items);
             result.SetColor(new Color(Random.Range(0, 1f), Random.Range(0, 1f), Random.Range(0, 1f), 1));
             queue.Push(result);
         }
@@ -72,8 +76,6 @@ namespace IFramework
 
         protected override void OnClose()
         {
-            eve_ui.Dispose();
-            eve.Dispose();
         }
     }
 }
