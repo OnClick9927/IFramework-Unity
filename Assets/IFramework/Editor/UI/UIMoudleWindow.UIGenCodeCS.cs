@@ -24,7 +24,7 @@ namespace IFramework.UI
             {
                 UIItem,
                 GameObject,
-                MVCView
+                UI
             }
             public override string name => "CS";
             protected override string GetViewScriptName(string viewName) => $"{viewName}.cs";
@@ -37,11 +37,11 @@ namespace IFramework.UI
                 UIPanel find = gameObject.GetComponent<UIPanel>();
                 if (find != null)
                 {
-                    _type = ItemType.MVCView;
+                    _type = ItemType.UI;
                 }
                 else
                 {
-                    if (_type == ItemType.MVCView)
+                    if (_type == ItemType.UI)
                         _type = ItemType.GameObject;
                 }
             }
@@ -54,7 +54,7 @@ namespace IFramework.UI
                 if (txt.Contains($"{typeof(IFramework.UI.UIItemView).FullName}"))
                     _type = ItemType.UIItem;
                 if (txt.Contains($"{typeof(IFramework.UI.MVC.UIView).FullName}"))
-                    _type = ItemType.MVCView;
+                    _type = ItemType.UI;
             }
 
             protected override void LoadLastData(UIGenCode<GameObject> _last)
@@ -112,7 +112,7 @@ namespace IFramework.UI
                     case ItemType.GameObject:
                         pa = typeof(GameObjectView);
                         break;
-                    case ItemType.MVCView:
+                    case ItemType.UI:
                         pa = typeof(IFramework.UI.MVC.UIView);
                         break;
                     default:
@@ -207,7 +207,7 @@ namespace IFramework.UI
                     "\t\t{\n" +
                     "\t\t}\n";
                 }
-                if (_type == ItemType.MVCView)
+                if (_type == ItemType.UI)
                     return "\t\tprotected override void OnLoad()\n" +
             "\t\t{\n" +
 

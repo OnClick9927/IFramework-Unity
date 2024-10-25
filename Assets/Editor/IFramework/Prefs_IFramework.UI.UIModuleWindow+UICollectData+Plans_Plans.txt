@@ -2,9 +2,9 @@
     "index": 0,
     "plans": [
         {
-            "ConfigGenPath": "Assets/Project/Examples/UI",
+            "ConfigGenPath": "Assets/Lua/Lua/TestUI",
             "PanelCollectPath": "Assets/Project/Examples/UI",
-            "ScriptGenPath": "Assets/Project/Examples/UI",
+            "ScriptGenPath": "Assets/Lua/Lua/TestUI",
             "ScriptName": "PanelNames_UIGame",
             "name": "UIGame",
             "typeIndex": 0,

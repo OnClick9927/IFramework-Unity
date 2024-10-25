@@ -1,6 +1,6 @@
 {
     "GenPath": "Assets/Project/Examples/UI/",
-    "panelPath": "Assets/Project/Examples/UI/PanelOneItem.prefab",
+    "panelPath": "Assets/Project/Examples/UI/PanelOne.prefab",
     "state": {
         "scrollPos": {
             "x": 0.0,
@@ -43,6 +43,7 @@
             19930,
             20258,
             21436,
+            21642,
             27168,
             27186,
             27188,
@@ -71,5 +72,5 @@
         "m_SearchString": ""
     },
     "_searchType": 2,
-    "_type": 0
+    "_type": 2
 }

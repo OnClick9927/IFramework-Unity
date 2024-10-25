@@ -1,0 +1,6 @@
+local PanelNames_UIGame = 
+{
+	 PanelOne = "Assets/Project/Examples/UI/PanelOne.prefab";
+	 PanelOneTWO = "Assets/Project/Examples/UI/PanelOneTWO.prefab";
+}
+return PanelNames_UIGame

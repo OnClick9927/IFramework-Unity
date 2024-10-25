@@ -6,7 +6,7 @@
             "layer": 0,
             "fullScreen": false,
             "order": 0,
-            "ScriptPath": ""
+            "ScriptPath": "Assets/Lua/Lua/TestUI/PanelOneView.lua.txt"
         },
         {
             "path": "Assets/Project/Examples/UI/PanelOneTWO.prefab",

@@ -271,7 +271,11 @@ namespace IFramework.UI
 
             }
 
-            protected virtual void WriteView()
+            protected virtual string OverwriteWriteFile(ScriptCreator context, string source)
+            {
+                return source;
+            }
+            protected void WriteView()
             {
                 creator.RemoveEmptyMarks();
                 var file = ReadFromFile(scriptPath);
@@ -285,8 +289,10 @@ namespace IFramework.UI
                   .Replace(Version, EditorTools.ProjectConfig.Version)
                   .Replace(UnityVersion, Application.unityVersion)
                   .Replace(Date, DateTime.Now.ToString("yyyy-MM-dd")).Replace(Field, field)
-                       .Replace(FindField, find).ToUnixLineEndings();
-                File.WriteAllText(scriptPath, source, Encoding.UTF8);
+                       .Replace(FindField, find);
+                if (string.IsNullOrEmpty(file))
+                    source = source.ToUnixLineEndings();
+                File.WriteAllText(scriptPath, OverwriteWriteFile(creator, source));
             }
             protected abstract string GetScriptTemplate();
             private string ReadFromFile(string path)

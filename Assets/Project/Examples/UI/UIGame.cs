@@ -10,7 +10,7 @@ using UnityEngine;
 
 public class UIGame : Game, IUIDelegate
 {
-    private class Asset : UIAsset
+    public class Asset : UIAsset
     {
         public Asset(UILayerData layer, PanelCollection collection) : base(layer, collection)
         {
