@@ -301,21 +301,36 @@ namespace IFramework.UI
                     }
                     return true;
                 }
-
-                protected override void ContextClickedItem(int id)
+                protected override void ContextClicked()
                 {
-                    if (id < layerNames.Length) return;
-                    var data = datas[id - layerNames.Length];
+                    var _select = this.GetSelection();
+                    if (_select == null || _select.Count == 0) return;
+                    var select = _select.ToList();
+                    select.RemoveAll(x => x < layerNames.Length);
+                    if (select == null || select.Count == 0) return;
+
                     GenericMenu menu = new GenericMenu();
+
                     for (int i = 0; i < layerNames.Length; i++)
                     {
                         var name = layerNames[i];
-                        if (data.layer.ToString() == name) continue;
                         menu.AddItem(new GUIContent($"MoveTo/{name}"), false, () =>
                         {
-                            Set(edit.layerObject.LayerNameToIndex(name), int.MaxValue, data);
+                            foreach (var id in select)
+                            {
+                                var data = datas[id - layerNames.Length];
+                                if (data.layer.ToString() == name) continue;
+                                Set(edit.layerObject.LayerNameToIndex(name), int.MaxValue, data);
+                            }
                             Reload();
                             SetExpanded(layerNames.ToList().IndexOf(name), true);
+                        });
+                    }
+                    if (select.Count == 1) {
+                        var data = datas[select[0] - layerNames.Length];
+                        menu.AddItem(new GUIContent($"CopyPath"), false, () =>
+                        {
+                            GUIUtility.systemCopyBuffer = data.path;
                         });
                     }
                     menu.ShowAsContext();

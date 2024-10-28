@@ -1,22 +1,14 @@
 {
-    "layer_state": {
+    "GenPath": "",
+    "panelPath": "",
+    "state": {
         "scrollPos": {
             "x": 0.0,
             "y": 0.0
         },
-        "m_SelectedIDs": [
-            6,
-            7
-        ],
-        "m_LastClickedID": 6,
-        "m_ExpandedIDs": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5
-        ],
+        "m_SelectedIDs": [],
+        "m_LastClickedID": 0,
+        "m_ExpandedIDs": [],
         "m_RenameOverlay": {
             "m_UserAcceptedRename": false,
             "m_Name": "",
@@ -39,5 +31,7 @@
         },
         "m_SearchString": ""
     },
-    "layerObjectPath": "Assets/Project/Examples/UI/New UI Layer Data.asset"
+    "_searchType": 0,
+    "config_path": "",
+    "_type": 0
 }
