@@ -1,13 +1,15 @@
 {
-    "GenPath": "",
-    "panelPath": "",
+    "GenPath": "Assets/Lua/Lua/TestUI/",
+    "panelPath": "Assets/Project/Examples/UI/PanelOneItem.prefab",
     "state": {
         "scrollPos": {
             "x": 0.0,
             "y": 0.0
         },
-        "m_SelectedIDs": [],
-        "m_LastClickedID": 0,
+        "m_SelectedIDs": [
+            23474
+        ],
+        "m_LastClickedID": 23474,
         "m_ExpandedIDs": [],
         "m_RenameOverlay": {
             "m_UserAcceptedRename": false,

@@ -5,28 +5,28 @@
 --Date:           2024-10-24
 --*********************************************************************************
 ---StaticUsing
-local Image = StaticUsing("UnityEngine.UI.Image")
+local Transform = StaticUsing("UnityEngine.Transform")
 ---StaticUsing
 ---@class PanelOneItemView : UIItemView
-local PanelOneItemView = class("PanelOneItemView",UIItemView)
+local PanelOneItemView = class("PanelOneItemView", UIItemView)
 
 function PanelOneItemView:InitComponents()
-	self.view = {
---InitComponentsStart
-		---@type UnityEngine.UI.Image
-		PanelOneItem = self:GetComponent("", typeof(Image)),
+    self.view = {
+        --InitComponentsStart
+		---@type UnityEngine.Transform
+		PanelOneItem = self:GetComponent("", typeof(Transform)),
 
 
---InitComponentsEnd
-	}
- end
+        --InitComponentsEnd
+    }
+end
+
 function PanelOneItemView:OnGet()
 end
 
 function PanelOneItemView:OnSet()
- 	self:DisposeEvents()
-  	self:DisposeUIEvents()
+    self:DisposeEvents()
+    self:DisposeUIEvents()
 end
 
-
- return PanelOneItemView
+return PanelOneItemView

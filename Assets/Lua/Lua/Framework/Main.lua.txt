@@ -1,14 +1,6 @@
 CS = CS
 typeof = typeof
 
-require("Framework.index")
-
-
-
----@type EventSystem
-LifeTimeEvent = EventSystem()
----@type EventSystem
-Events = EventSystem()
 LifeTimeEventType = {
     Update = 1,
     Dispose = 2,
@@ -17,7 +9,17 @@ LifeTimeEventType = {
     ApplicationFocus = 5,
     ApplicationPause = 6,
 }
-------------------------------------下方无需调用-------------------------------------------
+----
+require("Framework.index")
+
+
+
+---@type EventSystem
+LifeTimeEvent = EventSystem()
+---@type EventSystem
+Events = EventSystem()
+
+--------------------------------下方无需调用-------------------------------------------
 local function Update()
     LifeTimeEvent:Publish(LifeTimeEventType.Update)
 end

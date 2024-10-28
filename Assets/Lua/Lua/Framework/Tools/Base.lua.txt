@@ -539,24 +539,25 @@ ClassType = {
     ExtendCSInstance = 2  --扩展CSharp实例
 }
 
----@class Unit 元
-
----@type Unit
+---@class Unit
 Unit = {
     ---@type UnitType 元类型
-    __unittype    = UnitType.Unit,
+    __unitType    = UnitType.Unit,
     ---@type Unit 基类型                    __unittype = UnitType.Type 存在
     __super       = nil,
     ---@type string 类型名称                __unittype = UnitType.Type 存在
-    __classname   = "Unit",
+    __className   = "Unit",
     ---@type ClassType 类型种类             __unittype = UnitType.Type 存在
-    __classtype   = nil,
+    __classType   = nil,
     ---@type Unit 所属类型 ，是一个 {}       __unittype == UnitType.Instance 存在
     __type        = nil,
+    ---@private
     ---@type userdata CS 对象               __classtype = ClassType.ExtendCSInstance|ClassType.CreateFirst存在
     __object      = nil,
+    ---@private
     ---@type function 创建CS实例             __classtype = ClassType.CreateFirst &&  __unittype = UnitType.Type存在
-    __firstcreate = nil,
+    __firstCreate = nil,
+    ---@private
     ---@type  function 构造函数 自动调用
     ctor          = nil
 }
@@ -567,12 +568,12 @@ function Unit:IsSubClassOf(super)
     --- @type Unit
     local _type
     --- @type string
-    local classname
-    _type     = self.__unittype == UnitType.Instance and self.__type or self
-    classname = type(super) == LuaDataType.String and super or super.__classname
+    local className
+    _type     = self.__unitType == UnitType.Instance and self.__type or self
+    className = type(super) == LuaDataType.String and super or super.__className
     local tmp = _type
     while tmp ~= nil do
-        if tmp.__classname == classname then return true end
+        if tmp.__className == className then return true end
         tmp = tmp.__super
     end
     return false
@@ -589,7 +590,7 @@ local function CopySuper(instance, type)
     end
     for keysuper, superItem in pairs(supers) do
         for k, v in pairs(superItem) do
-            if k ~= "__firstcreate" and k ~= "__unittype" then
+            if k ~= "__firstCreate" and k ~= "__unitType" then
                 instance[k] = v
             end
         end
@@ -600,9 +601,9 @@ end
 
 ---@param instance Unit
 local function ExtendCSInstance(instance)
-    instance.__unittype = UnitType.Instance
+    instance.__unitType = UnitType.Instance
     local meta = {}
-    meta.__call = function(_, ...) error(_.__classname .. " is a instance extend from cs instance ") end
+    meta.__call = function(_, ...) error(_.__className .. " is a instance extend from cs instance ") end
     meta.__index = function(_t, k)
         local selffield = rawget(_t, k)
         if selffield then
@@ -658,32 +659,32 @@ end
 
 ---创建一个类
 ---@generic T:Unit
----@param classname string  类名
+---@param className string  类名
 ---@param super Unit|userdata|nil 父类
 ---@return T
-class = function(classname, super)
-    assert(type(classname) == LuaDataType.String and #classname > 0)
+class = function(className, super)
+    assert(type(className) == LuaDataType.String and #className > 0)
     ---@type Unit
     local unitType
     local superType      = type(super)
     local isCSType       = super and superType == LuaDataType.Table and typeof(super)                  --判断是否是C#类
     local isCSInstance   = super and superType == LuaDataType.UserData                                 --判断是否为C#实例
-    local isExCSInsAgain = super and super.__classtype == ClassType.ExtendCSInstance                   --再次扩展C#实例
+    local isExCSInsAgain = super and super.__classType == ClassType.ExtendCSInstance                   --再次扩展C#实例
     if isExCSInsAgain then error('cannot extends a c# instance multiple times.') end
-    local isFirstExCSType  = isCSType and (not super.__classtype) or superType == LuaDataType.Function --首次继承C#类
-    local isExCSTypeAgain  = super and super.__classtype == ClassType.CreateFirst                      --再次扩展C#类
+    local isFirstExCSType  = isCSType and (not super.__classType) or superType == LuaDataType.Function --首次继承C#类
+    local isExCSTypeAgain  = super and super.__classType == ClassType.CreateFirst                      --再次扩展C#类
     unitType               = {}
-    unitType.__classname   = classname
+    unitType.__className   = className
     unitType.__type        = Unit
-    unitType.__unittype    = isCSInstance and UnitType.Instance or UnitType.Type
+    unitType.__unitType    = isCSInstance and UnitType.Instance or UnitType.Type
     unitType.__object      = isCSInstance and super or nil
     unitType.ctor          = unitType.ctor or function(...) end
-    unitType.__classtype   = (isCSInstance and ClassType.ExtendCSInstance) or
+    unitType.__classType   = (isCSInstance and ClassType.ExtendCSInstance) or
         ((isFirstExCSType or isExCSTypeAgain) and ClassType.CreateFirst) or ClassType.Lua
     unitType.__super       = ((isCSInstance or isFirstExCSType) and Unit) or
         (isExCSTypeAgain and super) or (super == nil and Unit or super)
-    unitType.__firstcreate = (isExCSTypeAgain and super.__firstcreate) or
-        ((isCSType and not super.__classtype) and function(...) return super(...) end) or
+    unitType.__firstCreate = (isExCSTypeAgain and super.__firstCreate) or
+        ((isCSType and not super.__classType) and function(...) return super(...) end) or
         ((superType == LuaDataType.Function) and super) or nil
     if isCSInstance then return ExtendCSInstance(unitType) end
     local meta   = {}

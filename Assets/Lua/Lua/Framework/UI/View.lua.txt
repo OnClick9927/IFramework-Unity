@@ -1,5 +1,7 @@
 local cs_UnityEventHelper = StaticUsing("IFramework.UI.UnityEventHelper")
 local cs_UIEventBox = StaticUsing("IFramework.UI.UnityEventHelper.UIEventBox")
+local cs_GameObject = StaticUsing("UnityEngine.GameObject")
+local cs_Transform = StaticUsing("UnityEngine.Transform")
 
 
 UnityEventHelper = {
@@ -68,6 +70,12 @@ function GameObjectView:GetComponent(path, type)
     if not transform then
         error("can't find transform with " .. path .. " in panel " .. self.gameObject.name)
     end
+    if type == typeof(cs_GameObject) then
+        return transform.gameObject
+    end
+    if type == typeof(cs_Transform) then
+        return transform.transform
+    end
     return transform:GetComponent(type) or transform:GetComponentInChildren(type, true)
 end
 
@@ -133,12 +141,6 @@ UIItemView = class("UIItem", GameObjectView)
 function UIItemView:ctor(gameObject, path)
     self.path = path
     self:SetGameObject(gameObject)
-end
-
-function UIItemView:SetParent(parent)
-    local transform = self.transform
-    transform:SetParent(parent)
-    transform:LocalIdentity()
 end
 
 function UIItemView:OnGet() end
