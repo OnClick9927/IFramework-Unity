@@ -202,10 +202,13 @@ namespace IFramework.UI
             public static List<string> GetFitScriptPaths(string name) => name_ScriptMap.TryGetValue(name, out var list) ? list : null;
 
             private static Dictionary<string, List<string>> name_ScriptMap;
-            private static void CollectScripPaths(PanelCollection collect, List<string> paths)
+            private static void CollectScripPaths(PanelCollection collect)
             {
                 name_ScriptMap = new Dictionary<string, List<string>>();
                 var tab = window.GetTab(UICollectData.plan.GetSelectType());
+                var paths = AssetDatabase.FindAssets(tab.GetScriptFitter())
+                    .Select(x => AssetDatabase.GUIDToAssetPath(x))
+                    .ToList();
                 for (int i = 0; i < collect.datas.Count; i++)
                 {
                     var data = collect.datas[i];
@@ -254,6 +257,7 @@ namespace IFramework.UI
                         }
                         return new { isResourcePath, path };
                     });
+
                 collect.datas.RemoveAll(x => paths.FirstOrDefault(y => y.path == x.path) == null);
                 paths.ToList().FindAll(x => collect.datas.Find(y => y.path == x.path) == null)
                 .ForEach(x =>
@@ -264,7 +268,7 @@ namespace IFramework.UI
                         path = x.path,
                     });
                 });
-                CollectScripPaths(collect, AssetDatabase.GetAllAssetPaths().ToList());
+                CollectScripPaths(collect);
 
 
 

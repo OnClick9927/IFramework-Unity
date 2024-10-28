@@ -29,7 +29,7 @@ namespace IFramework.UI
             {
                 return string.Empty;
             }
- 
+            public abstract string GetScriptFitter();
             
         }
     }
