@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using static IFramework.EditorTools;
+using System.Runtime.InteropServices;
 
 namespace IFramework.UI
 {
@@ -35,14 +36,14 @@ namespace IFramework.UI
                 public string ScriptName;
                 public string name;
 
-                private static string[] _types, _shortTypes;
-                public static string[] types
+                private static string[] _typeNames, _shortTypes;
+                public static string[] typeNames
                 {
                     get
                     {
-                        if (_types == null)
+                        if (_typeNames == null)
                             Enable();
-                        return _types;
+                        return _typeNames;
                     }
                 }
                 public static string[] shortTypes
@@ -54,6 +55,18 @@ namespace IFramework.UI
                         return _shortTypes;
                     }
                 }
+                public static Type[] __types;
+                public static Type[] types
+                {
+                    get
+                    {
+                        if (__types == null)
+                        {
+                            Enable();
+                        }
+                        return __types;
+                    }
+                }
                 public int typeIndex;
                 public static Type baseType = typeof(UIGenCode);
                 public string ConfigName;
@@ -62,16 +75,14 @@ namespace IFramework.UI
                 {
                     var list = EditorTools.GetSubTypesInAssemblies(baseType)
                    .Where(type => !type.IsAbstract);
-                    _types = list.Select(type => type.FullName).ToArray();
+                    __types = list.ToArray();
+                    _typeNames = list.Select(type => type.FullName).ToArray();
                     _shortTypes = list.Select(type => type.Name).ToArray();
                 }
                 public Type GetSelectType()
                 {
-                    var type_str = types[typeIndex];
-                    Type type = EditorTools.GetSubTypesInAssemblies(baseType)
-                       .Where(type => !type.IsAbstract)
-                       .ToList()
-                       .Find(x => x.FullName == type_str);
+                    var type_str = typeNames[typeIndex];
+                    Type type = types.FirstOrDefault(x => x.FullName == type_str);
 
                     return type;
                 }
@@ -188,19 +199,19 @@ namespace IFramework.UI
                 AssetDatabase.Refresh();
             }
 
-            public static List<string> GetFitScriptPaths(string name) => name_TypeMap.TryGetValue(name, out var list) ? list : null;
+            public static List<string> GetFitScriptPaths(string name) => name_ScriptMap.TryGetValue(name, out var list) ? list : null;
 
-            private static Dictionary<string, List<string>> name_TypeMap;
-            private static void GG(PanelCollection collect, List<string> paths)
+            private static Dictionary<string, List<string>> name_ScriptMap;
+            private static void CollectScripPaths(PanelCollection collect, List<string> paths)
             {
-                name_TypeMap = new Dictionary<string, List<string>>();
+                name_ScriptMap = new Dictionary<string, List<string>>();
                 var tab = window.GetTab(UICollectData.plan.GetSelectType());
                 for (int i = 0; i < collect.datas.Count; i++)
                 {
                     var data = collect.datas[i];
                     var s_name = tab.GetPanelScriptName(data.name);
                     var find = paths.FindAll(x => x.EndsWith("/" + s_name)) ?? new List<string>();
-                    name_TypeMap.Add(data.name, find);
+                    name_ScriptMap.Add(data.name, find);
 
                 SetEmpty:
                     if (string.IsNullOrEmpty(data.ScriptPath))
@@ -226,18 +237,19 @@ namespace IFramework.UI
                     collect = new PanelCollection();
                 else
                     collect = JsonUtility.FromJson<PanelCollection>(File.ReadAllText(path));
-                var assetPaths = AssetDatabase.GetAllAssetPaths().ToList();
 
-                var paths = assetPaths
-                    .Where(x => x.Contains(plan.PanelCollectPath) && x.EndsWith("prefab") && AssetDatabase.LoadAssetAtPath<UIPanel>(x) != null)
-                    .Select(x =>
+
+
+                var paths = AssetDatabase.FindAssets("t:prefab", new string[] { plan.PanelCollectPath })
+                    .Select(guid => AssetDatabase.GUIDToAssetPath(guid))
+                    .Where(path => AssetDatabase.LoadAssetAtPath<UIPanel>(path) != null)
+                    .Select(path =>
                     {
-                        string path = x;
-                        var isResourcePath = x.Contains(res);
+                        var isResourcePath = path.Contains(res);
                         if (isResourcePath)
                         {
-                            var index = x.IndexOf(res);
-                            path = x.Substring(index + res.Length + 1)
+                            var index = path.IndexOf(res);
+                            path = path.Substring(index + res.Length + 1)
                                     .Replace(".prefab", "");
                         }
                         return new { isResourcePath, path };
@@ -252,7 +264,7 @@ namespace IFramework.UI
                         path = x.path,
                     });
                 });
-                GG(collect, assetPaths);
+                CollectScripPaths(collect, AssetDatabase.GetAllAssetPaths().ToList());
 
 
 
