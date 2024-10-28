@@ -259,18 +259,7 @@ namespace IFramework.Lua
             return use;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
+        public override string GetScriptFitter() => "t:TextAsset";
     }
 
 }

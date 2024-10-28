@@ -227,7 +227,7 @@ namespace IFramework.UI
                 return string.Empty;
             }
 
-
+            public override string GetScriptFitter() => "t:Script";
         }
     }
 }

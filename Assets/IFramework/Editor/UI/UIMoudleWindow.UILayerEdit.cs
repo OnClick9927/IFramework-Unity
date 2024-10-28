@@ -558,8 +558,7 @@ namespace IFramework.UI
                 GUILayout.EndHorizontal();
             }
 
-
-
+            public override string GetScriptFitter() => string.Empty;
         }
 
 
