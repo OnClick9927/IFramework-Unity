@@ -10,6 +10,7 @@ using UnityEditor;
 using System;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 #pragma warning disable
 namespace IFramework
@@ -86,13 +87,52 @@ namespace IFramework
                 GUI.enabled = !EditorApplication.isPlaying;
                 Info.Version = EditorGUILayout.TextField(Contents.Version, Info.Version);
                 Info.NameSpace = EditorGUILayout.TextField(Contents.Namespace, Info.NameSpace);
-                GUILayout.BeginHorizontal();
+
+
+                GUILayout.BeginVertical(EditorStyles.helpBox);
                 Info.projectPath = EditorGUILayout.TextField(Contents.projectPath, Info.projectPath);
+
+                GUILayout.BeginHorizontal();
+
                 if (GUILayout.Button("Build", GUILayout.Width(50)))
                 {
-                    EditorApplication.isPlaying = true;
+                    var list = new List<string>() { Info.projectPath }
+                        .Concat(Info.folders.Select(x => Info.projectPath.CombinePath(x)));
+                    EditorTools.CreateDirectories(list.ToList());
+                }
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("+", GUILayout.Width(20)))
+                {
+                    Info.folders.Add("FolderName");
                 }
                 GUILayout.EndHorizontal();
+                int cloumn_count = 4;
+                for (int i = 0; i < Info.folders.Count; i++)
+                {
+                    if (i % cloumn_count == 0)
+                        GUILayout.BeginHorizontal();
+                    var src = Info.folders[i];
+                    GUILayout.Space(10);
+                    Info.folders[i] = EditorGUILayout.TextField(src, GUILayout.MaxWidth(100));
+                    if (GUILayout.Button("-", GUILayout.Width(20)))
+                    {
+                        Info.folders.Remove(src);
+                        EditorTools.ProjectConfig.Save();
+                        GUIUtility.ExitGUI();
+                    }
+                    if (i % cloumn_count == cloumn_count - 1)
+                        GUILayout.EndHorizontal();
+                }
+                if (Info.folders.Count % cloumn_count != 0)
+                    GUILayout.EndHorizontal();
+
+
+
+
+
+                GUILayout.EndVertical();
+
+
                 GUILayout.Space(10);
                 Info.dockWindow = EditorGUILayout.Toggle(Contents.dockWindow, Info.dockWindow);
                 EditorGUI.DrawRect(EditorGUILayout.GetControlRect(GUILayout.Height(2)), new Color(0.5f, 0.5f, 0.5f));

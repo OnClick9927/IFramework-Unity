@@ -18,12 +18,7 @@ namespace IFramework
     [InitializeOnLoad]
     public partial class EditorTools
     {
-        static void CreateDirectories(List<string> directorys)
-        {
-            foreach (var path in directorys)
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
-        }
+
         static EditorTools()
         {
             var directorys = new List<string>()
@@ -40,25 +35,13 @@ namespace IFramework
             Log.enable_A = ProjectConfig.enable_A;
 
             Log.enable = ProjectConfig.enable;
-            directorys = new List<string>()
-            {
-                EditorTools.projectPath,
-                EditorTools.projectConfigPath,
-                EditorTools.projectScriptPath,
-            };
-            CreateDirectories(directorys);
-            AssetDatabase.Refresh();
-
         }
 
 
         public const string projectMemoryPath = "Assets/Editor/IFramework";
 
-        private static string GetFilePath()
-        {
-            return AssetDatabase.GetAllAssetPaths().FirstOrDefault(x => x.Contains(nameof(IFramework))
-            && x.EndsWith($"{nameof(EditorTools)}.cs"));
-        }
+        private static string GetFilePath() => AssetDatabase.GetAllAssetPaths().FirstOrDefault(x => x.Contains(nameof(IFramework))
+                                                        && x.EndsWith($"{nameof(EditorTools)}.cs"));
         public static string pkgPath
         {
             get
@@ -75,30 +58,15 @@ namespace IFramework
                 return path;
             }
         }
-        public static string projectPath => ProjectConfig.projectPath;
-        public static string projectConfigPath { get { return projectPath.CombinePath("Configs"); } }
-        public static string projectScriptPath { get { return projectPath.CombinePath("Scripts"); } }
 
 
-        public static void SaveToPrefs<T>(T value, string key, bool unique = true)
-        {
-            Prefs.SetObject(value.GetType(), key, value, unique);
-        }
-        public static T GetFromPrefs<T>(string key, bool unique = true)
-        {
-            return Prefs.GetObject<T>(key, unique);
-        }
-        public static object GetFromPrefs(Type type, string key, bool unique = true)
-        {
-            return Prefs.GetObject(type, key, unique);
-        }
+        public static void SaveToPrefs<T>(T value, string key, bool unique = true) => Prefs.SetObject(value.GetType(), key, value, unique);
+        public static T GetFromPrefs<T>(string key, bool unique = true) => Prefs.GetObject<T>(key, unique);
+        public static object GetFromPrefs(Type type, string key, bool unique = true) => Prefs.GetObject(type, key, unique);
 
 
 
-        public static void OpenFolder(string folder)
-        {
-            EditorUtility.OpenWithDefaultApp(folder);
-        }
+        public static void OpenFolder(string folder) => EditorUtility.OpenWithDefaultApp(folder);
 
         public static string ToAbsPath(this string self)
         {
@@ -106,11 +74,7 @@ namespace IFramework
             assetRootPath = assetRootPath.Substring(0, assetRootPath.Length - 6) + self;
             return assetRootPath.ToRegularPath();
         }
-        public static string ToAssetsPath(this string self)
-        {
-            string assetRootPath = Path.GetFullPath(Application.dataPath);
-            return "Assets" + Path.GetFullPath(self).Substring(assetRootPath.Length).Replace("\\", "/");
-        }
+        public static string ToAssetsPath(this string self) => "Assets" + Path.GetFullPath(self).Substring(Path.GetFullPath(Application.dataPath).Length).Replace("\\", "/");
         public static string GetPath(this Transform transform)
         {
             var sb = new System.Text.StringBuilder();
@@ -129,10 +93,7 @@ namespace IFramework
                 }
             }
         }
-        public static string ToUnixLineEndings(this string self)
-        {
-            return self.Replace("\r\n", "\n").Replace("\r", "\n");
-        }
+        public static string ToUnixLineEndings(this string self) => self.Replace("\r\n", "\n").Replace("\r", "\n");
 
         public static IEnumerable<Type> GetSubTypesInAssemblies(this Type self)
         {
@@ -145,16 +106,14 @@ namespace IFramework
                             .Where(item => item.IsSubclassOf(self));
         }
 
-        public static string ToRegularPath(this string path)
-        {
-            path = path.Replace('\\', '/');
-            return path;
-        }
+        public static string ToRegularPath(this string path) => path.Replace('\\', '/');
 
-        public static string CombinePath(this string path, string toCombinePath)
+        public static string CombinePath(this string path, string toCombinePath) => Path.Combine(path, toCombinePath).ToRegularPath();
+        public static void CreateDirectories(List<string> directories)
         {
-            return Path.Combine(path, toCombinePath).ToRegularPath();
+            foreach (var path in directories)
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
         }
-
     }
 }

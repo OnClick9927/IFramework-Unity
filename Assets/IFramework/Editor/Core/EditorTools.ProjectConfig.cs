@@ -9,12 +9,6 @@
 using UnityEditor;
 using System.Collections.Generic;
 using System;
-using System.Reflection;
-using UnityEditorInternal;
-using UnityEditor.Callbacks;
-using System.Text.RegularExpressions;
-using UnityEngine.Windows;
-using UnityEngine;
 
 namespace IFramework
 {
@@ -48,8 +42,11 @@ namespace IFramework
 
                 public bool dockWindow = true;
                 public string projectPath = "Assets/Project";
+                public List<string> folders = new List<string>() { 
+                    "Scripts","Configs"
+                };
                 public string Version { get { return PlayerSettings.bundleVersion; } set { PlayerSettings.bundleVersion = value; } }
-                public string NameSpace = "IFramework";
+                public string NameSpace;
                 public string UserName { get; private set; }
 
                 public static ProjectConfigInfo Load()
@@ -64,6 +61,8 @@ namespace IFramework
                     var p = _type.GetProperty("displayName");
                     __info.UserName = (string)p.GetValue(userInfo);
  
+                    if (string.IsNullOrEmpty(__info.NameSpace))
+                        __info.NameSpace = PlayerSettings.productName;
                     __info.Save();
                     return __info;
                 }

@@ -5,6 +5,10 @@
     "enable_E": true,
     "enable_A": true,
     "dockWindow": true,
-    "projectPath": "Assets/Project",
-    "NameSpace": "IFramework"
+    "projectPath": "Assets/P",
+    "folders": [
+        "Scripts",
+        "Scripts"
+    ],
+    "NameSpace": "IFramework-Unity"
 }
