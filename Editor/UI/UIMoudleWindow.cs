@@ -156,9 +156,9 @@ namespace IFramework.UI
                 plans.Add(new Plan()
                 {
                     name = DateTime.Now.ToString("yy_MM_dd_hh_mm_ss"),
-                    PanelCollectPath = EditorTools.projectPath,
-                    ConfigGenPath = EditorTools.projectConfigPath,
-                    ScriptGenPath = EditorTools.projectScriptPath,
+                    PanelCollectPath = "Assets",
+                    ConfigGenPath = "Assets",
+                    ScriptGenPath = "Assets",
                     ConfigName = "UICollect",
                     ScriptName = "PanelNames",
                 });
@@ -202,13 +202,14 @@ namespace IFramework.UI
             public static List<string> GetFitScriptPaths(string name) => name_ScriptMap.TryGetValue(name, out var list) ? list : null;
 
             private static Dictionary<string, List<string>> name_ScriptMap;
-            private static void CollectScripPaths(PanelCollection collect)
+            private static bool CollectScripPaths(PanelCollection collect)
             {
                 name_ScriptMap = new Dictionary<string, List<string>>();
                 var tab = window.GetTab(UICollectData.plan.GetSelectType());
                 var paths = AssetDatabase.FindAssets(tab.GetScriptFitter())
                     .Select(x => AssetDatabase.GUIDToAssetPath(x))
                     .ToList();
+                bool change = false;
                 for (int i = 0; i < collect.datas.Count; i++)
                 {
                     var data = collect.datas[i];
@@ -220,17 +221,23 @@ namespace IFramework.UI
                     if (string.IsNullOrEmpty(data.ScriptPath))
                     {
                         if (find.Count > 0)
+                        {
+                            change = true;
                             data.ScriptPath = find[0];
+                        }
                     }
                     else
                     {
                         if (!find.Contains(data.ScriptPath))
                         {
                             data.ScriptPath = string.Empty;
+                            change = true;
                             goto SetEmpty;
                         }
                     }
                 }
+
+                return change;
             }
             public static PanelCollection Collect()
             {
@@ -241,38 +248,32 @@ namespace IFramework.UI
                 else
                     collect = JsonUtility.FromJson<PanelCollection>(File.ReadAllText(path));
 
-
-
                 var paths = AssetDatabase.FindAssets("t:prefab", new string[] { plan.PanelCollectPath })
                     .Select(guid => AssetDatabase.GUIDToAssetPath(guid))
-                    .Where(path => AssetDatabase.LoadAssetAtPath<UIPanel>(path) != null)
-                    .Select(path =>
-                    {
-                        var isResourcePath = path.Contains(res);
-                        if (isResourcePath)
-                        {
-                            var index = path.IndexOf(res);
-                            path = path.Substring(index + res.Length + 1)
-                                    .Replace(".prefab", "");
-                        }
-                        return new { isResourcePath, path };
-                    });
+                    .Where(path => AssetDatabase.LoadAssetAtPath<UIPanel>(path) != null).ToList();
 
-                collect.datas.RemoveAll(x => paths.FirstOrDefault(y => y.path == x.path) == null);
-                paths.ToList().FindAll(x => collect.datas.Find(y => y.path == x.path) == null)
-                .ForEach(x =>
-                {
-                    collect.datas.Add(new PanelCollection.Data()
-                    {
-                        isResourcePath = x.isResourcePath,
-                        path = x.path,
-                    });
-                });
-                CollectScripPaths(collect);
+                int remove = collect.datas.RemoveAll(x => !paths.Contains(x.path));
+                var _new = paths.FindAll(path => collect.datas.Find(data => data.path == path) == null);
 
+                _new.ForEach(path =>
+                  {
+                      var isResourcePath = path.Contains(res);
+                      if (isResourcePath)
+                      {
+                          var index = path.IndexOf(res);
+                          path = path.Substring(index + res.Length + 1)
+                                  .Replace(".prefab", "");
+                      }
+                      collect.datas.Add(new PanelCollection.Data()
+                      {
+                          isResourcePath = isResourcePath,
+                          path = path,
+                      });
+                  });
+                var change = CollectScripPaths(collect);
 
-
-                SaveConfig(collect);
+                if (remove != 0 || _new.Count > 0 || change)
+                    SaveConfig(collect);
                 return collect;
             }
 
