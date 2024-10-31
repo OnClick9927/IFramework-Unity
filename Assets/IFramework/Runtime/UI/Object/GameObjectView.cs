@@ -44,7 +44,7 @@ namespace IFramework.UI
         }
         public void DisposeUIEvents()
         {
-            if (_eventBox != null)
+            if (__eventBox_ui != null)
             {
                 __eventBox_ui.Dispose();
                 __eventBox_ui = null;
