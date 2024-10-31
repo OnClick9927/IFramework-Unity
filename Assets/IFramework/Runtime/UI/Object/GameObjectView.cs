@@ -34,7 +34,7 @@ namespace IFramework.UI
             if (_eventBox == null) return;
             _eventBox.UnSubscribe(entity);
         }
-        protected void DisposeEvents()
+        public void DisposeEvents()
         {
             if (_eventBox != null)
             {
@@ -42,7 +42,7 @@ namespace IFramework.UI
                 _eventBox = null;
             }
         }
-        protected void DisposeUIEvents()
+        public void DisposeUIEvents()
         {
             if (_eventBox != null)
             {
@@ -50,13 +50,13 @@ namespace IFramework.UI
                 __eventBox_ui = null;
             }
         }
-        public void AddUIEvent(UIEventEntity uiEvent)
+        internal void AddUIEvent(UIEventEntity uiEvent)
         {
             if (__eventBox_ui == null)
                 __eventBox_ui = new UIEventBox();
             uiEvent.AddTo(__eventBox_ui);
         }
-        public void DisposeUIEvent(UIEventEntity uiEvent)
+        protected void DisposeUIEvent(UIEventEntity uiEvent)
         {
             if (__eventBox_ui == null)return;
             __eventBox_ui.Dispose(uiEvent);
