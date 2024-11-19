@@ -1,4 +1,8 @@
 # IFramework [Doc](https://onclick9927.github.io/2023/07/24/Doc/IFramework-Unity/1-IFramework-Unity-%E7%AE%80%E4%BB%8B/)
+## upm 添加包地址 https://gitee.com/OnClick9927/IFramework-Unity.git#src
+## upm 添加包地址 https://github.com/OnClick9927/IFramework-Unity.git#src
+
+
 
 [![Stargazers over time](https://starchart.cc/OnClick9927/IFramework-Unity.svg?variant=adaptive)](https://starchart.cc/OnClick9927/IFramework-Unity)
 ``` csharp
