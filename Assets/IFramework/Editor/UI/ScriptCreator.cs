@@ -187,6 +187,7 @@ namespace IFramework.UI
 
         public bool CouldMark(GameObject go)
         {
+            if (go == null) return false;
             if (IsPrefabInstance(go))
             {
                 var tmp = go.transform;

@@ -4,10 +4,10 @@
         {
             "ConfigGenPath": "Assets/Lua/Lua/TestUI",
             "PanelCollectPath": "Assets/Project/Examples/UI",
-            "ScriptGenPath": "Assets/Lua/Lua/TestUI",
+            "ScriptGenPath": "Assets/Project/Examples/UI",
             "ScriptName": "PanelNames_UIGame",
             "name": "UIGame",
-            "typeIndex": 0,
+            "typeIndex": 1,
             "ConfigName": "UICollect"
         }
     ]

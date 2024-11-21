@@ -1,14 +1,19 @@
 {
     "GenPath": "Assets/Project/Examples/UI/",
-    "panelPath": "Assets/Project/Examples/UI/PanelOne.prefab",
+    "panelPath": "Assets/Project/Examples/UI/PanelOneTWO.prefab",
     "state": {
         "scrollPos": {
             "x": 0.0,
             "y": 0.0
         },
-        "m_SelectedIDs": [],
-        "m_LastClickedID": 0,
+        "m_SelectedIDs": [
+            20020
+        ],
+        "m_LastClickedID": 20020,
         "m_ExpandedIDs": [
+            18938,
+            18952,
+            18956,
             27168
         ],
         "m_RenameOverlay": {
@@ -31,7 +36,7 @@
                 "instanceID": 0
             }
         },
-        "m_SearchString": "i"
+        "m_SearchString": ""
     },
     "_searchType": 0,
     "_type": 2

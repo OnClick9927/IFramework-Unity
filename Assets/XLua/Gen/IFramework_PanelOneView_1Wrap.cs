@@ -20,7 +20,7 @@ namespace XLua.CSObjectWrap
         public static void __Register(RealStatePtr L)
         {
 			ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
-			System.Type type = typeof(IFramework.PanelOneView_1);
+			System.Type type = null;
 			Utils.BeginObjectRegister(type, L, translator, 0, 0, 0, 0);
 			
 			
@@ -50,8 +50,7 @@ namespace XLua.CSObjectWrap
 				if(LuaAPI.lua_gettop(L) == 1)
 				{
 					
-					var gen_ret = new IFramework.PanelOneView_1();
-					translator.Push(L, gen_ret);
+
                     
 					return 1;
 				}

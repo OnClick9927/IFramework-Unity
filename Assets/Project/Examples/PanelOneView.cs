@@ -4,13 +4,14 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-07-31
 *********************************************************************************/
+using IFramework;
 using IFramework.UI;
 using System.Collections.Generic;
 using UnityEngine;
 using static IFramework.UI.UnityEventHelper;
-namespace IFramework
+namespace IFramework_test
 {
-    public class PanelOneView_1 : IFramework.UI.MVC.UIView
+    public class PanelOneView : IFramework.UI.MVC.UIView
     {
         //FieldsStart
 		private UnityEngine.UI.Button Close;

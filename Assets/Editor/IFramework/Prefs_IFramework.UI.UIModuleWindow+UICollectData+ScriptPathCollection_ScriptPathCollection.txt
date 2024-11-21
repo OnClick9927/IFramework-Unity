@@ -1,0 +1,17 @@
+{
+    "segs": [
+        {
+            "prefab": "Assets/Project/Examples/UI/PanelOne.prefab",
+            "ScriptPath": "Assets/Project/Examples/PanelOneView.cs",
+            "Paths": [
+                "Assets/Project/Examples/PanelOneView.cs",
+                "Assets/Project/Examples/UI/PanelOneView.cs"
+            ]
+        },
+        {
+            "prefab": "Assets/Project/Examples/UI/PanelOneTWO.prefab",
+            "ScriptPath": "",
+            "Paths": []
+        }
+    ]
+}

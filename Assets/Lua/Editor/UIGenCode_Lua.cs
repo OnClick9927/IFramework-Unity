@@ -15,6 +15,7 @@ using System.Linq;
 using IFramework.UI;
 using static IFramework.UI.UIModuleWindow;
 using static IFramework.UI.UIModuleWindow.UIGenCodeCS;
+using static IFramework.UI.UIModuleWindow.UICollectData;
 
 namespace IFramework.Lua
 {
@@ -56,8 +57,9 @@ namespace IFramework.Lua
                 s += $"{scriptName}.map =\n{{\n";
                 foreach (var data in datas)
                 {
-                    if (!System.IO.File.Exists(data.ScriptPath)) continue;
-                    var require = data.ScriptPath.Remove(0, config.rootPath.Length + 1).Replace("/", ".").Replace(".lua.txt", "");
+                    var seg = ScriptPathCollection.GetSeg(data);
+                    if (!System.IO.File.Exists(seg.ScriptPath)) continue;
+                    var require = seg.ScriptPath.Remove(0, config.rootPath.Length + 1).Replace("/", ".").Replace(".lua.txt", "");
                     s += $"\t[{scriptName}.{data.name}] = require \"{require}\",\n";
 
                 }

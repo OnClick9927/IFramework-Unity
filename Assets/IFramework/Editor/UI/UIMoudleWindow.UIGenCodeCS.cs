@@ -13,6 +13,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Linq;
+using static IFramework.UI.UIModuleWindow.UICollectData;
 
 namespace IFramework.UI
 {
@@ -75,8 +76,10 @@ namespace IFramework.UI
                 sb.AppendLine("\tpublic static System.Collections.Generic.Dictionary<string, System.Type> map = new System.Collections.Generic.Dictionary<string, System.Type>()\n\t{");
                 foreach (var data in datas)
                 {
-                    if (!System.IO.File.Exists(data.ScriptPath)) continue;
-                    var lines = File.ReadAllLines(data.ScriptPath);
+                    var seg = ScriptPathCollection.GetSeg(data);
+
+                    if (!System.IO.File.Exists(seg.ScriptPath)) continue;
+                    var lines = File.ReadAllLines(seg.ScriptPath);
                     var line = lines.FirstOrDefault(x => x.Contains("namespace "));
                     var viewName = this.PanelToViewName(data.name);
                     if (line == null)

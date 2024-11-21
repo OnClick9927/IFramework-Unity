@@ -1268,7 +1268,6 @@ namespace XLua.CSObjectWrap
             translator.DelayWrapLoader(typeof(IFramework.PanelOneView), IFrameworkPanelOneViewWrap.__Register);
         
         
-            translator.DelayWrapLoader(typeof(IFramework.PanelOneView_1), IFrameworkPanelOneView_1Wrap.__Register);
         
         
             translator.DelayWrapLoader(typeof(IFramework.Lua.TaskForLua), IFrameworkLuaTaskForLuaWrap.__Register);

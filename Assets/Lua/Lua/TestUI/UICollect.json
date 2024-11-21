@@ -5,16 +5,14 @@
             "isResourcePath": false,
             "layer": 0,
             "fullScreen": false,
-            "order": 0,
-            "ScriptPath": "Assets/Lua/Lua/TestUI/PanelOneView.lua.txt"
+            "order": 0
         },
         {
             "path": "Assets/Project/Examples/UI/PanelOneTWO.prefab",
             "isResourcePath": false,
             "layer": 0,
             "fullScreen": false,
-            "order": 0,
-            "ScriptPath": ""
+            "order": 0
         }
     ]
 }

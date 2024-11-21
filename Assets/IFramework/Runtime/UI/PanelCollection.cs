@@ -28,7 +28,7 @@ namespace IFramework.UI
             public int layer;
             public bool fullScreen;
             public int order;
-            public string ScriptPath;
+            //public string ScriptPath;
         }
         public List<Data> datas = new List<Data>();
 

@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -213,7 +214,9 @@ namespace IFramework.UI
                     GUI.Label(args.GetCellRect(8), data.order.ToString());
                     GUI.Label(args.GetCellRect(9), data.path);
                     var rect_7 = args.GetCellRect(7);
-                    var list = UICollectData.GetFitScriptPaths(data.name);
+                    var seg = ScriptPathCollection.GetSeg(data);
+                    var list = seg.Paths;
+
                     if (list != null)
                     {
 
@@ -225,16 +228,20 @@ namespace IFramework.UI
                         }
                         else if (list.Count == 1)
                         {
-                            GUI.Label(rect_7, data.ScriptPath);
+                            GUI.Label(rect_7, seg.ScriptPath);
                         }
                         else
                         {
-                            var tmp = data.ScriptPath;
+                            var tmp = seg.ScriptPath;
                             var index = list.IndexOf(tmp);
                             if (index < 0) index = 0;
                             var _index = EditorGUI.Popup(rect_7, index, list.Select(x => x.Replace("/", "_")).ToArray());
                             if (_index != index)
-                                data.ScriptPath = list[_index];
+                            {
+                                seg.ScriptPath = list[_index];
+                                ScriptPathCollection.SaveScriptsData();
+                            }
+
                         }
                     }
 
@@ -259,9 +266,9 @@ namespace IFramework.UI
                     }
                     if (GUI.Button(args.GetCellRect(4), EditorGUIUtility.IconContent("d_editicon.sml"), EditorStyles.iconButton))
                     {
-                        if (!string.IsNullOrEmpty(data.ScriptPath))
+                        if (!string.IsNullOrEmpty(seg.ScriptPath))
                         {
-                            UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(data.ScriptPath, 0);
+                            UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(seg.ScriptPath, 0);
                         }
                         else
                         {

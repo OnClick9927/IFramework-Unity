@@ -155,10 +155,17 @@ namespace IFramework.UI
                         AddChildrenRecursive(go.transform.GetChild(i).gameObject, root, rows);
                 }
             }
-     
+
             protected override void RowGUI(RowGUIArgs args)
             {
                 var go = GetGameObject(args.item.id);
+                if (go == null) {
+                    GUI.color = Color.red;
+                    GUI.Label(args.rowRect, "GameObject Not Exist");
+                    GUI.color = Color.white;
+
+                    return;
+                }
                 float indet = this.GetContentIndent(args.item);
                 var first = EditorTools.RectEx.Zoom(args.GetCellRect(0), TextAnchor.MiddleRight, new Vector2(-indet, 0));
 
