@@ -13,9 +13,7 @@ using System;
 using System.Collections.Generic;
 
 using System.IO;
-using System.Reflection;
 using static IFramework.EditorTools;
-using System.Runtime.InteropServices;
 
 namespace IFramework.UI
 {
@@ -202,6 +200,55 @@ namespace IFramework.UI
             public static List<string> GetFitScriptPaths(string name) => name_ScriptMap.TryGetValue(name, out var list) ? list : null;
 
             private static Dictionary<string, List<string>> name_ScriptMap;
+
+
+            [System.Serializable]
+            public class ScriptPathCollection
+            {
+                [System.Serializable]
+                public class Seg
+                {
+                    public string prefab;
+                    public string ScriptPath;
+                    public List<string> Paths;
+                }
+
+                public List<Seg> segs = new List<Seg>();
+                private static ScriptPathCollection __context;
+                private Seg Get(string prefab)
+                {
+                    var find = segs.Find(x => x.prefab == prefab);
+                    if (find == null)
+                    {
+                        find = new Seg() { prefab = prefab };
+                        segs.Add(find);
+                    }
+                    return find;
+                }
+                private static ScriptPathCollection context_scripts
+                {
+                    get
+                    {
+                        if (__context == null)
+                        {
+
+                            __context = EditorTools.GetFromPrefs<ScriptPathCollection>(nameof(ScriptPathCollection), false);
+                            if (__context == null)
+                                __context = new ScriptPathCollection();
+                        }
+                        return __context;
+                    }
+                }
+                public static void SaveScriptsData()
+                {
+                    EditorTools.SaveToPrefs(__context, nameof(ScriptPathCollection), false);
+                }
+
+                private static Seg GetSeg(string prefab) => context_scripts.Get(prefab);
+                public static Seg GetSeg(PanelCollection.Data data) => GetSeg(data.path);
+            }
+
+
             private static bool CollectScripPaths(PanelCollection collect)
             {
                 name_ScriptMap = new Dictionary<string, List<string>>();
@@ -210,6 +257,9 @@ namespace IFramework.UI
                     .Select(x => AssetDatabase.GUIDToAssetPath(x))
                     .ToList();
                 bool change = false;
+
+
+
                 for (int i = 0; i < collect.datas.Count; i++)
                 {
                     var data = collect.datas[i];
@@ -217,26 +267,29 @@ namespace IFramework.UI
                     var find = paths.FindAll(x => x.EndsWith("/" + s_name)) ?? new List<string>();
                     name_ScriptMap.Add(data.name, find);
 
+                    var seg = ScriptPathCollection.GetSeg(data);
+                    seg.Paths = find;
+
                 SetEmpty:
-                    if (string.IsNullOrEmpty(data.ScriptPath))
+                    if (string.IsNullOrEmpty(seg.ScriptPath))
                     {
                         if (find.Count > 0)
                         {
                             change = true;
-                            data.ScriptPath = find[0];
+                            seg.ScriptPath = find[0];
                         }
                     }
                     else
                     {
-                        if (!find.Contains(data.ScriptPath))
+                        if (!find.Contains(seg.ScriptPath))
                         {
-                            data.ScriptPath = string.Empty;
+                            seg.ScriptPath = string.Empty;
                             change = true;
                             goto SetEmpty;
                         }
                     }
                 }
-
+                ScriptPathCollection.SaveScriptsData();
                 return change;
             }
             public static PanelCollection Collect()
@@ -276,6 +329,10 @@ namespace IFramework.UI
                     SaveConfig(collect);
                 return collect;
             }
+
+
+
+
 
             internal static void SavePlan(string name, string GenPath, string CollectPath, string ScriptGenPath,
                 string scriptName, string configName, int typeIndex)
