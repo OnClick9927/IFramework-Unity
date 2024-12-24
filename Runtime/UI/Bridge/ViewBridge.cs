@@ -9,15 +9,15 @@
 using System;
 using System.Collections.Generic;
 
-namespace IFramework.UI.MVC
+namespace IFramework.UI
 {
-    public class MvcGroups : IGroups
+    public class ViewBridge : IViewBridge
     {
-        private Dictionary<string, IViewEventHandler> _views = new Dictionary<string, IViewEventHandler>();
+        private Dictionary<string, IUIView> _views = new Dictionary<string, IUIView>();
 
         private Dictionary<string, Type> _typemap;
 
-        public MvcGroups(params Dictionary<string, Type>[] maps)
+        public ViewBridge(params Dictionary<string, Type>[] maps)
         {
             if (maps != null)
             {
@@ -35,21 +35,21 @@ namespace IFramework.UI.MVC
         public void Dispose()
         {
         }
-        private IViewEventHandler FindView(string name)
+        private IUIView FindView(string name)
         {
-            _views.TryGetValue(name, out IViewEventHandler view);
+            _views.TryGetValue(name, out IUIView view);
             return view;
         }
 
-        void IGroups.OnClose(string path) => (FindView(path) as IViewEventHandler).OnClose();
+        void IViewBridge.OnClose(string path) => FindView(path).OnClose();
 
-        void IGroups.OnHide(string path) => (FindView(path) as IViewEventHandler).OnHide();
+        void IViewBridge.OnHide(string path) => FindView(path).OnHide();
 
-        void IGroups.OnLoad(string path) => (FindView(path) as IViewEventHandler).OnLoad();
+        void IViewBridge.OnLoad(string path) => FindView(path).OnLoad();
 
-        void IGroups.OnShow(string path) => (FindView(path) as IViewEventHandler).OnShow();
+        void IViewBridge.OnShow(string path) => FindView(path).OnShow();
 
-        bool IGroups.Subscribe(string path, UIPanel panel)
+        bool IViewBridge.Subscribe(string path, UIPanel panel)
         {
             var _view = FindView(path);
             if (_view != null)
@@ -70,10 +70,10 @@ namespace IFramework.UI.MVC
             return true;
         }
 
-        bool IGroups.UnSubscribe(string path)
+        bool IViewBridge.UnSubscribe(string path)
         {
-            var group = FindView(path);
-            if (group != null)
+            var view = FindView(path);
+            if (view != null)
             {
                 _views.Remove(path);
                 return true;

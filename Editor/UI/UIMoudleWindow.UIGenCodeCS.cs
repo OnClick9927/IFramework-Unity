@@ -54,7 +54,7 @@ namespace IFramework.UI
                     _type = ItemType.GameObject;
                 if (txt.Contains($"{typeof(IFramework.UI.UIItemView).FullName}"))
                     _type = ItemType.UIItem;
-                if (txt.Contains($"{typeof(IFramework.UI.MVC.UIView).FullName}"))
+                if (txt.Contains($"{typeof(IFramework.UI.UIView).FullName}"))
                     _type = ItemType.UI;
             }
 
@@ -116,7 +116,7 @@ namespace IFramework.UI
                         pa = typeof(GameObjectView);
                         break;
                     case ItemType.UI:
-                        pa = typeof(IFramework.UI.MVC.UIView);
+                        pa = typeof(IFramework.UI.UIView);
                         break;
                     default:
                         break;

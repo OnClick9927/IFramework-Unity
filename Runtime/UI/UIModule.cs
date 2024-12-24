@@ -22,7 +22,7 @@ namespace IFramework.UI
         private LayerPart layerPart;
         internal UIAsset assetPart;
         private ItemsPool itemPart;
-        private IGroups groupPart;
+        private IViewBridge bridgePart;
         private IUIDelegate delPart;
         public Canvas canvas { get; private set; }
 
@@ -49,8 +49,8 @@ namespace IFramework.UI
         }
         protected override void OnDispose()
         {
-            if (groupPart != null)
-                groupPart.Dispose();
+            if (bridgePart != null)
+                bridgePart.Dispose();
             layerPart.Clear();
             loadPart.DeleteCanvas();
             itemPart.Clear();
@@ -111,8 +111,8 @@ namespace IFramework.UI
             {
                 ui.SetPath(path);
                 layerPart.SetOrder(path, ui);
-                groupPart.Subscribe(path, ui);
-                groupPart.OnLoad(path);
+                bridgePart.Subscribe(path, ui);
+                bridgePart.OnLoad(path);
                 ui.SetState(PanelState.OnLoad);
                 if (delPart != null)
                     delPart.OnPanelLoad(path);
@@ -129,7 +129,7 @@ namespace IFramework.UI
                 if (exist)
                     layerPart.SetAsLastOrder(path, panel);
 
-                this.groupPart.OnShow(path);
+                this.bridgePart.OnShow(path);
                 panel.SetState(PanelState.OnShow);
                 if (delPart != null)
                     delPart.OnPanelShow(path);
@@ -143,8 +143,8 @@ namespace IFramework.UI
         public ShowPanelAsyncOperation Show(string path)
         {
 
-            if (groupPart == null)
-                throw new Exception("Please Set IGroups First");
+            if (bridgePart == null)
+                throw new Exception("Please Set Bridge First");
             if (assetPart == null)
                 throw new Exception("Please Set UILoader First");
 
@@ -162,7 +162,7 @@ namespace IFramework.UI
             {
                 var layer = GetPanelLayer(path);
                 BeginChangeLayerTopChangeCheck(layer, check_hide);
-                this.groupPart.OnHide(path);
+                this.bridgePart.OnHide(path);
                 panel.SetState(PanelState.OnHide);
                 if (delPart != null)
                     delPart.OnPanelHide(path);
@@ -177,10 +177,10 @@ namespace IFramework.UI
             {
                 var layer = GetPanelLayer(path);
                 BeginChangeLayerTopChangeCheck(layer, check_close);
-                this.groupPart.OnClose(path);
+                this.bridgePart.OnClose(path);
                 panel.SetState(PanelState.OnClose);
 
-                groupPart.UnSubscribe(path);
+                bridgePart.UnSubscribe(path);
                 layerPart.RemovePanel(path, panel);
                 loadPart.RemovePanel(path);
                 if (delPart != null)
@@ -201,7 +201,7 @@ namespace IFramework.UI
 
 
 
-    public class RTUILayerData
+    public class RunTimeUILayerData
     {
         public RectTransform rect;
         public CanvasGroup group;
@@ -213,7 +213,7 @@ namespace IFramework.UI
         private class LayerPart
         {
             private Dictionary<string, List<UIPanel>> _panelOrders;
-            private Dictionary<string, RTUILayerData> _layers;
+            private Dictionary<string, RunTimeUILayerData> _layers;
             private UIModule module;
             private Empty4Raycast raycast;
             private bool _force_show_raycast;
@@ -222,9 +222,9 @@ namespace IFramework.UI
             {
                 this.module = module;
                 _panelOrders = new Dictionary<string, List<UIPanel>>();
-                _layers = new Dictionary<string, RTUILayerData>();
+                _layers = new Dictionary<string, RunTimeUILayerData>();
             }
-            private RTUILayerData CreateLayer(string layerName, Transform parent)
+            private RunTimeUILayerData CreateLayer(string layerName, Transform parent)
             {
                 GameObject go = new GameObject(layerName);
                 RectTransform rect = go.AddComponent<RectTransform>();
@@ -236,7 +236,7 @@ namespace IFramework.UI
                 rect.sizeDelta = Vector3.zero;
                 rect.localRotation = Quaternion.identity;
                 rect.localScale = Vector3.one;
-                RTUILayerData data = new RTUILayerData()
+                var data = new RunTimeUILayerData()
                 {
                     group = group,
                     rect = rect,
@@ -265,7 +265,7 @@ namespace IFramework.UI
                 layer.group.blocksRaycasts = visible ? true : false;
                 layer.group.interactable = visible ? true : false;
             }
-            public RTUILayerData GetRTLayerData(string layer) => _layers[layer];
+            public RunTimeUILayerData GetRTLayerData(string layer) => _layers[layer];
 
 
             public void ShowRayCast() => raycast.raycastTarget = true;
@@ -529,7 +529,7 @@ namespace IFramework.UI
 
         public void SetAsset(UIAsset asset) => assetPart = asset;
 
-        public void SetGroups(IGroups groups) => this.groupPart = groups;
+        public void SetBridge(IViewBridge bridge) => this.bridgePart = bridge;
         public void SetUIDelegate(IUIDelegate del) => this.delPart = del;
         public void ClearUselessItems() => itemPart.ClearUseless();
 
@@ -541,7 +541,7 @@ namespace IFramework.UI
         public void HideRayCast() => layerPart.HideRayCast();
         public void ForceShowRayCast() => layerPart.ForceShowRayCast();
         public void ForceHideRayCast() => layerPart.ForceHideRayCast();
-        public RTUILayerData GetRTLayerData(string layer) => layerPart.GetRTLayerData(layer);
+        public RunTimeUILayerData GetRTLayerData(string layer) => layerPart.GetRTLayerData(layer);
 
 
         public int GetPanelLayer(string path) => this.assetPart.GetPanelLayer(path);
