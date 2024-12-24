@@ -11,26 +11,26 @@ using System.Collections.Generic;
 
 namespace IFramework.UI
 {
-    public class MixedGroups : IGroups
+    public class MixedViewBridge : IViewBridge
     {
-        private readonly IGroups[] _groups;
-        private Dictionary<string, IGroups> _nameMap;
-        public MixedGroups(IGroups[] groups)
+        private readonly IViewBridge[] _bridges;
+        private Dictionary<string, IViewBridge> _nameMap;
+        public MixedViewBridge(IViewBridge[] bridges)
         {
-            this._groups = groups;
-            _nameMap = new Dictionary<string, IGroups>();
+            this._bridges = bridges;
+            _nameMap = new Dictionary<string, IViewBridge>();
         }
 
         void IDisposable.Dispose()
         {
-            for (int i = 0; i < _groups.Length; i++)
+            for (int i = 0; i < _bridges.Length; i++)
             {
-                _groups[i].Dispose();
+                _bridges[i].Dispose();
             }
         }
 
 
-        void IGroups.OnClose(string path)
+        void IViewBridge.OnClose(string path)
         {
             if (_nameMap.ContainsKey(path))
             {
@@ -42,7 +42,7 @@ namespace IFramework.UI
             }
         }
 
-        void IGroups.OnHide(string path)
+        void IViewBridge.OnHide(string path)
         {
             if (_nameMap.ContainsKey(path))
             {
@@ -54,7 +54,7 @@ namespace IFramework.UI
             }
         }
 
-        void IGroups.OnShow(string path)
+        void IViewBridge.OnShow(string path)
         {
             if (_nameMap.ContainsKey(path))
             {
@@ -78,12 +78,12 @@ namespace IFramework.UI
             }
         }
 
-        bool IGroups.Subscribe(string path, UIPanel panel)
+        bool IViewBridge.Subscribe(string path, UIPanel panel)
         {
             bool sucess = false;
-            for (int i = 0; i < _groups.Length; i++)
+            for (int i = 0; i < _bridges.Length; i++)
             {
-                sucess |= _groups[i].Subscribe(path,panel);
+                sucess |= _bridges[i].Subscribe(path,panel);
                 if (sucess)
                 {
                     if (_nameMap.ContainsKey(path))
@@ -91,7 +91,7 @@ namespace IFramework.UI
                         UnityEngine.Debug.LogError("Same name, can't Subscribe the panel with name " + path);
                         return false;
                     }
-                    _nameMap[path] = _groups[i];
+                    _nameMap[path] = _bridges[i];
                     break;
                 }
             }
@@ -102,7 +102,7 @@ namespace IFramework.UI
             return sucess;
         }
 
-        bool IGroups.UnSubscribe(string path)
+        bool IViewBridge.UnSubscribe(string path)
         {
             if (_nameMap.ContainsKey(path))
             {

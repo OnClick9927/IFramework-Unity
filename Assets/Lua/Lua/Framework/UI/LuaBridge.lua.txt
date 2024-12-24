@@ -1,5 +1,5 @@
-local __CSGroups = StaticUsing("IFramework.Lua.LuaGroups")
----@param self LuaGroups
+local __CSBridge = StaticUsing("IFramework.Lua.LuaBridge")
+---@param self LuaBridge
 ---@param add boolean
 local function AddOrRemoveDelegate(self, add)
     local char = add and "+" or "-"
@@ -13,10 +13,10 @@ local function AddOrRemoveDelegate(self, add)
     CS_instance:onClose(char, self.handlers.onClose)
 end
 
----@class LuaGroups:Unit
-LuaGroups = class("LuaGroups")
+---@class LuaBridge:Unit
+LuaBridge = class("LuaBridge")
 ---@private
-function LuaGroups:ctor()
+function LuaBridge:ctor()
     ---@private
     self.handlers = {
         onDispose = Handler(self.OnDispose, self),
@@ -28,41 +28,41 @@ function LuaGroups:ctor()
         onLoad = Handler(self.OnLoad, self),
     }
     ---@private
-    ---@type IFramework.Lua.LuaGroups
+    ---@type IFramework.Lua.LuaBridge
     self.CS_instance = nil
     ---@private
     ---@type table<string,UIView>
     self.map = nil
     ---@private
     ---@type table<string,UIView>
-    self.groups = nil
+    self.bridges = nil
 end
 
 --- @param map table<string,UIView> 自动生成的map
---- @return IFramework.Lua.LuaGroups
-function LuaGroups:SetMap(map)
+--- @return IFramework.Lua.LuaBridge
+function LuaBridge:SetMap(map)
     if map == nil then
         error("map could not be null ")
         return
     end
     self.map = map
-    self.CS_instance = __CSGroups()
+    self.CS_instance = __CSBridge()
     AddOrRemoveDelegate(self, true)
     return self.CS_instance
 end
 
 ---@private
-function LuaGroups:OnDispose()
+function LuaBridge:OnDispose()
     AddOrRemoveDelegate(self, false)
     self.handlers = nil
     self.CS_instance = nil
     self.map = nil
-    self.groups = nil
+    self.bridges = nil
 end
 
 ---@private
-function LuaGroups:OnSubscribe(path, panel)
-    self.groups = self.groups or {}
+function LuaBridge:OnSubscribe(path, panel)
+    self.bridges = self.bridges or {}
     if self:FindView(path) ~= nil then
         print("same name with panel  " .. path)
         return false
@@ -81,14 +81,14 @@ function LuaGroups:OnSubscribe(path, panel)
     end
 
     local view = vvmType(panel)
-    self.groups[path] = view
+    self.bridges[path] = view
 end
 
 ---@private
-function LuaGroups:OnUnSubscribe(path)
+function LuaBridge:OnUnSubscribe(path)
     local view = self:FindView(path)
     if view ~= nil then
-        self.groups[path] = nil
+        self.bridges[path] = nil
         return true
     end
     return false
@@ -96,27 +96,27 @@ end
 
 ---@private
 ---@return UIView
-function LuaGroups:FindView(path)
-    return self.groups[path]
+function LuaBridge:FindView(path)
+    return self.bridges[path]
 end
 
 ---@private
-function LuaGroups:OnLoad(path)
+function LuaBridge:OnLoad(path)
     local view = self:FindView(path)
     view:OnLoad()
 end
 
 ---@private
-function LuaGroups:OnShow(path)
+function LuaBridge:OnShow(path)
     self:FindView(path):OnShow()
 end
 
 ---@private
-function LuaGroups:OnHide(path)
+function LuaBridge:OnHide(path)
     self:FindView(path):OnHide()
 end
 
 ---@private
-function LuaGroups:OnClose(path)
+function LuaBridge:OnClose(path)
     self:FindView(path):OnClose()
 end

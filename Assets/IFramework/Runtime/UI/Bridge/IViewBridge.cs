@@ -13,7 +13,7 @@ namespace IFramework.UI
     /// <summary>
     /// ui 组
     /// </summary>
-    public interface IGroups : IDisposable
+    public interface IViewBridge : IDisposable
     {
 
         /// <summary>

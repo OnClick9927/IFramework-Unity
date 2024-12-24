@@ -15,12 +15,12 @@ using System.Collections.Generic;
 namespace XLua.CSObjectWrap
 {
     using Utils = XLua.Utils;
-    public class IFrameworkPanelOneView_1Wrap 
+    public class IFramework_testPanelOneViewWrap 
     {
         public static void __Register(RealStatePtr L)
         {
 			ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
-			System.Type type = null;
+			System.Type type = typeof(IFramework_test.PanelOneView);
 			Utils.BeginObjectRegister(type, L, translator, 0, 0, 0, 0);
 			
 			
@@ -50,7 +50,8 @@ namespace XLua.CSObjectWrap
 				if(LuaAPI.lua_gettop(L) == 1)
 				{
 					
-
+					var gen_ret = new IFramework_test.PanelOneView();
+					translator.Push(L, gen_ret);
                     
 					return 1;
 				}
@@ -59,7 +60,7 @@ namespace XLua.CSObjectWrap
 			catch(System.Exception gen_e) {
 				return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
 			}
-            return LuaAPI.luaL_error(L, "invalid arguments to IFramework.PanelOneView_1 constructor!");
+            return LuaAPI.luaL_error(L, "invalid arguments to IFramework_test.PanelOneView constructor!");
             
         }
         

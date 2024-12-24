@@ -79,6 +79,7 @@ namespace IFramework.UI
                 }
                 public Type GetSelectType()
                 {
+                    typeIndex = Mathf.Clamp(typeIndex, 0, typeNames.Length);
                     var type_str = typeNames[typeIndex];
                     Type type = types.FirstOrDefault(x => x.FullName == type_str);
 

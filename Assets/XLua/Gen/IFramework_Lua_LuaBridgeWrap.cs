@@ -15,12 +15,12 @@ using System.Collections.Generic;
 namespace XLua.CSObjectWrap
 {
     using Utils = XLua.Utils;
-    public class IFrameworkLuaLuaGroupsWrap 
+    public class IFrameworkLuaLuaBridgeWrap 
     {
         public static void __Register(RealStatePtr L)
         {
 			ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
-			System.Type type = typeof(IFramework.Lua.LuaGroups);
+			System.Type type = typeof(IFramework.Lua.LuaBridge);
 			Utils.BeginObjectRegister(type, L, translator, 0, 7, 0, 0);
 			
 			
@@ -57,7 +57,7 @@ namespace XLua.CSObjectWrap
 				if(LuaAPI.lua_gettop(L) == 1)
 				{
 					
-					var gen_ret = new IFramework.Lua.LuaGroups();
+					var gen_ret = new IFramework.Lua.LuaBridge();
 					translator.Push(L, gen_ret);
                     
 					return 1;
@@ -67,7 +67,7 @@ namespace XLua.CSObjectWrap
 			catch(System.Exception gen_e) {
 				return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
 			}
-            return LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaGroups constructor!");
+            return LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaBridge constructor!");
             
         }
         
@@ -91,7 +91,7 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    int gen_param_count = LuaAPI.lua_gettop(L);
-			IFramework.Lua.LuaGroups gen_to_be_invoked = (IFramework.Lua.LuaGroups)translator.FastGetCSObj(L, 1);
+			IFramework.Lua.LuaBridge gen_to_be_invoked = (IFramework.Lua.LuaBridge)translator.FastGetCSObj(L, 1);
                 System.Action gen_delegate = translator.GetDelegate<System.Action>(L, 3);
                 if (gen_delegate == null) {
                     return LuaAPI.luaL_error(L, "#3 need System.Action!");
@@ -115,7 +115,7 @@ namespace XLua.CSObjectWrap
 			} catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }
-			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaGroups.onDispose!");
+			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaBridge.onDispose!");
             return 0;
         }
         
@@ -125,7 +125,7 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    int gen_param_count = LuaAPI.lua_gettop(L);
-			IFramework.Lua.LuaGroups gen_to_be_invoked = (IFramework.Lua.LuaGroups)translator.FastGetCSObj(L, 1);
+			IFramework.Lua.LuaBridge gen_to_be_invoked = (IFramework.Lua.LuaBridge)translator.FastGetCSObj(L, 1);
                 System.Func<string, IFramework.UI.UIPanel, bool> gen_delegate = translator.GetDelegate<System.Func<string, IFramework.UI.UIPanel, bool>>(L, 3);
                 if (gen_delegate == null) {
                     return LuaAPI.luaL_error(L, "#3 need System.Func<string, IFramework.UI.UIPanel, bool>!");
@@ -149,7 +149,7 @@ namespace XLua.CSObjectWrap
 			} catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }
-			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaGroups.onSubscribe!");
+			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaBridge.onSubscribe!");
             return 0;
         }
         
@@ -159,7 +159,7 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    int gen_param_count = LuaAPI.lua_gettop(L);
-			IFramework.Lua.LuaGroups gen_to_be_invoked = (IFramework.Lua.LuaGroups)translator.FastGetCSObj(L, 1);
+			IFramework.Lua.LuaBridge gen_to_be_invoked = (IFramework.Lua.LuaBridge)translator.FastGetCSObj(L, 1);
                 System.Func<string, bool> gen_delegate = translator.GetDelegate<System.Func<string, bool>>(L, 3);
                 if (gen_delegate == null) {
                     return LuaAPI.luaL_error(L, "#3 need System.Func<string, bool>!");
@@ -183,7 +183,7 @@ namespace XLua.CSObjectWrap
 			} catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }
-			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaGroups.onUnSubscribe!");
+			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaBridge.onUnSubscribe!");
             return 0;
         }
         
@@ -193,7 +193,7 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    int gen_param_count = LuaAPI.lua_gettop(L);
-			IFramework.Lua.LuaGroups gen_to_be_invoked = (IFramework.Lua.LuaGroups)translator.FastGetCSObj(L, 1);
+			IFramework.Lua.LuaBridge gen_to_be_invoked = (IFramework.Lua.LuaBridge)translator.FastGetCSObj(L, 1);
                 System.Action<string> gen_delegate = translator.GetDelegate<System.Action<string>>(L, 3);
                 if (gen_delegate == null) {
                     return LuaAPI.luaL_error(L, "#3 need System.Action<string>!");
@@ -217,7 +217,7 @@ namespace XLua.CSObjectWrap
 			} catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }
-			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaGroups.onLoad!");
+			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaBridge.onLoad!");
             return 0;
         }
         
@@ -227,7 +227,7 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    int gen_param_count = LuaAPI.lua_gettop(L);
-			IFramework.Lua.LuaGroups gen_to_be_invoked = (IFramework.Lua.LuaGroups)translator.FastGetCSObj(L, 1);
+			IFramework.Lua.LuaBridge gen_to_be_invoked = (IFramework.Lua.LuaBridge)translator.FastGetCSObj(L, 1);
                 System.Action<string> gen_delegate = translator.GetDelegate<System.Action<string>>(L, 3);
                 if (gen_delegate == null) {
                     return LuaAPI.luaL_error(L, "#3 need System.Action<string>!");
@@ -251,7 +251,7 @@ namespace XLua.CSObjectWrap
 			} catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }
-			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaGroups.onShow!");
+			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaBridge.onShow!");
             return 0;
         }
         
@@ -261,7 +261,7 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    int gen_param_count = LuaAPI.lua_gettop(L);
-			IFramework.Lua.LuaGroups gen_to_be_invoked = (IFramework.Lua.LuaGroups)translator.FastGetCSObj(L, 1);
+			IFramework.Lua.LuaBridge gen_to_be_invoked = (IFramework.Lua.LuaBridge)translator.FastGetCSObj(L, 1);
                 System.Action<string> gen_delegate = translator.GetDelegate<System.Action<string>>(L, 3);
                 if (gen_delegate == null) {
                     return LuaAPI.luaL_error(L, "#3 need System.Action<string>!");
@@ -285,7 +285,7 @@ namespace XLua.CSObjectWrap
 			} catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }
-			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaGroups.onHide!");
+			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaBridge.onHide!");
             return 0;
         }
         
@@ -295,7 +295,7 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    int gen_param_count = LuaAPI.lua_gettop(L);
-			IFramework.Lua.LuaGroups gen_to_be_invoked = (IFramework.Lua.LuaGroups)translator.FastGetCSObj(L, 1);
+			IFramework.Lua.LuaBridge gen_to_be_invoked = (IFramework.Lua.LuaBridge)translator.FastGetCSObj(L, 1);
                 System.Action<string> gen_delegate = translator.GetDelegate<System.Action<string>>(L, 3);
                 if (gen_delegate == null) {
                     return LuaAPI.luaL_error(L, "#3 need System.Action<string>!");
@@ -319,7 +319,7 @@ namespace XLua.CSObjectWrap
 			} catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }
-			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaGroups.onClose!");
+			LuaAPI.luaL_error(L, "invalid arguments to IFramework.Lua.LuaBridge.onClose!");
             return 0;
         }
         

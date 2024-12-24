@@ -9,7 +9,7 @@
 
 namespace IFramework.UI
 {
-    public interface IViewEventHandler
+    public interface IUIView
     {
         void OnLoad();
         void OnShow();

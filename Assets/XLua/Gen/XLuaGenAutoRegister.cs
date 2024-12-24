@@ -1262,20 +1262,24 @@ namespace XLua.CSObjectWrap
             translator.DelayWrapLoader(typeof(Tutorial.Param1), TutorialParam1Wrap.__Register);
         
         
+            translator.DelayWrapLoader(typeof(IFramework_test.PanelOneView), IFramework_testPanelOneViewWrap.__Register);
+        
+        
             translator.DelayWrapLoader(typeof(IFramework.PanelOneItemView), IFrameworkPanelOneItemViewWrap.__Register);
         
         
             translator.DelayWrapLoader(typeof(IFramework.PanelOneView), IFrameworkPanelOneViewWrap.__Register);
         
         
-        
-        
-            translator.DelayWrapLoader(typeof(IFramework.Lua.TaskForLua), IFrameworkLuaTaskForLuaWrap.__Register);
+            translator.DelayWrapLoader(typeof(IFramework.Lua.LuaBridge), IFrameworkLuaLuaBridgeWrap.__Register);
         
         }
         
         static void wrapInit8(LuaEnv luaenv, ObjectTranslator translator)
         {
+        
+            translator.DelayWrapLoader(typeof(IFramework.Lua.TaskForLua), IFrameworkLuaTaskForLuaWrap.__Register);
+        
         
             translator.DelayWrapLoader(typeof(IFramework.Lua.LuaDelayTask), IFrameworkLuaLuaDelayTaskWrap.__Register);
         
@@ -1284,9 +1288,6 @@ namespace XLua.CSObjectWrap
         
         
             translator.DelayWrapLoader(typeof(IFramework.Lua.LuaEX), IFrameworkLuaLuaEXWrap.__Register);
-        
-        
-            translator.DelayWrapLoader(typeof(IFramework.Lua.LuaGroups), IFrameworkLuaLuaGroupsWrap.__Register);
         
         
             translator.DelayWrapLoader(typeof(IFramework.Lua.LuaHotFix), IFrameworkLuaLuaHotFixWrap.__Register);

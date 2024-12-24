@@ -1,9 +1,5 @@
 using IFramework;
 using IFramework.UI;
-using IFramework.UI.MVC;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -56,7 +52,7 @@ public class UIGame : Game, IUIDelegate
 
         ui.SetUIDelegate(this);
         ui.SetAsset(new Asset(layer, JsonUtility.FromJson<PanelCollection>(txt.text)));
-        ui.SetGroups(new MvcGroups(PanelNames_UIGame.map));
+        ui.SetBridge(new ViewBridge(PanelNames_UIGame.map));
         ui.CreateCanvas();
         Log.L("BeginShow");
         await ui.Show(PanelNames_UIGame.PanelOne);

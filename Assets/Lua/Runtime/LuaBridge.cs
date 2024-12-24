@@ -12,7 +12,7 @@ using IFramework.UI;
 
 namespace IFramework.Lua
 {
-    public class LuaGroups : IGroups
+    public class LuaBridge : IViewBridge
     {
         public event Action onDispose;
         public event Func<string,UIPanel, bool> onSubscribe;
@@ -33,12 +33,12 @@ namespace IFramework.Lua
             onUnSubscribe = null;
         }
 
-        void IGroups.OnLoad(string path) => onLoad?.Invoke(path);
-        void IGroups.OnClose(string path) => onClose?.Invoke(path);
-        void IGroups.OnHide(string path)=> onHide?.Invoke(path);
-        void IGroups.OnShow(string path) => onShow?.Invoke(path);
-        bool IGroups.Subscribe(string path,UIPanel panel) => onSubscribe != null ? onSubscribe(path,panel) : false;
-        bool IGroups.UnSubscribe(string path) => onUnSubscribe != null ? onUnSubscribe(path) : false;
+        void IViewBridge.OnLoad(string path) => onLoad?.Invoke(path);
+        void IViewBridge.OnClose(string path) => onClose?.Invoke(path);
+        void IViewBridge.OnHide(string path)=> onHide?.Invoke(path);
+        void IViewBridge.OnShow(string path) => onShow?.Invoke(path);
+        bool IViewBridge.Subscribe(string path,UIPanel panel) => onSubscribe != null ? onSubscribe(path,panel) : false;
+        bool IViewBridge.UnSubscribe(string path) => onUnSubscribe != null ? onUnSubscribe(path) : false;
     }
 
 }

@@ -19,14 +19,14 @@
 		<type fullname="Tutorial.ByString" preserve="all"/>
 		<type fullname="Tutorial.CustomLoader" preserve="all"/>
 		<type fullname="Tutorial.Param1" preserve="all"/>
+		<type fullname="IFramework_test.PanelOneView" preserve="all"/>
 		<type fullname="IFramework.PanelOneItemView" preserve="all"/>
 		<type fullname="IFramework.PanelOneView" preserve="all"/>
-		<type fullname="IFramework.PanelOneView_1" preserve="all"/>
+		<type fullname="IFramework.Lua.LuaBridge" preserve="all"/>
 		<type fullname="IFramework.Lua.TaskForLua" preserve="all"/>
 		<type fullname="IFramework.Lua.LuaDelayTask" preserve="all"/>
 		<type fullname="IFramework.Lua.LuaEnvConfig" preserve="all"/>
 		<type fullname="IFramework.Lua.LuaEX" preserve="all"/>
-		<type fullname="IFramework.Lua.LuaGroups" preserve="all"/>
 		<type fullname="IFramework.Lua.LuaHotFix" preserve="all"/>
 		<type fullname="IFramework.Lua.LuaGame" preserve="all"/>
 		<type fullname="UIGame+Asset" preserve="all"/>

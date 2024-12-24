@@ -2,10 +2,10 @@ Log.L('Game Logic')
 local Launcher = StaticUsing("IFramework.Launcher")
 local game = Launcher.Instance.game
 local ui = game.module
----@type LuaGroups
-local group = LuaGroups()
-local cs = group:SetMap(PanelNames_UIGame.map)
-ui:SetGroups(cs)
+---@type LuaBridge
+local bridge = LuaBridge()
+local cs = bridge:SetMap(PanelNames_UIGame.map)
+ui:SetBridge(cs)
 ui:Show(PanelNames_UIGame.PanelOne)
 
 async(function()

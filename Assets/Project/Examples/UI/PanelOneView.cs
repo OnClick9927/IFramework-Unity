@@ -10,7 +10,7 @@ using UnityEngine;
 using static IFramework.UI.UnityEventHelper;
 namespace IFramework
 {
-    public class PanelOneView : IFramework.UI.MVC.UIView
+    public class PanelOneView : IFramework.UI.UIView
     {
         class View
         {
