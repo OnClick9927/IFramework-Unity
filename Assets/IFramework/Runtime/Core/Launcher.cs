@@ -6,7 +6,6 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
-using IFramework.Singleton;
 using System;
 using UnityEngine;
 
@@ -42,14 +41,12 @@ namespace IFramework
 
 
         Modules _modules;
-        private LoomModule _loom;
 
 
 
         private void Awake()
         {
             _modules = new Modules();
-            _loom = LoomModule.CreateInstance<LoomModule>("");
 
 
         }
@@ -57,8 +54,6 @@ namespace IFramework
         {
             ondisable?.Invoke();
             _modules.Dispose();
-            _loom.Dispose();
-            _loom = null;
             _modules = null;
         }
 
@@ -68,7 +63,6 @@ namespace IFramework
             {
                 onUpdate();
             }
-            _loom.Update();
             _modules.Update();
         }
         private void FixedUpdate()
@@ -101,21 +95,7 @@ namespace IFramework
             }
         }
 
-        public static void WaitEnvironmentFrame<T>(T action)
-        {
-            if (instance._loom == null) return;
-            instance._loom.RunDelay<T>(action);
-        }
-        public static void SubscribeWaitEnvironmentFrameHandler<T>(Action<T> action)
-        {
-            if (instance._loom == null) return;
-            instance._loom.AddDelayHandler<T>(action);
-        }
-        public static void UnSubscribeWaitEnvironmentFrameHandler<T>(Action<T> action)
-        {
-            if (instance._loom == null) return;
-            instance._loom.RemoveDelayHandler<T>(action);
-        }
+
         public static void BindUpdate(Action action)
         {
             onUpdate += action;

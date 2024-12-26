@@ -1,16 +1,63 @@
-﻿/*********************************************************************************
- *Author:         OnClick
- *Version:        0.0.1
- *UnityVersion:   2017.2.3p3
- *Date:           2019-08-21
- *Description:    IFramework
- *History:        2018.11--
-*********************************************************************************/
+﻿
+using System;
 using System.Reflection;
 using UnityEngine;
 
-namespace IFramework.Singleton
+namespace IFramework
 {
+
+    interface ISingleton 
+    {
+
+        void OnSingletonInit();
+    }
+    public abstract class Singleton<T> : ISingleton where T : Singleton<T>, new()
+    {
+        private volatile static T _instance;
+        static object lockObj = new object();
+
+        public static T instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (lockObj)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new T();
+                            _instance.OnSingletonInit();
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        protected virtual void OnSingletonInit() { }
+
+
+        void ISingleton.OnSingletonInit()
+        {
+            OnSingletonInit();
+        }
+    }
+    [AttributeUsage(AttributeTargets.Class)]
+    public class MonoSingletonPath : Attribute
+    {
+        private string mPathInHierarchy;
+
+        public MonoSingletonPath(string pathInHierarchy)
+        {
+            mPathInHierarchy = pathInHierarchy;
+        }
+
+        public string PathInHierarchy
+        {
+            get { return mPathInHierarchy; }
+        }
+    }
     public abstract class MonoSingleton<T> : MonoBehaviour, ISingleton where T : MonoSingleton<T>
     {
         protected static T instance = null;

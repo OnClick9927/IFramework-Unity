@@ -1,21 +1,65 @@
 ﻿/*********************************************************************************
  *Author:         OnClick
- *Version:        0.0.1
- *UnityVersion:   2017.2.3p3
- *Date:           2019-07-02
- *Description:    IFramework
- *History:        2018.11--
+ *Version:        1.0
+ *UnityVersion:   2020.3.3f1c1
+ *Date:           2022-08-03
+ *Description:    Description
+ *History:        2022-08-03--
 *********************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System;
-using static IFramework.UI.UIModule;
+using UnityEngine;
 
 namespace IFramework.UI
 {
-    public static class UIEx
+    public abstract class UIItemView : GameObjectView
     {
-         struct UIItemViewAwaiter<T> : IAwaiter<T>, ICriticalNotifyCompletion where T : UIItemView
+        public Action completed;
+        public bool _isDone = false;
+        public string path { get; private set; }
+
+        public bool isDone { get { return _isDone; } }
+
+        private void Compelete()
+        {
+            _isDone = true;
+            completed?.Invoke();
+            completed = null;
+        }
+        internal async void Load(string path, UIItemOperation op, Transform parent)
+        {
+            await op;
+            var go = op.gameObject;
+            if (parent != null)
+            {
+                go.transform.SetParent(parent.transform);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localRotation = Quaternion.identity;
+                go.transform.localScale = Vector3.one;
+            }
+            this.path = path;
+            this.SetGameObject(go);
+            //go.SetActive(true);
+            this.OnGet();
+            Compelete();
+        }
+        public virtual void OnSet()
+        {
+            this.DisposeEvents();
+            this.DisposeUIEvents();
+
+        }
+
+        protected abstract void OnGet();
+
+    }
+
+
+    public static class UIItemAsync
+    {
+        struct UIItemViewAwaiter<T> : IAwaiter<T>, ICriticalNotifyCompletion where T : UIItemView
         {
             private T task;
             private Queue<Action> calls;
@@ -64,6 +108,4 @@ namespace IFramework.UI
             return new UIItemViewAwaiter<T>(target);
         }
     }
-
-
 }

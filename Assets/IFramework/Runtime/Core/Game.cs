@@ -10,17 +10,18 @@ using UnityEngine;
 
 namespace IFramework
 {
-    public abstract class Game:MonoBehaviour
-	{
+    public abstract class Game : MonoBehaviour
+    {
         public Modules modules { get { return Launcher.modules; } }
         private void Awake()
         {
-            transform.parent = Launcher.Instance.transform;
+            transform.SetParent(Launcher.Instance.transform);
             Launcher.Instance.game = this;
         }
+
         public abstract void Init();
         public abstract void Startup();
 
-     
+
     }
 }

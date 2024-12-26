@@ -167,7 +167,6 @@ namespace IFramework.RedPoint
                     last.AddChild(point);
 
                 last = point;
-                point.IsLeaf = j == columns.Length - 1;
             }
             SetViewer(RedTree.viewer);
         }

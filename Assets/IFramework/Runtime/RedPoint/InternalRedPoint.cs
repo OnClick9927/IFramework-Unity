@@ -17,7 +17,6 @@ namespace IFramework.RedPoint
         private int count_dirty;
 
         private bool hasValue = false;
-        public bool IsLeaf { get; internal set; }
         public InternalRedPoint(string key, string parent_key)
         {
             this.parent_key = parent_key;

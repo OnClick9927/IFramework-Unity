@@ -4,19 +4,14 @@ using System;
 using static IFramework.Events;
 namespace IFramework
 {
-    public interface IEventArgs
-    {
-    }
+    public interface IEventArgs { }
     public class Events
     {
         public class EventEntity : IDisposable
         {
             public Action<IEventArgs> action;
             public string msg;
-            public void Dispose()
-            {
-                UnSubscribe(this);
-            }
+            public void Dispose() => UnSubscribe(this);
         }
         private static Dictionary<string, List<EventEntity>> map = new Dictionary<string, List<EventEntity>>();
 

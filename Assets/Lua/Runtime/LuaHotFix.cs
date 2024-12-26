@@ -9,7 +9,6 @@
 using XLua;
 using UnityEngine;
 using System.Collections.Generic;
-using IFramework.Singleton;
 using System;
 
 namespace IFramework.Lua
