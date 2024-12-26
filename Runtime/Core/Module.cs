@@ -3,14 +3,126 @@ using System.Collections.Generic;
 
 namespace IFramework
 {
+    public struct ModulePriority
+    {
+        public const int Custom = 1000;
+        private int _value;
+
+        public ModulePriority(int value)
+        {
+            _value = value;
+        }
+
+        public int value { get { return _value; } set { _value = value; } }
 
 
+        public static ModulePriority FromValue(int value)
+        {
+            return new ModulePriority(value);
+        }
+
+        public static implicit operator int(ModulePriority value)
+        {
+            return value.value;
+        }
+
+        public static implicit operator ModulePriority(int value)
+        {
+            return new ModulePriority(value);
+        }
+
+        public static ModulePriority operator +(ModulePriority a, ModulePriority b)
+        {
+            return new ModulePriority(a.value + b.value);
+        }
+
+        public static ModulePriority operator -(ModulePriority a, ModulePriority b)
+        {
+            return new ModulePriority(a.value - b.value);
+        }
+    }
+
+    public abstract class Module : IPriorityQueueNode<int>, IDisposable
+    {
+
+        public const string defaultName = "default";
+
+        private bool _binded;
+        private int _priority;
+
+        int IPriorityQueueNode<int>.priority { get => _priority; set => _priority = value; }
+        int IPriorityQueueNode<int>.position { get; set; }
+        long IPriorityQueueNode<int>.insertPosition { get; set; }
+
+        internal int priority { get { return _priority; } }
+
+
+        internal bool binded { get { return _binded; }  set { _binded = value; } }
+
+
+        public string name { get; set; }
+
+
+
+
+        protected abstract void Awake();
+
+
+        public static Module CreateInstance(Type type, string name = defaultName, int priority = 0)
+        {
+            Module moudle = Activator.CreateInstance(type) as Module;
+            if (moudle != null)
+            {
+                moudle._binded = false;
+                moudle.name = name;
+                moudle._priority = moudle.OnGetDefaultPriority().value + priority;
+                moudle.Awake();
+            }
+            else
+                Log.E(string.Format("Type: {0} Non Public Ctor With 0 para Not Find", type));
+
+            return moudle;
+        }
+
+        protected virtual ModulePriority OnGetDefaultPriority()
+        {
+            return ModulePriority.Custom;
+        }
+
+        public static T CreateInstance<T>(string name = defaultName, int priority = 0) where T : Module
+        {
+            return CreateInstance(typeof(T), name, priority) as T;
+        }
+        private bool _disposed;
+
+        protected bool disposed { get { return _disposed; } }
+
+        protected abstract void OnDispose();
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            OnDispose();
+            _disposed = true;
+        }
+    }
+
+    public abstract class UpdateModule : Module
+    {
+        public void Update()
+        {
+            if (disposed) return;
+            OnUpdate();
+        }
+        protected abstract void OnUpdate();
+
+    }
     public class Modules : IDisposable
     {
         private object _lock = new object();
         private Dictionary<Type, Dictionary<string, Module>> _dic;
 
-        private GenericPriorityQueue<Module, int> _queue;
+        private PriorityQueue<Module, int> _queue;
         private List<UpdateModule> _updateModules;
 
 
@@ -66,7 +178,7 @@ namespace IFramework
         public Modules()
         {
             _dic = new Dictionary<Type, Dictionary<string, Module>>();
-            _queue = new GenericPriorityQueue<Module, int>(256);
+            _queue = new PriorityQueue<Module, int>(256);
             _updateModules = new List<UpdateModule>();
         }
 

@@ -1,22 +1,31 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace IFramework
 {
-    sealed class GenericPriorityQueue<TItem, TPriority> : IEnumerable
-        where TItem : class, IGenericPriorityQueueNode<TPriority> where TPriority : IComparable<TPriority>
+    public interface IPriorityQueueNode<TPriority>
+    {
+
+        TPriority priority { get; protected internal set; }
+
+        int position { get; internal set; }
+        long insertPosition { get; internal set; }
+
+    }
+    public sealed class PriorityQueue<TItem, TPriority> : IEnumerable
+     where TItem : class, IPriorityQueueNode<TPriority> where TPriority : IComparable<TPriority>
     {
         private int _numNodes;
         private TItem[] _nodes;
         private long _numNodesEverEnqueued;
         private readonly Comparison<TPriority> _comparer;
 
-        public GenericPriorityQueue(int maxNodes) : this(maxNodes, Comparer<TPriority>.Default) { }
+        public PriorityQueue(int maxNodes) : this(maxNodes, Comparer<TPriority>.Default) { }
 
-        public GenericPriorityQueue(int maxNodes, IComparer<TPriority> comparer) : this(maxNodes, comparer.Compare) { }
+        public PriorityQueue(int maxNodes, IComparer<TPriority> comparer) : this(maxNodes, comparer.Compare) { }
 
-        public GenericPriorityQueue(int maxNodes, Comparison<TPriority> comparer)
+        public PriorityQueue(int maxNodes, Comparison<TPriority> comparer)
         {
 #if DEBUG
             if (maxNodes <= 0)
@@ -42,7 +51,7 @@ namespace IFramework
 
         public int capacity
         {
-           
+
             get
             {
                 return _nodes.Length - 1;
