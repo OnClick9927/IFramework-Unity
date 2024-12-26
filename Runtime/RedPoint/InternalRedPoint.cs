@@ -14,8 +14,10 @@ namespace IFramework.RedPoint
         public string key;
         public Dictionary<string, InternalRedPoint> children = new Dictionary<string, InternalRedPoint>();
         private int count;
-        private bool hasValue = false;
+        private int count_dirty;
 
+        private bool hasValue = false;
+        public bool IsLeaf { get; internal set; }
         public InternalRedPoint(string key, string parent_key)
         {
             this.parent_key = parent_key;
@@ -28,10 +30,17 @@ namespace IFramework.RedPoint
         }
         public void AddChild(InternalRedPoint p)
         {
-            var p_key = p.key;
-            if (children.ContainsKey(p_key))
+            var key = p.key;
+            if (children.ContainsKey(key))
                 return;
-            children.Add(p_key, p);
+            children.Add(key, p);
+        }
+        public void RemoveChild(InternalRedPoint p)
+        {
+            var key = p.key;
+            if (!children.ContainsKey(key))
+                return;
+            children.Remove(key);
         }
 
         public bool SetCount(int count)
@@ -39,7 +48,16 @@ namespace IFramework.RedPoint
             if (hasValue && count == this.count) return false;
             this.count = count;
             hasValue = true;
-            RedTree.FreshDot(key, count);
+            return true;
+        }
+        public int GetDirtyCount()
+        {
+            return count_dirty;
+        }
+        public bool SetDirty(int count)
+        {
+            if (count == this.GetCount()) return false;
+            this.count_dirty = count;
             return true;
         }
     }

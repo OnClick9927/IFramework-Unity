@@ -50,7 +50,7 @@ namespace IFramework.RedPoint
             if (!red_dot_map[path].Contains(dot)) return;
             red_dot_map[path].Remove(dot);
         }
-        internal static void FreshDot(string path, int count)
+        private static void FreshDot(string path, int count)
         {
             if (!red_dot_map.ContainsKey(path))
                 return;
@@ -86,29 +86,69 @@ namespace IFramework.RedPoint
             return _new;
         }
 
-        private static void FreshParent(string key)
+
+        public static void SetCount(string key, int count)
+        {
+            var point = Find(key);
+            if (point == null) return;
+            if (point.SetDirty(count) && point.children.Count == 0)
+                dirty.Enqueue(point);
+
+        }
+
+        private static Queue<InternalRedPoint> dirty = new Queue<InternalRedPoint>();
+        private static Queue<InternalRedPoint> dirty_P = new Queue<InternalRedPoint>();
+
+        private static void FreshParent(string key, Dictionary<string, int> map)
         {
             if (string.IsNullOrEmpty(key)) return;
             var point = Find(key);
             int sum = 0;
             foreach (var item in point.children.Values)
             {
-                sum += item.GetCount();
+                if (Find(item.key) != null)
+                    sum += item.GetCount();
             }
             if (point.SetCount(sum))
             {
-                FreshParent(point.parent_key);
+                map[point.key] = sum;
+                FreshParent(point.parent_key, map);
             }
         }
-        public static void SetCount(string key, int count)
+        static Dictionary<string, int> map = new Dictionary<string, int>();
+
+        public static void FreshDots()
         {
-            var point = Find(key);
-            if (point == null || point.children.Count > 0) return;
-            if (point.SetCount(count))
+            if (dirty.Count == 0 && dirty_P.Count == 0) return;
+            map.Clear();
+            while (dirty.Count > 0)
             {
-                FreshParent(point.parent_key);
+                var point = dirty.Dequeue();
+
+                if (Find(point.key) == null) continue;
+                var count = point.GetDirtyCount();
+                if (point.SetCount(count))
+                {
+                    map[point.key] = count;
+                    FreshParent(point.parent_key, map);
+                }
             }
+            while (dirty_P.Count > 0)
+            {
+                var point = dirty_P.Dequeue();
+                FreshParent(point.key, map);
+
+            }
+
+            foreach (var item in map)
+            {
+                FreshDot(item.Key, item.Value);
+            }
+            SetViewer(RedTree.viewer);
+
         }
+
+
         public static int GetCount(string key)
         {
             var point = Find(key);
@@ -125,7 +165,9 @@ namespace IFramework.RedPoint
                 var point = AddPoint(_pkey, _key);
                 if (last != null)
                     last.AddChild(point);
+
                 last = point;
+                point.IsLeaf = j == columns.Length - 1;
             }
             SetViewer(RedTree.viewer);
         }
@@ -133,11 +175,16 @@ namespace IFramework.RedPoint
         {
             var point = Find(key);
             if (point == null) return;
+            var p_point = Find(point.parent_key);
+            if (p_point != null)
+            {
+                p_point.RemoveChild(point);
+                dirty_P.Enqueue(p_point);
+            }
             key_map.Remove(key);
             foreach (var item in point.children.Keys)
-            {
                 ClearPath(item);
-            }
+
 #if UNITY_EDITOR
             if (root.RemoveAll(x => x.key == key) > 0)
             {
@@ -150,6 +197,8 @@ namespace IFramework.RedPoint
 #endif
         public static void ClearAll()
         {
+            dirty.Clear();
+            dirty_P.Clear();
             red_dot_map.Clear();
             key_map.Clear();
             root.Clear();

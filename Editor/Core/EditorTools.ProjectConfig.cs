@@ -9,6 +9,7 @@
 using UnityEditor;
 using System.Collections.Generic;
 using System;
+using System.Reflection;
 
 namespace IFramework
 {
@@ -19,7 +20,37 @@ namespace IFramework
         public static class ProjectConfig
         {
             public static string NameSpace { get { return Info.NameSpace; } }
-            public static string UserName { get { return Info.UserName; } }
+
+            private static string _name;
+            public static string UserName
+            {
+                get
+                {
+                    if (_name == null || _name == "anonymous")
+                        _name = LoadName();
+                    return _name;
+                }
+            }
+            static PropertyInfo _p;
+            static object userInfo;
+            private static string LoadName()
+            {
+                if (userInfo == null)
+                {
+                    var type = typeof(UnityEditor.Connect.UnityOAuth).Assembly.GetType("UnityEditor.Connect.UnityConnect");
+                    var m = type.GetMethod("GetUserInfo");
+                    var instance = type.GetProperty("instance");
+                    userInfo = m.Invoke(instance.GetValue(null), null);
+
+                }
+                if (_p == null)
+                {
+                    var _type = userInfo.GetType();
+                    _p = _type.GetProperty("displayName");
+                }
+                return (string)_p.GetValue(userInfo);
+            }
+
             public static string Version { get { return Info.Version; } }
             public static bool enable { get { return Info.enable; } }
             public static bool enable_L { get { return Info.enable_L; } }
@@ -30,7 +61,7 @@ namespace IFramework
             public static bool dockWindow { get { return Info.dockWindow; } }
             public static string projectPath { get { return Info.projectPath; } }
 
-            public const string configName = "ProjectConfig";
+            private const string configName = "ProjectConfig";
             [Serializable]
             public class ProjectConfigInfo
             {
@@ -42,25 +73,17 @@ namespace IFramework
 
                 public bool dockWindow = true;
                 public string projectPath = "Assets/Project";
-                public List<string> folders = new List<string>() { 
+                public List<string> folders = new List<string>() {
                     "Scripts","Configs"
                 };
                 public string Version { get { return PlayerSettings.bundleVersion; } set { PlayerSettings.bundleVersion = value; } }
                 public string NameSpace;
-                public string UserName { get; private set; }
 
                 public static ProjectConfigInfo Load()
                 {
                     var __info = EditorTools.GetFromPrefs<ProjectConfigInfo>(configName, false);
                     if (__info == null) __info = new ProjectConfigInfo();
-                    var type = typeof(UnityEditor.Connect.UnityOAuth).Assembly.GetType("UnityEditor.Connect.UnityConnect");
-                    var m = type.GetMethod("GetUserInfo");
-                    var instance = type.GetProperty("instance");
-                    var userInfo = m.Invoke(instance.GetValue(null), null);
-                    var _type = userInfo.GetType();
-                    var p = _type.GetProperty("displayName");
-                    __info.UserName = (string)p.GetValue(userInfo);
- 
+                    //LoadName(__info);
                     if (string.IsNullOrEmpty(__info.NameSpace))
                         __info.NameSpace = PlayerSettings.productName;
                     __info.Save();
