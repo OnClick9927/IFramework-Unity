@@ -63,6 +63,7 @@ public class redPointGame : Game
             IFramework.EditorTools.EditorWindowTool.Create("RedPoint");
 
         }
+        RedTree.FreshDots();
     }
 
 }

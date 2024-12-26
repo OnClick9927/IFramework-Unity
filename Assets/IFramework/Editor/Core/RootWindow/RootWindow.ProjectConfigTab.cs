@@ -83,27 +83,28 @@ namespace IFramework
                 EditorGUI.BeginChangeCheck();
 
                 GUI.enabled = false;
-                EditorGUILayout.TextField(Contents.Name, Info.UserName);
+                EditorGUILayout.TextField(Contents.Name, EditorTools.ProjectConfig.UserName);
                 GUI.enabled = !EditorApplication.isPlaying;
                 Info.Version = EditorGUILayout.TextField(Contents.Version, Info.Version);
                 Info.NameSpace = EditorGUILayout.TextField(Contents.Namespace, Info.NameSpace);
 
+                EditorGUI.DrawRect(EditorGUILayout.GetControlRect(GUILayout.Height(2)), new Color(0.5f, 0.5f, 0.5f));
 
                 GUILayout.BeginVertical(EditorStyles.helpBox);
+                GUILayout.BeginHorizontal();
                 Info.projectPath = EditorGUILayout.TextField(Contents.projectPath, Info.projectPath);
 
-                GUILayout.BeginHorizontal();
 
+                //GUILayout.FlexibleSpace();
+                if (GUILayout.Button("+", GUILayout.Width(20)))
+                {
+                    Info.folders.Add("FolderName");
+                }
                 if (GUILayout.Button("Build", GUILayout.Width(50)))
                 {
                     var list = new List<string>() { Info.projectPath }
                         .Concat(Info.folders.Select(x => Info.projectPath.CombinePath(x)));
                     EditorTools.CreateDirectories(list.ToList());
-                }
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("+", GUILayout.Width(20)))
-                {
-                    Info.folders.Add("FolderName");
                 }
                 GUILayout.EndHorizontal();
                 int cloumn_count = 4;
@@ -135,6 +136,7 @@ namespace IFramework
 
                 GUILayout.Space(10);
                 Info.dockWindow = EditorGUILayout.Toggle(Contents.dockWindow, Info.dockWindow);
+              
                 EditorGUI.DrawRect(EditorGUILayout.GetControlRect(GUILayout.Height(2)), new Color(0.5f, 0.5f, 0.5f));
                 GUILayout.Label(Contents.logset, EditorStyles.largeLabel);
                 Info.enable = EditorGUILayout.Toggle(Contents.enable, Info.enable);

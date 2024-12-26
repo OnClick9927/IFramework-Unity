@@ -23,6 +23,7 @@ namespace IFramework
         {
             var directorys = new List<string>()
             {
+                "Assets/Editor",
                 EditorTools.projectMemoryPath,
             };
             CreateDirectories(directorys);
