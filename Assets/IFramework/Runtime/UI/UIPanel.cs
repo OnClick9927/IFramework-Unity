@@ -20,6 +20,12 @@ namespace IFramework.UI
             None, OnLoad, OnShow, OnHide, OnClose
         }
         private string path;
+
+        private CanvasGroup _canvasGroup;
+        private PanelState _lastState = PanelState.None;
+        public PanelState lastState { get { return _lastState; } }
+        public bool visible => lastState == PanelState.OnShow;
+
         public int GetSiblingIndex() => transform.GetSiblingIndex();
         public void SetSiblingIndex(int index) => transform.SetSiblingIndex(index);
         public void SetPath(string path)
@@ -29,8 +35,6 @@ namespace IFramework.UI
             this.name = panelName;
         }
         public string GetPath() => this.path;
-        private PanelState _lastState = PanelState.None;
-        public PanelState lastState { get { return _lastState; } }
         public void SetState(PanelState type)
         {
             _lastState = type;
@@ -41,13 +45,17 @@ namespace IFramework.UI
                     _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
         }
-        public void SwitchVisible(bool visible)
+
+
+        public bool SwitchVisible(bool visible)
         {
+            //if (visible == this.visible) return false;
+            if (_canvasGroup.blocksRaycasts == visible) return false;
             _canvasGroup.alpha = visible ? 1 : 0;
             _canvasGroup.blocksRaycasts = visible ? true : false;
             _canvasGroup.interactable = visible ? true : false;
+            return true;
         }
-        private CanvasGroup _canvasGroup;
         //public UIPanel Clone(Transform parent) => UnityEngine.Object.Instantiate(this, parent);
     }
 }

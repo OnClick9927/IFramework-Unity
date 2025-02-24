@@ -53,6 +53,7 @@ namespace IFramework
 
             public static string Version { get { return Info.Version; } }
             public static bool enable { get { return Info.enable; } }
+            public static bool enable_F { get { return Info.enable_F; } }
             public static bool enable_L { get { return Info.enable_L; } }
             public static bool enable_W { get { return Info.enable_W; } }
             public static bool enable_E { get { return Info.enable_E; } }
@@ -66,6 +67,8 @@ namespace IFramework
             public class ProjectConfigInfo
             {
                 public bool enable = true;
+                public bool enable_F = true;
+
                 public bool enable_L = true;
                 public bool enable_W = true;
                 public bool enable_E = true;

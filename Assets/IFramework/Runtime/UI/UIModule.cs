@@ -8,6 +8,7 @@
 *********************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -79,14 +80,23 @@ namespace IFramework.UI
             else
                 _fullScreenCount--;
         }
+
+        private void CallPanelEnableChange(UIPanel panel, bool enable)
+        {
+            //var state = panel.lastState;
+            var path = panel.GetPath();
+            if (enable)
+                bridgePart.OnEnable(path);
+            else
+                bridgePart.OnDisable(path);
+        }
+
+
         private void EndChangeLayerTopChangeCheck(int layer, string path, bool show, LayerChangeCheckData data)
         {
             CalcHideSceneCount(path, show);
             var top = layerPart.GetTopPanel(layer);
             var top_visible = layerPart.GetTopVisiblePanel(layer);
-
-
-
             if (top != data.layer_top)
                 delPart?.OnLayerTopChange(layer, top?.GetPath());
             if (top_visible != data.layer_top_visible)
@@ -110,6 +120,7 @@ namespace IFramework.UI
             if (ui != null)
             {
                 ui.SetPath(path);
+
                 layerPart.SetOrder(path, ui);
                 bridgePart.Subscribe(path, ui);
                 bridgePart.OnLoad(path);
@@ -117,10 +128,9 @@ namespace IFramework.UI
                 if (delPart != null)
                     delPart.OnPanelLoad(path);
             }
+            CallPanelEnableChange(ui, true);
             OnShowCallBack(false, path, ui, op);
         }
-
-
 
         private void OnShowCallBack(bool exist, string path, UIPanel panel, ShowPanelAsyncOperation op)
         {
@@ -128,7 +138,6 @@ namespace IFramework.UI
             {
                 if (exist)
                     layerPart.SetAsLastOrder(path, panel);
-
                 this.bridgePart.OnShow(path);
                 panel.SetState(PanelState.OnShow);
                 if (delPart != null)
@@ -177,6 +186,9 @@ namespace IFramework.UI
             {
                 var layer = GetPanelLayer(path);
                 BeginChangeLayerTopChangeCheck(layer, check_close);
+
+                CallPanelEnableChange(panel, false);
+
                 this.bridgePart.OnClose(path);
                 panel.SetState(PanelState.OnClose);
 
@@ -204,7 +216,7 @@ namespace IFramework.UI
     public class RunTimeUILayerData
     {
         public RectTransform rect;
-        public CanvasGroup group;
+        //public CanvasGroup group;
         public Transform parent;
         public string name;
     }
@@ -238,7 +250,7 @@ namespace IFramework.UI
                 rect.localScale = Vector3.one;
                 var data = new RunTimeUILayerData()
                 {
-                    group = group,
+                    //group = group,
                     rect = rect,
                     parent = parent,
                     name = layerName,
@@ -253,18 +265,18 @@ namespace IFramework.UI
                 foreach (var item in layerNames)
                     CreateLayer(item, parent);
                 CreateLayer(UILayerData.item_layer, parent);
-                SwitchLayerVisible(UILayerData.item_layer, false);
+                //SwitchLayerVisible(UILayerData.item_layer, false);
                 var ray = CreateLayer(UILayerData.rayCast_layer, parent);
                 raycast = ray.rect.gameObject.AddComponent<Empty4Raycast>();
                 HideRayCast();
             }
-            private void SwitchLayerVisible(string layerName, bool visible)
-            {
-                var layer = GetRTLayerData(layerName);
-                layer.group.alpha = visible ? 1 : 0;
-                layer.group.blocksRaycasts = visible ? true : false;
-                layer.group.interactable = visible ? true : false;
-            }
+            //private void SwitchLayerVisible(string layerName, bool visible)
+            //{
+            //    var layer = GetRTLayerData(layerName);
+            //    layer.group.alpha = visible ? 1 : 0;
+            //    layer.group.blocksRaycasts = visible ? true : false;
+            //    layer.group.interactable = visible ? true : false;
+            //}
             public RunTimeUILayerData GetRTLayerData(string layer) => _layers[layer];
 
 
@@ -343,7 +355,7 @@ namespace IFramework.UI
                 var list = _panelOrders[layerName];
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
-                    if (list[i].lastState == PanelState.OnShow)
+                    if (list[i].visible)
                     {
                         return list[i];
                     }
@@ -367,44 +379,36 @@ namespace IFramework.UI
                 var list = _panelOrders[layerName];
                 list.Remove(panel);
             }
-            private bool IsLayerExistFullScreen(string layerName)
-            {
-                if (_panelOrders.TryGetValue(layerName, out var list))
-                {
-                    bool exist = false;
 
-                    for (int i = list.Count - 1; i >= 0; i--)
-                    {
-                        var panel = list[i];
-                        var path = panel.GetPath();
-                        panel.SwitchVisible(!exist);
-                        if (!exist)
-                        {
-                            if (module.GetPanelFullScreen(path) && panel.lastState == PanelState.OnShow)
-                            {
-                                exist = true;
-                            }
-                        }
-                    }
-                    return exist;
-                }
-                return false;
-            }
             public void LegalLayerPanelVisible()
             {
-                bool exist = false;
+                bool visible = true;
 
                 for (int i = layerNames.Count - 1; i >= 0; i--)
                 {
                     var layerName = layerNames[i];
-                    SwitchLayerVisible(layerName, !exist);
-                    if (!exist)
+
+                    if (_panelOrders.TryGetValue(layerName, out var list))
                     {
-                        if (IsLayerExistFullScreen(layerName))
+                        for (int j = list.Count - 1; j >= 0; j--)
                         {
-                            exist = true;
+                            var panel = list[j];
+                            var _visible = visible && panel.visible;
+                            if (panel.SwitchVisible(_visible))
+                                module.CallPanelEnableChange(panel, _visible);
+                            if (_visible)
+                            {
+                                var path = panel.GetPath();
+                                if (module.GetPanelFullScreen(path))
+                                    visible = false;
+                            }
                         }
                     }
+
+
+
+
+
                 }
             }
 
@@ -552,6 +556,6 @@ namespace IFramework.UI
         public int LayerNameToIndex(string layerName) => this.assetPart.LayerNameToIndex(layerName);
         public string GetLayerName(int layer) => this.assetPart.GetLayerName(layer);
         public bool GetIsPanelOpen(string path) => loadPart.Find(path) != null;
-        public void LegalLayerPanelVisible() => this.layerPart.LegalLayerPanelVisible();
+        //public void LegalLayerPanelVisible() => this.layerPart.LegalLayerPanelVisible();
     }
 }

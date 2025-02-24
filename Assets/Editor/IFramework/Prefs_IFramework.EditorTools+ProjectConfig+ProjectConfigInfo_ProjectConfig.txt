@@ -1,5 +1,6 @@
 {
     "enable": true,
+    "enable_F": true,
     "enable_L": true,
     "enable_W": true,
     "enable_E": true,
@@ -10,5 +11,5 @@
         "Scripts",
         "Config"
     ],
-    "NameSpace": "IFramework-Unity"
+    "NameSpace": "IFramework"
 }

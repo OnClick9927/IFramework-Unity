@@ -21,6 +21,8 @@ namespace IFramework.Lua
         public event Action<string> onShow;
         public event Action<string> onHide;
         public event Action<string> onClose;
+        public event Action<string> onEnable;
+        public event Action<string> onDisable;
 
         void IDisposable.Dispose()
         {
@@ -39,6 +41,10 @@ namespace IFramework.Lua
         void IViewBridge.OnShow(string path) => onShow?.Invoke(path);
         bool IViewBridge.Subscribe(string path,UIPanel panel) => onSubscribe != null ? onSubscribe(path,panel) : false;
         bool IViewBridge.UnSubscribe(string path) => onUnSubscribe != null ? onUnSubscribe(path) : false;
+
+        void IViewBridge.OnEnable(string path) => onEnable ?.Invoke(path);
+
+        void IViewBridge.OnDisable(string path) => onDisable?.Invoke(path);
     }
 
 }

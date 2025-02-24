@@ -1,4 +1,4 @@
-﻿/*********************************************************************************
+/*********************************************************************************
  *Author:         OnClick
  *Version:        1.0
  *UnityVersion:   2021.3.33f1c1
@@ -19,6 +19,7 @@ namespace IFramework
 		public UnityEngine.UI.Button add;
 		public UnityEngine.UI.Button remove;
 		public UnityEngine.Transform items;
+		public UnityEngine.UI.Button OpenOne;
 
             //FieldsEnd
             public View(IFramework.UI.GameObjectView context)
@@ -28,6 +29,7 @@ namespace IFramework
 			add = context.GetComponent<UnityEngine.UI.Button>("add@sm");
 			remove = context.GetComponent<UnityEngine.UI.Button>("remove@sm");
 			items = context.GetTransform("items@sm");
+			OpenOne = context.GetComponent<UnityEngine.UI.Button>("OpenOne@sm");
 
                 //InitComponentsEnd
             }
@@ -47,6 +49,10 @@ namespace IFramework
             {
                 Events.Publish(eve_key_remove, null);
             }).AddTo(this);
+            BindButton(view.OpenOne, () =>
+            {
+                (Launcher.Instance.game as UIGame).ui.Show(PanelNames_UIGame.PanelTwo);
+            });
             collection = new UIItemViewCollection((Launcher.Instance.game as UIGame).ui);
             SubscribeEvent(eve_key_remove, (e) =>
             {
@@ -75,6 +81,14 @@ namespace IFramework
         }
 
         protected override void OnClose()
+        {
+        }
+
+        protected override void OnVisible()
+        {
+        }
+
+        protected override void OnInVisible()
         {
         }
     }

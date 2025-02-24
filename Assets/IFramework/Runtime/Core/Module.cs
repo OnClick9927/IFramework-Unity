@@ -79,7 +79,7 @@ namespace IFramework
                 moudle.Awake();
             }
             else
-                Log.E(string.Format("Type: {0} Non Public Ctor With 0 para Not Find", type));
+                Log.FE(string.Format("Type: {0} Non Public Ctor With 0 para Not Find", type));
 
             return moudle;
         }
@@ -213,7 +213,7 @@ namespace IFramework
                 var list = _dic[type];
                 if (list.ContainsKey(moudle.name))
                 {
-                    Log.E(string.Format("Have Bind Module | Type {0}  Name {1}", type, moudle.name));
+                    Log.FE(string.Format("Have Bind Module | Type {0}  Name {1}", type, moudle.name));
                     return false;
                 }
                 else
@@ -236,7 +236,7 @@ namespace IFramework
             Type type = moudle.GetType();
             if (!_dic.ContainsKey(type))
             {
-                Log.E(string.Format("01,Have Not Bind Module | Type {0}  Name {1}", type, moudle.name));
+                Log.FE(string.Format("01,Have Not Bind Module | Type {0}  Name {1}", type, moudle.name));
                 return false;
             }
             else
@@ -245,7 +245,7 @@ namespace IFramework
 
                 if (!list.ContainsKey(moudle.name))
                 {
-                    Log.E(string.Format("02,Have Not Bind Module | Type {0}  Name {1}", type, moudle.name));
+                    Log.FE(string.Format("02,Have Not Bind Module | Type {0}  Name {1}", type, moudle.name));
                     return false;
                 }
                 else

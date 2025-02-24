@@ -55,7 +55,7 @@ namespace IFramework.Record
         public void Subscribe(BaseState state, bool redo = true)
         {
             if (state.recorder == null)
-                Log.E("Don't Create new State ,Use Allocate");
+                Log.FE("Don't Create new State ,Use Allocate");
             if (_current == null) _current = _head;
             if (state.guid == _current.guid)
             {

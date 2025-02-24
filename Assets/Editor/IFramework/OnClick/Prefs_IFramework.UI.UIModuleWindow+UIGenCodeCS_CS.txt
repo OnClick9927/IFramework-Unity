@@ -1,15 +1,15 @@
 {
-    "GenPath": "Assets/Project/Examples/UI/",
-    "panelPath": "Assets/Project/Examples/UI/PanelOne.prefab",
+    "GenPath": "Assets/Project/Examples",
+    "panelPath": "Assets/Project/Examples/UI/PanelTwo.prefab",
     "state": {
         "scrollPos": {
             "x": 0.0,
             "y": 0.0
         },
         "m_SelectedIDs": [
-            18956
+            21646
         ],
-        "m_LastClickedID": 18956,
+        "m_LastClickedID": 21646,
         "m_ExpandedIDs": [
             17902,
             17908,
@@ -37,9 +37,11 @@
             18490,
             18530,
             18692,
+            18798,
             18800,
             18806,
             18942,
+            19038,
             19296,
             19930,
             20258,
