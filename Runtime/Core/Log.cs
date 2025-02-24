@@ -1,4 +1,5 @@
 ﻿using System;
+using static UnityEditor.ShaderData;
 
 namespace IFramework
 {
@@ -13,17 +14,33 @@ namespace IFramework
     public class Log
     {
         public static bool enable = true;
+        public static bool enable_F = true;
+
         public static bool enable_L = true;
         public static bool enable_W = true;
         public static bool enable_E = true;
         public static bool enable_A = true;
 
         public static ILogger logger { get; set; }
-        static Log()
+        internal static void FL(string message)
         {
-
-
+            if (!enable_F) return;
+            if (logger != null)
+                logger.Log($"<color=#00F1FF>IFramework--></color>{message}");
         }
+        internal static void FE(string message)
+        {
+            if (!enable_F) return;
+            if (logger != null)
+                logger.Error($"<color=#00F1FF>IFramework--></color>{message}");
+        }
+        internal static void FW(string message)
+        {
+            if (!enable_F) return;
+            if (logger != null)
+                logger.Warn($"<color=#00F1FF>IFramework--></color>{message}");
+        }
+
 
         public static void L(string message, params object[] paras)
         {

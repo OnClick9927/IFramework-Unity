@@ -65,19 +65,6 @@ namespace IFramework.UI
                 UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
             }
         }
-
-        public void OnLoad(string path)
-        {
-            if (_nameMap.ContainsKey(path))
-            {
-                _nameMap[path].OnLoad(path);
-            }
-            else
-            {
-                UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
-            }
-        }
-
         bool IViewBridge.Subscribe(string path, UIPanel panel)
         {
             bool sucess = false;
@@ -115,5 +102,40 @@ namespace IFramework.UI
             }
         }
 
+        void IViewBridge.OnLoad(string path)
+        {
+            if (_nameMap.ContainsKey(path))
+            {
+                _nameMap[path].OnLoad(path);
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
+            }
+        }
+
+        void IViewBridge.OnEnable(string path)
+        {
+            if (_nameMap.ContainsKey(path))
+            {
+                _nameMap[path].OnEnable(path);
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
+            }
+        }
+
+        void IViewBridge.OnDisable(string path)
+        {
+            if (_nameMap.ContainsKey(path))
+            {
+                _nameMap[path].OnDisable(path);
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
+            }
+        }
     }
 }

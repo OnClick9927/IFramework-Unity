@@ -29,7 +29,17 @@ namespace IFramework
             CreateDirectories(directorys);
 
             AssetDatabase.Refresh();
+
+
+
+
             Log.logger = new UnityLogger();
+            SetLogStatus();
+        }
+        public static void SetLogStatus()
+        {
+            Log.enable_F = ProjectConfig.enable_F;
+
             Log.enable_L = ProjectConfig.enable_L;
             Log.enable_W = ProjectConfig.enable_W;
             Log.enable_E = ProjectConfig.enable_E;
@@ -37,7 +47,6 @@ namespace IFramework
 
             Log.enable = ProjectConfig.enable;
         }
-
 
         public const string projectMemoryPath = "Assets/Editor/IFramework";
 

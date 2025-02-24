@@ -7,7 +7,6 @@
  *History:        2018.11--
 *********************************************************************************/
 using UnityEditor;
-using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +26,8 @@ namespace IFramework
                 public static string logset = "LogSetting in Editor mode";
                 public static string enable = "Enable";
                 public static string logenable = "Log Enable";
+                public static string framelogenable = "Frame Log Enable";
+
                 public static string dockWindow = "Dock EditorWindow";
 
 
@@ -139,6 +140,8 @@ namespace IFramework
               
                 EditorGUI.DrawRect(EditorGUILayout.GetControlRect(GUILayout.Height(2)), new Color(0.5f, 0.5f, 0.5f));
                 GUILayout.Label(Contents.logset, EditorStyles.largeLabel);
+                Info.enable_F = EditorGUILayout.Toggle(Contents.framelogenable, Info.enable_F);
+                GUILayout.Space(10);
                 Info.enable = EditorGUILayout.Toggle(Contents.enable, Info.enable);
                 GUI.enabled &= Info.enable;
                 Info.enable_L = EditorGUILayout.Toggle(Contents.logenable, Info.enable_L);
@@ -150,6 +153,7 @@ namespace IFramework
                 if (EditorGUI.EndChangeCheck())
                 {
                     EditorTools.ProjectConfig.Save();
+                    EditorTools.SetLogStatus();
                 }
                 Sys();
 

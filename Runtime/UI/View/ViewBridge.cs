@@ -35,6 +35,11 @@ namespace IFramework.UI
         public void Dispose()
         {
         }
+
+        void IViewBridge.OnDisable(string path) => FindView(path).OnDisable();
+
+        void IViewBridge.OnEnable(string path) => FindView(path).OnEnable();
+
         private IUIView FindView(string name)
         {
             _views.TryGetValue(name, out IUIView view);

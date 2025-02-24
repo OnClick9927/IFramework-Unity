@@ -24,7 +24,7 @@ namespace IFramework.UI
             this.layer = layer;
             this.collection = collection;
             if (layer == null)
-                Log.E("UIAsset layer can not be null");
+                Log.FE("UIAsset layer can not be null");
             if (collection != null)
             {
                 collection.ListToMap();

@@ -15,5 +15,8 @@ namespace IFramework.UI
         void OnShow();
         void OnHide();
         void OnClose();
+
+        void OnEnable();
+        void OnDisable();
     }
 }

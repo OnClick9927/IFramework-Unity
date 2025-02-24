@@ -226,7 +226,16 @@ namespace IFramework.UI
             "\n" +
             "\t\tprotected override void OnClose()\n" +
             "\t\t{\n" +
-            "\t\t}\n";
+            "\t\t}\n"+
+            "\t\tprotected override void OnEnable()\n" +
+            "\t\t{\n" +
+            "\t\t}\n"+
+            "\t\tprotected override void OnDisable()\n" +
+            "\t\t{\n" +
+            "\t\t}\n"
+
+            ;
+
                 return string.Empty;
             }
 

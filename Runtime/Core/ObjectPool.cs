@@ -53,7 +53,7 @@ namespace IFramework
                 }
                 else
                 {
-                    Log.E("Set Err: Exist " + type);
+                    Log.FE("Set Err: Exist " + type);
                     return false;
                 }
             }
