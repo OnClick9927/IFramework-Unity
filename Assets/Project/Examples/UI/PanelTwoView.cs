@@ -47,11 +47,11 @@ namespace IFramework
 		{
 		}
 
-        protected override void OnVisible()
+        protected override void OnEnable()
         {
         }
 
-        protected override void OnInVisible()
+        protected override void OnDisable()
         {
         }
     }
