@@ -4,6 +4,7 @@
             "prefab": "Assets/Project/Examples/UI/PanelOne.prefab",
             "ScriptPath": "Assets/Project/Examples/UI/PanelOneView.cs",
             "Paths": [
+                "Assets/Project/Examples/UI/New Folder/PanelOneView.cs",
                 "Assets/Project/Examples/UI/PanelOneView.cs"
             ]
         },

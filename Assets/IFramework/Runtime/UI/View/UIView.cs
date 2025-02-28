@@ -16,8 +16,8 @@ namespace IFramework.UI
         protected abstract void OnShow();
         protected abstract void OnHide();
         protected abstract void OnClose();
-        protected abstract void OnEnable();
-        protected abstract void OnDisable();
+        protected abstract void OnBecameVisible();
+        protected abstract void OnBecameInvisible();
 
         void IUIView.OnLoad()
         {
@@ -47,18 +47,18 @@ namespace IFramework.UI
             OnClose();
         }
 
-        void IUIView.OnEnable()
+        void IUIView.OnBecameVisible()
         {
-            Log.FL($"UIView: {this.GetType().Name} OnEnable");
+            Log.FL($"UIView: {this.GetType().Name} OnBecameVisible");
 
-            OnEnable();
+            OnBecameVisible();
         }
 
-        void IUIView.OnDisable()
+        void IUIView.OnBecameInvisible()
         {
-            Log.FL($"UIView: {this.GetType().Name} OnDisable");
+            Log.FL($"UIView: {this.GetType().Name} OnBecameInvisible");
 
-            OnDisable();
+            OnBecameInvisible();
         }
     }
 }

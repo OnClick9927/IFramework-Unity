@@ -53,6 +53,14 @@ namespace IFramework
                         _path = info.paths[0];
                         onValueChange?.Invoke(_path);
                     }
+                    if (e.clickCount == 2 && e.button == 0 && !string.IsNullOrEmpty(path))
+                    {
+                        var tmp = path.ToRegularPath();
+                        if (tmp.EndsWith("/"))
+                            tmp = tmp.Remove(tmp.Length - 1);
+                        var o = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(tmp);
+                        EditorGUIUtility.PingObject(o);
+                    }
                 }
                 if (GUI.Button(rects[1], EditorGUIUtility.IconContent("Folder Icon")))
                 {

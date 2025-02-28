@@ -2,23 +2,29 @@
  *Author:         OnClick
  *Version:        1.0
  *UnityVersion:   2021.3.33f1c1
- *Date:           2025-02-24
+ *Date:           2025-02-28
 *********************************************************************************/
 using static IFramework.UI.UnityEventHelper;
-namespace IFramework
+namespace IFramework.ui
 {
-	public class PanelTwoView : IFramework.UI.UIView 
+	public class PanelOneView : IFramework.UI.UIView 
 	{
 		class View {
 //FieldsStart
 		public UnityEngine.UI.Button Close;
-		public UnityEngine.UI.Button hide;
+		public UnityEngine.UI.Button add;
+		public UnityEngine.UI.Button remove;
+		public UnityEngine.Transform items;
+		public UnityEngine.UI.Button OpenOne;
 
 //FieldsEnd
 		public View(IFramework.UI.GameObjectView context){
 //InitComponentsStart
 			Close = context.GetComponent<UnityEngine.UI.Button>("Close@sm");
-			hide = context.GetComponent<UnityEngine.UI.Button>("hide@sm");
+			add = context.GetComponent<UnityEngine.UI.Button>("add@sm");
+			remove = context.GetComponent<UnityEngine.UI.Button>("remove@sm");
+			items = context.GetTransform("items@sm");
+			OpenOne = context.GetComponent<UnityEngine.UI.Button>("OpenOne@sm");
 
 //InitComponentsEnd
 			}
@@ -30,12 +36,9 @@ namespace IFramework
 		}
 		protected override void OnLoad()
 		{
-			BindButton(view.Close, () => { (IFramework.Launcher.Instance.game as UIGame).ui.Close(PanelNames_UIGame.PanelTwo); });
-			BindButton(view.hide, () => { (IFramework.Launcher.Instance.game as UIGame).ui.Hide(PanelNames_UIGame.PanelTwo); });
-
 		}
 
-        protected override void OnShow()
+		protected override void OnShow()
 		{
 		}
 
@@ -46,13 +49,11 @@ namespace IFramework
 		protected override void OnClose()
 		{
 		}
-
-        protected override void OnBecameVisible()
-        {
-        }
-
-        protected override void OnBecameInvisible()
-        {
-        }
-    }
+		protected override void OnBecameInvisible()
+		{
+		}
+		protected override void OnBecameVisible()
+		{
+		}
+	}
 }

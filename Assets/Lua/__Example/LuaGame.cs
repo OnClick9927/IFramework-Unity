@@ -23,6 +23,9 @@ namespace IFramework.Lua
         {
 
         }
+
+ 
+
         public override void Startup()
         {
             module=  base.modules.CreateModule<UIModule>();
@@ -41,7 +44,10 @@ namespace IFramework.Lua
         {
             Log.L("OnFullScreenCount");
         }
-
+        public void OnVisibleChange(string path, bool visible)
+        {
+            Log.L("OnVisibleChange");
+        }
         void IUIDelegate.OnLayerTopChange(int layer, string path)
         {
             Log.L("OnLayerTopChange");

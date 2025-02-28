@@ -97,7 +97,10 @@ public class UIGame : Game, IUIDelegate
         Log.L("OnPanelShow");
 
     }
-
+    public void OnVisibleChange(string path, bool visible)
+    {
+        Log.L("OnVisibleChange");
+    }
     public override void Startup()
     {
 

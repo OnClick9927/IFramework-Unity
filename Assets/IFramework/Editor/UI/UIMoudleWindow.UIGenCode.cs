@@ -152,8 +152,10 @@ namespace IFramework.UI
 
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label("Panel Directory", EditorStyles.label);
-                    GUILayout.Space(20);
+                    //var content = new GUIContent("Panel Directory");
+                    //var size
+                    GUILayout.Label("Panel Directory", EditorStyles.label,GUILayout.Width(150));
+                    //GUILayout.Space(20);
 
                     FloderField.OnGUI(EditorGUILayout.GetControlRect());
                     GenPath = FloderField.path;
@@ -275,6 +277,11 @@ namespace IFramework.UI
             {
                 return source;
             }
+
+            protected virtual string GetNameSpace() => EditorTools.ProjectConfig.NameSpace;
+            protected virtual string GetVersion() => EditorTools.ProjectConfig.Version;
+            protected virtual string GetUnityVersion() => Application.unityVersion;
+
             protected void WriteView()
             {
                 creator.RemoveEmptyMarks();
@@ -285,9 +292,9 @@ namespace IFramework.UI
                 Fields(source, creator, out field, out find);
                 source = source.Replace(Author, EditorTools.ProjectConfig.UserName)
                 .Replace(ScriptName, Path.GetFileNameWithoutExtension(scriptPath))
-                  .Replace(ScriptNameSpace, EditorTools.ProjectConfig.NameSpace)
-                  .Replace(Version, EditorTools.ProjectConfig.Version)
-                  .Replace(UnityVersion, Application.unityVersion)
+                  .Replace(ScriptNameSpace, GetNameSpace())
+                  .Replace(Version, GetVersion())
+                  .Replace(UnityVersion, GetUnityVersion())
                   .Replace(Date, DateTime.Now.ToString("yyyy-MM-dd")).Replace(Field, field)
                        .Replace(FindField, find);
                 if (string.IsNullOrEmpty(file))

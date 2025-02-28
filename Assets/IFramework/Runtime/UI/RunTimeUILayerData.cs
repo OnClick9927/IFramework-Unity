@@ -6,17 +6,15 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using UnityEngine;
 
 namespace IFramework.UI
 {
-    public interface IUIView
+    public class RunTimeUILayerData
     {
-        void OnLoad();
-        void OnShow();
-        void OnHide();
-        void OnClose();
-
-        void OnBecameVisible();
-        void OnBecameInvisible();
+        public RectTransform rect;
+        //public CanvasGroup group;
+        public Transform parent;
+        public string name;
     }
 }
