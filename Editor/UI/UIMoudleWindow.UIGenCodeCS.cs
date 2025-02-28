@@ -21,6 +21,15 @@ namespace IFramework.UI
     {
         public class UIGenCodeCS : UIGenCode<GameObject>
         {
+            [System.Serializable]
+            class PubSave
+            {
+                public string NameSpace;
+            }
+
+
+            private PubSave pubsave;
+
             public enum ItemType
             {
                 UIItem,
@@ -62,7 +71,16 @@ namespace IFramework.UI
             {
                 var last = _last as UIGenCodeCS;
                 this._type = last._type;
+                pubsave = EditorTools.GetFromPrefs(typeof(PubSave), name, false) as PubSave;
+                if (pubsave == null) pubsave = new PubSave();
             }
+            public override void OnDisable()
+            {
+                base.OnDisable();
+                EditorTools.SaveToPrefs(pubsave, name, false);
+            }
+
+
             public override void GenPanelNames(PanelCollection collect, string scriptGenPath, string scriptName)
             {
                 StringBuilder sb = new StringBuilder();
@@ -100,9 +118,22 @@ namespace IFramework.UI
             }
             protected override void Draw()
             {
+                GUILayout.BeginHorizontal();
+                GUIContent content = new GUIContent($"NameSpace\t\t  {EditorTools.ProjectConfig.NameSpace}.");
+                var size = GUI.skin.label.CalcSize(content);
+                GUILayout.Label(content, GUILayout.Width(size.x));
+                pubsave.NameSpace = EditorGUILayout.TextField(pubsave.NameSpace);
+                GUILayout.EndHorizontal();
+
                 _type = (ItemType)EditorGUILayout.EnumPopup("Type", _type);
             }
-
+            protected override string GetNameSpace()
+            {
+                var ns = base.GetNameSpace();
+                if (pubsave == null || string.IsNullOrEmpty(pubsave.NameSpace))
+                    return ns;
+                return $"{ns}.{pubsave.NameSpace}";
+            }
             protected override string GetScriptTemplate()
             {
                 string MoreMethod = "#MoreMethod#";
@@ -201,41 +232,34 @@ namespace IFramework.UI
             private string ViewTxt()
             {
                 if (_type == ItemType.UIItem)
-                {
-
                     return "\t\tprotected override void OnGet()\n" +
-                     "\t\t{\n" +
-                     "\t\t}\n" +
-                    "\t\tpublic override void OnSet()\n" +
-                    "\t\t{\n" +
-                    "\t\t}\n";
-                }
+                        "\t\t{\n" +
+                        "\t\t}\n" +
+                       "\t\tpublic override void OnSet()\n" +
+                       "\t\t{\n" +
+                       "\t\t}\n";
                 if (_type == ItemType.UI)
                     return "\t\tprotected override void OnLoad()\n" +
-            "\t\t{\n" +
-
-            "\t\t}\n" +
-            "\n" +
-            "\t\tprotected override void OnShow()\n" +
-            "\t\t{\n" +
-            "\t\t}\n" +
-            "\n" +
-             "\t\tprotected override void OnHide()\n" +
-            "\t\t{\n" +
-            "\t\t}\n" +
-            "\n" +
-            "\t\tprotected override void OnClose()\n" +
-            "\t\t{\n" +
-            "\t\t}\n"+
-            "\t\tprotected override void OnEnable()\n" +
-            "\t\t{\n" +
-            "\t\t}\n"+
-            "\t\tprotected override void OnDisable()\n" +
-            "\t\t{\n" +
-            "\t\t}\n"
-
-            ;
-
+                    "\t\t{\n" +
+                    "\t\t}\n" +
+                    "\n" +
+                    "\t\tprotected override void OnShow()\n" +
+                    "\t\t{\n" +
+                    "\t\t}\n" +
+                    "\n" +
+                     "\t\tprotected override void OnHide()\n" +
+                    "\t\t{\n" +
+                    "\t\t}\n" +
+                    "\n" +
+                    "\t\tprotected override void OnClose()\n" +
+                    "\t\t{\n" +
+                    "\t\t}\n" +
+                    "\t\tprotected override void OnBecameInvisible()\n" +
+                    "\t\t{\n" +
+                    "\t\t}\n" +
+                    "\t\tprotected override void OnBecameVisible()\n" +
+                    "\t\t{\n" +
+                    "\t\t}\n";
                 return string.Empty;
             }
 

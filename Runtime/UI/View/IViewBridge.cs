@@ -47,8 +47,8 @@ namespace IFramework.UI
         /// <param name="name"></param>
         void OnClose(string path);
 
-        void OnEnable(string path);
-        void OnDisable(string path);
+        void OnBecameVisible(string path);
+        void OnBecameInvisible(string path);
 
     }
 }

@@ -114,11 +114,11 @@ namespace IFramework.UI
             }
         }
 
-        void IViewBridge.OnEnable(string path)
+        void IViewBridge.OnBecameVisible(string path)
         {
             if (_nameMap.ContainsKey(path))
             {
-                _nameMap[path].OnEnable(path);
+                _nameMap[path].OnBecameVisible(path);
             }
             else
             {
@@ -126,11 +126,11 @@ namespace IFramework.UI
             }
         }
 
-        void IViewBridge.OnDisable(string path)
+        void IViewBridge.OnBecameInvisible(string path)
         {
             if (_nameMap.ContainsKey(path))
             {
-                _nameMap[path].OnDisable(path);
+                _nameMap[path].OnBecameInvisible(path);
             }
             else
             {

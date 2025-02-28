@@ -36,9 +36,9 @@ namespace IFramework.UI
         {
         }
 
-        void IViewBridge.OnDisable(string path) => FindView(path).OnDisable();
+        void IViewBridge.OnBecameInvisible(string path) => FindView(path).OnBecameInvisible();
 
-        void IViewBridge.OnEnable(string path) => FindView(path).OnEnable();
+        void IViewBridge.OnBecameVisible(string path) => FindView(path).OnBecameVisible();
 
         private IUIView FindView(string name)
         {
