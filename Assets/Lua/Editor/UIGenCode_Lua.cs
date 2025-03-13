@@ -28,6 +28,10 @@ namespace IFramework.Lua
         protected override GameObject gameObject => panel;
         [SerializeField] private string config_path;
         [SerializeField] private ItemType _type;
+        protected override string GetFindPrefabCode(string source, string name, string fieldName)
+        {
+            return string.Empty;
+        }
         protected override string GetFieldCode(string source, string fieldType, string fieldName)
         {
             return string.Empty;
@@ -73,9 +77,9 @@ namespace IFramework.Lua
 
             string GetBase()
             {
-                if (_type == ItemType.UIItem)
-                    return "UIItemView";
-                else if (_type == ItemType.UI)
+
+
+                if (_type == ItemType.UI)
                     return "UIView";
                 else if (_type == ItemType.GameObject)
                     return "GameObjectView";
@@ -83,12 +87,10 @@ namespace IFramework.Lua
                 return string.Empty;
             }
             string _base = GetBase();
-            string add = _type != ItemType.UIItem ? "\tself:SetGameObject(gameObject)\n" : "";
+            string add = "\tself:SetGameObject(gameObject)\n";
             string ctor()
             {
-                if (_type == ItemType.UIItem)
-                    return string.Empty;
-                else if (_type == ItemType.UI)
+                if (_type == ItemType.UI)
                     return $"function {ScriptName}:ctor(gameObject)\n" +
   "\tself:SetGameObject(gameObject)\n" +
  "end\n\n";
@@ -103,16 +105,8 @@ namespace IFramework.Lua
             }
             string MoreFunction()
             {
-                if (_type == ItemType.UIItem)
-                {
-                    return $"function {ScriptName}:OnGet()\n" +
-                        "end\n\n" +
-                        $"function {ScriptName}:OnSet()\n" +
-                          $" \tself:DisposeEvents()\n " +
-                            $" \tself:DisposeUIEvents()\n" +
-                        "end\n\n";
-                }
-                else if (_type == ItemType.UI)
+
+                if (_type == ItemType.UI)
                 {
                     return $"function {ScriptName}:OnShow()\n\n" +
                             "end\n\n" +
@@ -262,6 +256,8 @@ namespace IFramework.Lua
         }
 
         public override string GetScriptFitter() => "t:TextAsset";
+
+
     }
 
 }

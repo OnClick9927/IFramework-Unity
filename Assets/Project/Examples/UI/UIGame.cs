@@ -12,20 +12,13 @@ public class UIGame : Game, IUIDelegate
         {
         }
 
-        public override bool LoadItemAsync(LoadItemAsyncOperation op)
-        {
-            op.SetValue(AssetDatabase.LoadAssetAtPath<GameObject>(op.path));
-            return true;
-        }
+
 
         public override UIPanel LoadPanel(RectTransform parent, string path)
         {
             return null;
         }
-        public override void ReleaseItemAsset(GameObject gameObject)
-        {
-
-        }
+    
         public override bool LoadPanelAsync(LoadPanelAsyncOperation op)
         {
             _LoadPanelAsync(op);

@@ -8,6 +8,7 @@
 *********************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using static IFramework.Events;
 using static IFramework.UI.UnityEventHelper;
@@ -16,6 +17,42 @@ namespace IFramework.UI
 {
     public abstract class GameObjectView
     {
+
+        private ScriptCreatorContext _context;
+
+        private ScriptCreatorContext context
+        {
+            get
+            {
+                if (_context == null)
+                    _context = gameObject.GetComponent<ScriptCreatorContext>();
+                return _context;
+            }
+        }
+        Dictionary<string, GameObject> _prefabsName;
+
+
+        public GameObject FindPrefab(string name)
+        {
+            if (_prefabsName == null) _prefabsName = new Dictionary<string, GameObject>();
+            GameObject prefab = null;
+            if (_prefabsName.TryGetValue(name, out prefab))
+            {
+                return prefab;
+            }
+            prefab = context.FindPrefab(name);
+            if (prefab != null)
+            {
+                _prefabsName[name] = prefab;
+            }
+            else
+            {
+                Log.FE($"Not Find Prefab with Name {name} in {context.name}");
+            }
+
+            return prefab;
+        }
+
         private EventBox _eventBox;
         private UIEventBox __eventBox_ui;
         protected EventEntity SubscribeEvent(string msg, Action<IEventArgs> action)
@@ -50,6 +87,24 @@ namespace IFramework.UI
                 __eventBox_ui = null;
             }
         }
+        public void ClearPrefabs()
+        {
+            if (pools != null)
+            {
+                foreach (var pool in pools.Values)
+                {
+                    pool.Clear();
+                }
+                pools.Clear();
+            }
+            if (_prefabsName != null)
+            {
+                _prefabsName.Clear();
+            }
+        }
+
+
+
         internal void AddUIEvent(UIEventEntity uiEvent)
         {
             if (__eventBox_ui == null)
@@ -58,7 +113,7 @@ namespace IFramework.UI
         }
         protected void DisposeUIEvent(UIEventEntity uiEvent)
         {
-            if (__eventBox_ui == null)return;
+            if (__eventBox_ui == null) return;
             __eventBox_ui.Dispose(uiEvent);
         }
 
@@ -96,5 +151,32 @@ namespace IFramework.UI
             return default;
         }
         protected abstract void InitComponents();
+
+        private Dictionary<GameObject, IItemPool> pools;
+        public ItemPool<T> CreateItemPool<T>(GameObject prefab, Transform parent, Func<T> createClass, bool inParent = false) where T : GameObjectView
+        {
+            if (pools == null) pools = new Dictionary<GameObject, IItemPool>();
+            if (pools.TryGetValue(prefab, out IItemPool pool))
+            {
+                return pool as ItemPool<T>;
+            }
+            else
+            {
+                var _pool = new ItemPool<T>(prefab, parent, createClass, inParent);
+                pools[prefab] = _pool;
+                return _pool;
+            }
+        }
+
+        public ItemPool<T> FindPool<T>(GameObject prefab) where T : GameObjectView
+        {
+            if (pools == null) return null;
+            if (pools.TryGetValue(prefab, out IItemPool pool))
+            {
+                return pool as ItemPool<T>;
+            }
+            return null;
+        }
+
     }
 }

@@ -11,7 +11,7 @@
             "path": "Assets/Project/Examples/UI/PanelTwo.prefab",
             "isResourcePath": false,
             "layer": 0,
-            "fullScreen": false,
+            "fullScreen": true,
             "order": 0
         }
     ]

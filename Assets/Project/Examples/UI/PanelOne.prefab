@@ -964,6 +964,8 @@ MonoBehaviour:
   - gameObject: {fileID: 5983612513090058531}
     fieldName: OpenOne
     fieldType: UnityEngine.UI.Button
+  Prefabs:
+  - {fileID: 6257145239160841830, guid: 77949199bc158a14e890d3c69bc0435b, type: 3}
 --- !u!1 &8310221343798258604
 GameObject:
   m_ObjectHideFlags: 0

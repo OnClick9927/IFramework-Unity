@@ -8,7 +8,7 @@ using UnityEngine;
 using static IFramework.UI.UnityEventHelper;
 namespace IFramework
 {
-	public class PanelOneItemView : IFramework.UI.UIItemView 
+	public class PanelOneItemView : IFramework.UI.GameObjectView 
 	{
 		class View {
 //FieldsStart
@@ -27,16 +27,7 @@ namespace IFramework
 		{
 			view = new View(this);
 		}
-        public override void OnSet()
-        {
-            base.OnSet();
-            Log.L("OnSet");
-        }
 
-        protected override void OnGet()
-        {
-            Log.L("OnGet");
-        }
 
         internal void SetColor(Color color)
         {

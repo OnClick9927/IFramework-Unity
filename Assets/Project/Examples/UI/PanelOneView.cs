@@ -20,6 +20,7 @@ namespace IFramework
 		public UnityEngine.UI.Button remove;
 		public UnityEngine.Transform items;
 		public UnityEngine.UI.Button OpenOne;
+		public UnityEngine.GameObject Prefab_PanelOneItem;
 
             //FieldsEnd
             public View(IFramework.UI.GameObjectView context)
@@ -30,12 +31,12 @@ namespace IFramework
 			remove = context.GetComponent<UnityEngine.UI.Button>("remove@sm");
 			items = context.GetTransform("items@sm");
 			OpenOne = context.GetComponent<UnityEngine.UI.Button>("OpenOne@sm");
+			Prefab_PanelOneItem = context.FindPrefab("PanelOneItem");
 
                 //InitComponentsEnd
             }
         }
         private View view;
-        private UIItemViewCollection collection;
         const string eve_key_remove = "eve_key_remove";
         protected override void InitComponents()
         {
@@ -53,7 +54,8 @@ namespace IFramework
             {
                 (Launcher.Instance.game as UIGame).ui.Show(PanelNames_UIGame.PanelTwo);
             });
-            collection = new UIItemViewCollection((Launcher.Instance.game as UIGame).ui);
+            CreateItemPool<PanelOneItemView>(view.Prefab_PanelOneItem, view.items, () => new PanelOneItemView());
+            //collection = new UIItemViewCollection((Launcher.Instance.game as UIGame).ui);
             SubscribeEvent(eve_key_remove, (e) =>
             {
                 Remove();
@@ -63,11 +65,13 @@ namespace IFramework
         private void Remove()
         {
             if (queue.Count == 0) return;
-            collection.Set(queue.Pop());
+            var pool = this.FindPool<PanelOneItemView>(view.Prefab_PanelOneItem);
+            pool.Set(queue.Pop());
         }
-        private async void Add()
+        private void Add()
         {
-            var result = await collection.Get<PanelOneItemView>("Assets/Project/Examples/UI/PanelOneItem.prefab", this.view.items);
+            var pool = this.FindPool<PanelOneItemView>(view.Prefab_PanelOneItem);
+            var result = pool.Get();
             result.SetColor(new Color(Random.Range(0, 1f), Random.Range(0, 1f), Random.Range(0, 1f), 1));
             queue.Push(result);
         }

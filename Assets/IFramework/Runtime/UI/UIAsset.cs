@@ -30,18 +30,8 @@ namespace IFramework.UI
                 collection.ListToMap();
             }
         }
-
-
         public abstract UIPanel LoadPanel(RectTransform parent, string path);
-
         public abstract bool LoadPanelAsync(LoadPanelAsyncOperation op);
-
-        public abstract bool LoadItemAsync(LoadItemAsyncOperation op);
-
-        public virtual void ReleaseItemAsset(GameObject gameObject)
-        {
-            GameObject.Destroy(gameObject);
-        }
         public virtual void DestroyPanel(GameObject gameObject)
         {
             GameObject.Destroy(gameObject);
@@ -49,7 +39,6 @@ namespace IFramework.UI
         public virtual Canvas GetCanvas() { return null; }
 
         public PanelCollection.Data GetData(string path) => collection?.GetData(path);
-
         public bool GetIgnoreOrder() => layer.ignoreOrder;
         public List<string> GetLayerNames() => layer.GetLayerNames();
         public virtual int GetPanelLayer(string path)

@@ -35,5 +35,5 @@
     },
     "_searchType": 0,
     "config_path": "Assets/Lua/Lua/New Lua Env Config.asset",
-    "_type": 0
+    "_type": 1
 }

@@ -14,7 +14,7 @@ namespace IFramework.UI
     [CreateAssetMenu]
     public class UILayerData : UnityEngine.ScriptableObject
     {
-        public const string item_layer = "Items";
+        //public const string item_layer = "Items";
         public const string rayCast_layer = "RayCast";
         public List<string> GetLayerNames() { return layers; }
         public int LayerNameToIndex(string layer) => layers.IndexOf(layer);

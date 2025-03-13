@@ -1,6 +1,6 @@
 {
     "enable": true,
-    "enable_F": true,
+    "enable_F": false,
     "enable_L": true,
     "enable_W": true,
     "enable_E": true,

@@ -22,12 +22,17 @@ namespace IFramework.UI
         {
             var gameObject = this.gameObject;
             if (!gameObject) return;
+
+            //EditorUtility.SetDirty(context);
+
             EditorUtility.SetDirty(gameObject);
+            //PrefabUtility.RevertPrefabInstance(gameObject, InteractionMode.UserAction);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+        public string rootPath => gameObject.transform.GetPath();
         public GameObject gameObject { get; private set; }
-        private ScriptCreatorContext context;
+        public ScriptCreatorContext context { get; private set; }
         public bool executeSubContext
         {
             get

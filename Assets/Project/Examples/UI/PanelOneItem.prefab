@@ -95,3 +95,4 @@ MonoBehaviour:
   - gameObject: {fileID: 6257145239160841830}
     fieldName: PanelOneItem
     fieldType: UnityEngine.Transform
+  Prefabs: []

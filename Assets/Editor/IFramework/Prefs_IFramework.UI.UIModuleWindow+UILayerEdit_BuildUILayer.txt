@@ -5,9 +5,9 @@
             "y": 0.0
         },
         "m_SelectedIDs": [
-            7
+            6
         ],
-        "m_LastClickedID": 7,
+        "m_LastClickedID": 6,
         "m_ExpandedIDs": [
             0,
             1,
