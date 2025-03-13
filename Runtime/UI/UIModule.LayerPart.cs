@@ -31,7 +31,7 @@ namespace IFramework.UI
             {
                 GameObject go = new GameObject(layerName);
                 RectTransform rect = go.AddComponent<RectTransform>();
-                var group = rect.gameObject.AddComponent<CanvasGroup>();
+                //var group = rect.gameObject.AddComponent<CanvasGroup>();
                 rect.SetParent(parent);
                 rect.anchorMin = Vector2.zero;
                 rect.anchorMax = Vector2.one;
@@ -55,7 +55,7 @@ namespace IFramework.UI
                 layerNames = module.GetLayerNames();
                 foreach (var item in layerNames)
                     CreateLayer(item, parent);
-                CreateLayer(UILayerData.item_layer, parent);
+                //CreateLayer(UILayerData.item_layer, parent);
                 //SwitchLayerVisible(UILayerData.item_layer, false);
                 var ray = CreateLayer(UILayerData.rayCast_layer, parent);
                 raycast = ray.rect.gameObject.AddComponent<Empty4Raycast>();

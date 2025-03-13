@@ -41,10 +41,10 @@ namespace IFramework.UI
         void IUIView.OnClose()
         {
             Log.FL($"UIView: {this.GetType().Name} OnClose");
-
             DisposeUIEvents();
             DisposeEvents();
             OnClose();
+            ClearPrefabs();
         }
 
         void IUIView.OnBecameVisible()

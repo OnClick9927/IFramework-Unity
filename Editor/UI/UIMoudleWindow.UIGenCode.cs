@@ -121,6 +121,8 @@ namespace IFramework.UI
                     creator.SetGameObject(null);
                     FloderField.SetPath(string.Empty);
                 }
+                fields.Reload();
+
             }
             private void FindDir()
             {
@@ -152,22 +154,25 @@ namespace IFramework.UI
 
                 GUILayout.BeginHorizontal();
                 {
-                    //var content = new GUIContent("Panel Directory");
-                    //var size
-                    GUILayout.Label("Panel Directory", EditorStyles.label,GUILayout.Width(150));
-                    //GUILayout.Space(20);
-
+                    GUILayout.Label("Panel Directory", EditorStyles.label, GUILayout.Width(150));
                     FloderField.OnGUI(EditorGUILayout.GetControlRect());
                     GenPath = FloderField.path;
                     GUILayout.EndHorizontal();
                 }
                 Draw();
                 EditorGUI.BeginChangeCheck();
+                GUILayout.BeginHorizontal();
                 panel = EditorGUILayout.ObjectField("GameObject", panel, typeof(T), false) as T;
+                if (GUILayout.Button("Open", GUILayout.Width(60)))
+                {
+                    AssetDatabase.OpenAsset(panel);
+                }
 
-                if (EditorGUI.EndChangeCheck()) SetViewData();
-
-
+                GUILayout.EndHorizontal();
+                if (EditorGUI.EndChangeCheck())
+                {
+                    SetViewData();
+                }
                 if (gameObject && !string.IsNullOrEmpty(GenPath))
                 {
                     GUILayout.BeginHorizontal();
@@ -183,13 +188,6 @@ namespace IFramework.UI
                     GUI.enabled = true;
                     GUILayout.EndHorizontal();
                 }
-                EditorGUI.BeginChangeCheck();
-                creator.executeSubContext = EditorGUILayout.Toggle("Execute Sub Context", creator.executeSubContext);
-                if (EditorGUI.EndChangeCheck()) creator.SaveContext();
-
-
-
-                GUILayout.Space(5);
                 fields.OnGUI();
                 GUILayout.Space(5);
                 if (GUILayout.Button("Gen"))
@@ -232,6 +230,8 @@ namespace IFramework.UI
             public const string Field = "#field#";
             public const string FindField = "#findfield#";
 
+            protected abstract string GetFindPrefabCode(string source, string name, string fieldName);
+
             protected abstract string GetFieldCode(string source, string fieldType, string fieldName);
             protected abstract string GetFindFieldCode(string source, string fieldType, string fieldName, string path);
 
@@ -245,7 +245,7 @@ namespace IFramework.UI
                 StringBuilder sb_find = new StringBuilder();
                 if (marks != null)
                 {
-                    string root_path = creater.gameObject.transform.GetPath();
+                    string root_path = creater.rootPath;
 
                     for (int i = 0; i < marks.Count; i++)
                     {
@@ -268,9 +268,20 @@ namespace IFramework.UI
                         sb_find.AppendLine(GetFindFieldCode(source, fieldType, fieldName, path));
                     }
                 }
+
+                var prefabs = creater.context.Prefabs;
+                for (int i = 0; i < prefabs.Count; i++)
+                {
+                    string prefabs_name = prefabs[i].name;
+                    string fieldName = $"Prefab_{prefabs_name}";
+                    sb_field.AppendLine(GetFieldCode(source, typeof(GameObject).FullName, fieldName));
+                    sb_find.AppendLine(GetFindPrefabCode(source, prefabs_name, fieldName));
+
+                }
+
+
                 field = sb_field.ToString();
                 find = sb_find.ToString();
-
             }
 
             protected virtual string OverwriteWriteFile(ScriptCreator context, string source)

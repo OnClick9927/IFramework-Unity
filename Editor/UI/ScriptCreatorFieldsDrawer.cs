@@ -31,22 +31,13 @@ namespace IFramework.UI
             public SearchType searchType;
 
 
-            private GameObject go;
-            private ScriptCreator sc;
+            private GameObject go => context.gameObject;
+            private ScriptCreator context;
             private SearchField search;
-            private ScriptCreatorFieldsDrawer drawer;
-            public void SetGameObject(ScriptCreator sc)
+
+            public Tree(TreeViewState state, SearchType searchType, ScriptCreator sc) : base(state)
             {
-                this.sc = sc;
-                if (this.go != sc.gameObject)
-                {
-                    this.go = sc.gameObject;
-                    this.Reload();
-                }
-            }
-            public Tree(TreeViewState state, SearchType searchType, ScriptCreatorFieldsDrawer drawer) : base(state)
-            {
-                this.drawer = drawer;
+                this.context = sc;
                 this.searchType = searchType;
                 search = new SearchField();
                 this.showBorder = true;
@@ -98,8 +89,8 @@ namespace IFramework.UI
             private bool CouldDrawChildren(GameObject go)
             {
                 for (int i = 0; i < go.transform.childCount; i++)
-                    if (drawer.executeSubContext) return true;
-                    else if (sc.CouldMark(go.transform.GetChild(i).gameObject))
+                    if (context.executeSubContext) return true;
+                    else if (context.CouldMark(go.transform.GetChild(i).gameObject))
                         return true;
                 return false;
             }
@@ -107,7 +98,7 @@ namespace IFramework.UI
             {
                 if (string.IsNullOrEmpty(this.searchString)) return true;
                 string low = this.searchString.ToLower();
-                var sm = sc.GetMarks().Find(x => x.gameObject == go);
+                var sm = context.GetMarks().Find(x => x.gameObject == go);
                 switch (searchType)
                 {
                     case SearchType.Name:
@@ -124,8 +115,8 @@ namespace IFramework.UI
             void AddChildrenRecursive(GameObject go, TreeViewItem root, IList<TreeViewItem> rows)
             {
                 if (go == null) return;
-                if (!drawer.executeSubContext)
-                    if (!sc.CouldMark(go))
+                if (!context.executeSubContext)
+                    if (!context.CouldMark(go))
                         return;
 
                 TreeViewItem item = null;
@@ -159,7 +150,8 @@ namespace IFramework.UI
             protected override void RowGUI(RowGUIArgs args)
             {
                 var go = GetGameObject(args.item.id);
-                if (go == null) {
+                if (go == null)
+                {
                     GUI.color = Color.red;
                     GUI.Label(args.rowRect, "GameObject Not Exist");
                     GUI.color = Color.white;
@@ -171,18 +163,18 @@ namespace IFramework.UI
 
                 //if (!GetActive(go))
                 //    GUI.contentColor = Color.grey;
-                if (sc.IsPrefabInstance(go))
+                if (context.IsPrefabInstance(go))
                     GUI.color = new Color(0.1f, 0.7f, 1f, 1);
 
-                bool could = sc.CouldMark(go);
+                bool could = context.CouldMark(go);
                 var image = could ? "greenLight" : "d_redLight";
                 GUI.Label(first, new GUIContent(args.label, EditorGUIUtility.IconContent(image).image));
 
                 if (go != null)
                 {
-                    var sm = sc.GetMark(go);
+                    var sm = context.GetMark(go);
                     if (!could)
-                        sm = sc.GetPrefabMark(go);
+                        sm = context.GetPrefabMark(go);
                     if (sm != null)
                     {
                         var rect = args.GetCellRect(1);
@@ -192,7 +184,7 @@ namespace IFramework.UI
                     }
                     GUI.enabled = false;
                     if (!could)
-                        GUI.Toggle(args.GetCellRect(3), sc.IsIgnore(go), "");
+                        GUI.Toggle(args.GetCellRect(3), context.IsIgnore(go), "");
                     GUI.enabled = true;
                 }
                 GUI.color = Color.white;
@@ -224,7 +216,7 @@ namespace IFramework.UI
             protected override bool CanRename(TreeViewItem item)
             {
                 var go = GetGameObject(item.id);
-                return sc.GetMark(go) != null;
+                return context.GetMark(go) != null;
 
             }
 
@@ -232,9 +224,9 @@ namespace IFramework.UI
             {
                 var id = args.itemID;
                 var go = GetGameObject(id);
-                var sm = sc.GetMark(go);
-                sm.fieldName = sc.ToValidFiledName(args.newName);
-                sc.SaveContext();
+                var sm = context.GetMark(go);
+                sm.fieldName = context.ToValidFiledName(args.newName);
+                context.SaveContext();
 
             }
             protected override Rect GetRenameRect(Rect rowRect, int row, TreeViewItem item)
@@ -252,7 +244,7 @@ namespace IFramework.UI
             }
             protected override void ContextClicked()
             {
-                if (sc.gameObject == null) return;
+                if (context.gameObject == null) return;
                 GenericMenu menu = new GenericMenu();
 
                 Dictionary<Type, int> help = new Dictionary<Type, int>();
@@ -261,14 +253,14 @@ namespace IFramework.UI
                 var selection = this.GetSelection().Select(x => GetGameObject(x)).ToList();
                 //s.RemoveAll(x => sc.IsPrefabInstance(x));
                 if (selection.Count == 0) return;
-                var normal = selection.FindAll(y => sc.CouldMark(y));
-                var prefab = selection.FindAll(y => !sc.CouldMark(y));
+                var normal = selection.FindAll(y => context.CouldMark(y));
+                var prefab = selection.FindAll(y => !context.CouldMark(y));
 
                 for (int i = 0; i < normal.Count; i++)
                 {
                     var go = normal[i];
                     gameobjects.Add(go);
-                    var sm = sc.GetMark(go);
+                    var sm = context.GetMark(go);
                     if (sm != null) marks.Add(go);
 
                     Component[] components = go.GetComponents<Component>();
@@ -298,10 +290,10 @@ namespace IFramework.UI
                         var type = types[i];
                         menu.AddItem(new GUIContent($"Mark Component/{type.FullName}"), false, () =>
                         {
-                            sc.RemoveMarks(marks.ConvertAll(x => x.gameObject));
+                            context.RemoveMarks(marks.ConvertAll(x => x.gameObject));
                             for (int i = 0; i < gameobjects.Count; i++)
                             {
-                                sc.AddMark(gameobjects[i], type);
+                                context.AddMark(gameobjects[i], type);
                             }
                             Reload();
                         });
@@ -316,49 +308,49 @@ namespace IFramework.UI
 
                 CreateMenu(menu, "Remove Marks", types.Count == 0 || normal.Count == 0, () =>
                 {
-                    sc.RemoveMarks(marks.ConvertAll(x => x.gameObject));
+                    context.RemoveMarks(marks.ConvertAll(x => x.gameObject));
                     Reload();
 
                 });
                 CreateMenu(menu, "Destroy All Marks", false, () =>
                 {
-                    sc.DestroyMarks();
+                    context.DestroyMarks();
                     Reload();
 
                 });
                 menu.AddSeparator("");
                 CreateMenu(menu, "Add To Ignore", prefab.Count == 0, () =>
                 {
-                    sc.AddToIgnore(prefab);
+                    context.AddToIgnore(prefab);
                 });
                 CreateMenu(menu, "Remove From Ignore", prefab.Count == 0, () =>
                 {
-                    sc.RemoveFromIgnore(prefab);
+                    context.RemoveFromIgnore(prefab);
                 });
                 menu.AddSeparator("");
                 CreateMenu(menu, "Fresh FieldNames", false, () =>
                 {
-                    var all = sc.GetMarks();
+                    var all = context.GetMarks();
                     all.RemoveAll(x => x == null);
                     var goes = all.ConvertAll(m => { return (m.gameObject, m.fieldType); });
-                    sc.RemoveMarks(all.ConvertAll(x => x.gameObject));
+                    context.RemoveMarks(all.ConvertAll(x => x.gameObject));
                     foreach (var item in goes)
                     {
-                        sc.AddMark(item.gameObject, item.fieldType);
+                        context.AddMark(item.gameObject, item.fieldType);
                     }
-                    sc.SaveContext();
+                    context.SaveContext();
                     Reload();
 
                 });
                 CreateMenu(menu, "Check FiledNames", false, () =>
                 {
                     string same;
-                    if (sc.HandleSameFieldName(out same))
+                    if (context.HandleSameFieldName(out same))
                     {
                         same = "same FieldName\n" + same;
                         same += "\n err repair finish ";
                         EditorWindow.focusedWindow.ShowNotification(new GUIContent(same));
-                        sc.SaveContext();
+                        context.SaveContext();
                         Reload();
                     }
                     else
@@ -369,7 +361,7 @@ namespace IFramework.UI
                 });
                 CreateMenu(menu, "Remove Useless Mark Flag", false, () =>
                 {
-                    sc.RemoveUselessMarkFlag();
+                    context.RemoveUselessMarkFlag();
                     Reload();
                 });
 
@@ -398,9 +390,14 @@ namespace IFramework.UI
                 }
             }
         }
+        public void Reload()
+        {
+            _tree.Reload();
+        }
+
         private ScriptCreator _creator;
         private Tree _tree;
-        private bool executeSubContext;
+        //private bool executeSubContext;
         public ScriptCreatorFieldsDrawer(ScriptCreator creator, TreeViewState state, SearchType searchType)
         {
             this._creator = creator;
@@ -408,19 +405,28 @@ namespace IFramework.UI
             {
                 state = new TreeViewState();
             }
-            _tree = new Tree(state, searchType, this);
+            _tree = new Tree(state, searchType, creator);
         }
-
-
         public void OnGUI()
         {
-            _tree.SetGameObject(_creator);
-            if (this.executeSubContext != _creator.executeSubContext)
+            var position = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
+            //var rs = RectEx.HorizontalSplit(position, isExpanded ? 20 : count * 20 + 20);
+            //EditorGUI.PropertyField(rs[0], _obj.FindProperty(nameof(ScriptCreatorContext.Prefabs)));
+    
+            //position = rs[1];
+          var  rs = RectEx.HorizontalSplit(position, 20);
+            bool _executeSubContext = EditorGUI.Toggle(rs[0], "Execute Sub Context", _creator.executeSubContext);
+
+
+
+
+            if (_executeSubContext != _creator.executeSubContext)
             {
-                this.executeSubContext = _creator.executeSubContext;
+                _creator.executeSubContext = _executeSubContext;
+                _creator.SaveContext();
                 _tree.Reload();
             }
-            _tree.OnGUI(EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true)));
+            _tree.OnGUI(rs[1]);
         }
 
         internal SearchType GetSearchType() => _tree.searchType;

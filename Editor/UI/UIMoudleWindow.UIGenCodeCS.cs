@@ -14,6 +14,7 @@ using UnityEngine;
 using System.IO;
 using System.Linq;
 using static IFramework.UI.UIModuleWindow.UICollectData;
+using UnityEngine.Networking.Types;
 
 namespace IFramework.UI
 {
@@ -32,7 +33,6 @@ namespace IFramework.UI
 
             public enum ItemType
             {
-                UIItem,
                 GameObject,
                 UI
             }
@@ -61,8 +61,7 @@ namespace IFramework.UI
                 string txt = File.ReadAllText(scriptPath);
                 if (txt.Contains($"{typeof(IFramework.UI.GameObjectView).FullName}"))
                     _type = ItemType.GameObject;
-                if (txt.Contains($"{typeof(IFramework.UI.UIItemView).FullName}"))
-                    _type = ItemType.UIItem;
+     
                 if (txt.Contains($"{typeof(IFramework.UI.UIView).FullName}"))
                     _type = ItemType.UI;
             }
@@ -140,9 +139,6 @@ namespace IFramework.UI
                 Type pa = null;
                 switch (_type)
                 {
-                    case ItemType.UIItem:
-                        pa = typeof(UIItemView);
-                        break;
                     case ItemType.GameObject:
                         pa = typeof(GameObjectView);
                         break;
@@ -200,6 +196,19 @@ namespace IFramework.UI
                     return $"\t\tprivate {fieldType} {fieldName};";
 
             }
+            protected override string GetFindPrefabCode(string source, string name, string fieldName)
+            {
+                if (source.Contains("class View"))
+                {
+                    return $"\t\t\t{fieldName} = context.FindPrefab(\"{name}\");";
+                }
+                else
+                {
+
+                    return $"\t\t\t{fieldName} = FindPrefab(\"{name}\");";
+                }
+            }
+
             protected override string GetFindFieldCode(string source, string fieldType, string fieldName, string path)
             {
                 if (source.Contains("class View"))
@@ -231,13 +240,6 @@ namespace IFramework.UI
 
             private string ViewTxt()
             {
-                if (_type == ItemType.UIItem)
-                    return "\t\tprotected override void OnGet()\n" +
-                        "\t\t{\n" +
-                        "\t\t}\n" +
-                       "\t\tpublic override void OnSet()\n" +
-                       "\t\t{\n" +
-                       "\t\t}\n";
                 if (_type == ItemType.UI)
                     return "\t\tprotected override void OnLoad()\n" +
                     "\t\t{\n" +

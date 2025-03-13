@@ -19,7 +19,6 @@ namespace IFramework.UI
         private LoadPart loadPart;
         private LayerPart layerPart;
         internal UIAsset assetPart;
-        private ItemsPool itemPart;
         private IViewBridge bridgePart;
         private IUIDelegate delPart;
         public Canvas canvas { get; private set; }
@@ -40,7 +39,6 @@ namespace IFramework.UI
         {
             layerPart = new LayerPart(this);
             loadPart = new LoadPart(this);
-            itemPart = new ItemsPool(this);
             check_show = new LayerChangeCheckData();
             check_hide = new LayerChangeCheckData();
             check_close = new LayerChangeCheckData();
@@ -51,7 +49,6 @@ namespace IFramework.UI
                 bridgePart.Dispose();
             layerPart.Clear();
             loadPart.DeleteCanvas();
-            itemPart.Clear();
         }
         protected override void OnUpdate() => loadPart.Update();
         public void CreateCanvas()
@@ -216,11 +213,6 @@ namespace IFramework.UI
 
         public void SetBridge(IViewBridge bridge) => this.bridgePart = bridge;
         public void SetUIDelegate(IUIDelegate del) => this.delPart = del;
-        public void ClearUselessItems() => itemPart.ClearUseless();
-
-        public UIItemOperation GetItem(string path) => itemPart.Get(path);
-        public void SetItem(string path, UIItemOperation go) => itemPart.Set(path, go);
-        public void SetItem(string path, GameObject go) => itemPart.Set(path, go);
 
         public void ShowRayCast() => layerPart.ShowRayCast();
         public void HideRayCast() => layerPart.HideRayCast();

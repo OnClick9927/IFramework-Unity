@@ -204,5 +204,16 @@ namespace IFramework.UI
                 CollectFlagGameObjects(transform.GetChild(i), goes);
             }
         }
+
+        public GameObject FindPrefab(string name)
+        {
+            for (int i = 0; i < Prefabs.Count; i++)
+            {
+                if (Prefabs[i].name == name) return Prefabs[i];
+            }
+            return null;
+        }
+
+        public List<GameObject> Prefabs = new List<GameObject>();
     }
 }
