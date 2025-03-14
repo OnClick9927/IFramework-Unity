@@ -87,7 +87,6 @@ namespace IFramework.Lua
                 return string.Empty;
             }
             string _base = GetBase();
-            string add = "\tself:SetGameObject(gameObject)\n";
             string ctor()
             {
                 if (_type == ItemType.UI)

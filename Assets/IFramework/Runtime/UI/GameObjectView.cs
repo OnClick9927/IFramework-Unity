@@ -193,7 +193,7 @@ namespace IFramework.UI
         }
 
         private Dictionary<GameObject, IItemPool> pools;
-        public ItemPool<T> CreateItemPool<T>(GameObject prefab, Transform parent, Func<T> createClass, bool inParent = false) where T : GameObjectView
+        public ItemPool<T> CreateItemPool<T>(GameObject prefab, Transform parent, Func<T> createClass) where T : GameObjectView
         {
             if (pools == null) pools = new Dictionary<GameObject, IItemPool>();
             if (pools.TryGetValue(prefab, out IItemPool pool))
@@ -202,7 +202,7 @@ namespace IFramework.UI
             }
             else
             {
-                var _pool = new ItemPool<T>(this, prefab, parent, createClass, inParent);
+                var _pool = new ItemPool<T>(this, prefab, parent, createClass, prefab.transform.IsChildOf(transform));
                 pools[prefab] = _pool;
                 return _pool;
             }
