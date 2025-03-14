@@ -187,7 +187,10 @@ namespace IFramework.UI
             view.SetGameObject(gameObject);
             return view;
         }
-
+        public void SetAsChild(GameObjectView view)
+        {
+            view.SetParent(this);
+        }
 
         private Dictionary<GameObject, IItemPool> pools;
         public ItemPool<T> CreateItemPool<T>(GameObject prefab, Transform parent, Func<T> createClass, bool inParent = false) where T : GameObjectView
@@ -205,7 +208,7 @@ namespace IFramework.UI
             }
         }
 
-        public ItemPool<T> FindPool<T>(GameObject prefab) where T : GameObjectView
+        public ItemPool<T> FindItemPool<T>(GameObject prefab) where T : GameObjectView
         {
             if (pools == null) return null;
             if (pools.TryGetValue(prefab, out IItemPool pool))
