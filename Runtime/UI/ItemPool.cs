@@ -24,10 +24,13 @@ namespace IFramework.UI
         private Queue<T> classes = new Queue<T>();
         Func<T> createClass;
         protected Queue<GameObject> pool = new Queue<GameObject>();
+        private GameObjectView owner;
+
         public int count { get { return pool.Count; } }
 
-        public ItemPool(GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
+        public ItemPool(GameObjectView owner, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
         {
+            this.owner = owner;
             if (inParent)
                 SetGameobject(prefab);
             this.prefab = prefab;
@@ -95,9 +98,7 @@ namespace IFramework.UI
             var index = tran.GetSiblingIndex();
             if (tran.parent.childCount - 1 != index)
                 tran.SetAsLastSibling();
-
-            if (t.gameObject != go)
-                t.SetGameObject(go);
+            owner.InitView(t, go);
             return t;
         }
         public void Set(T t)

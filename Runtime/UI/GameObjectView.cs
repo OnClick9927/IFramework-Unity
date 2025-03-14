@@ -18,6 +18,24 @@ namespace IFramework.UI
     public abstract class GameObjectView
     {
 
+        public GameObjectView parent { get; private set; }
+        public GameObjectView root
+        {
+            get
+            {
+                var tmp = this;
+                while (tmp.parent != null)
+                    tmp = tmp.parent;
+                return tmp;
+            }
+        }
+
+
+        internal void SetParent(GameObjectView parent)
+        {
+            this.parent = parent;
+        }
+
         private ScriptCreatorContext _context;
 
         private ScriptCreatorContext context
@@ -121,15 +139,18 @@ namespace IFramework.UI
         public GameObject gameObject { get; private set; }
         public Transform transform { get; private set; }
 
-        public void SetActive(bool active)
+        public virtual void SetActive(bool active)
         {
             gameObject.SetActive(active);
         }
         public void SetGameObject(GameObject gameObject)
         {
-            this.gameObject = gameObject;
-            transform = gameObject.transform;
-            InitComponents();
+            if (this.gameObject != gameObject)
+            {
+                this.gameObject = gameObject;
+                transform = gameObject.transform;
+                InitComponents();
+            }
         }
 
         public Transform GetTransform(string path)
@@ -152,6 +173,22 @@ namespace IFramework.UI
         }
         protected abstract void InitComponents();
 
+
+
+        public T CreateView<T>(GameObject gameObject) where T : GameObjectView, new()
+        {
+            T t = new T();
+            InitView(t, gameObject);
+            return t;
+        }
+        public T InitView<T>(T view, GameObject gameObject) where T : GameObjectView
+        {
+            view.SetParent(this);
+            view.SetGameObject(gameObject);
+            return view;
+        }
+
+
         private Dictionary<GameObject, IItemPool> pools;
         public ItemPool<T> CreateItemPool<T>(GameObject prefab, Transform parent, Func<T> createClass, bool inParent = false) where T : GameObjectView
         {
@@ -162,7 +199,7 @@ namespace IFramework.UI
             }
             else
             {
-                var _pool = new ItemPool<T>(prefab, parent, createClass, inParent);
+                var _pool = new ItemPool<T>(this, prefab, parent, createClass, inParent);
                 pools[prefab] = _pool;
                 return _pool;
             }

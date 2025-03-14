@@ -27,7 +27,7 @@ namespace IFramework.UI
         class LayerChangeCheckData
         {
             public UIPanel layer_top = null;
-            public UIPanel layer_top_visible = null;
+            public UIPanel layer_top_show = null;
             public int fullScreenCount;
         }
         private int _fullScreenCount;
@@ -62,7 +62,7 @@ namespace IFramework.UI
         private void BeginChangeLayerTopChangeCheck(int layer, LayerChangeCheckData data)
         {
             data.layer_top = layerPart.GetTopPanel(layer);
-            data.layer_top_visible = layerPart.GetTopVisiblePanel(layer);
+            data.layer_top_show = layerPart.GetTopShowPanel(layer);
             data.fullScreenCount = _fullScreenCount;
         }
         private void CalcHideSceneCount(string path, bool show)
@@ -92,19 +92,19 @@ namespace IFramework.UI
         {
             CalcHideSceneCount(path, show);
             var top = layerPart.GetTopPanel(layer);
-            var top_visible = layerPart.GetTopVisiblePanel(layer);
+            var top_show = layerPart.GetTopShowPanel(layer);
             if (top != data.layer_top)
                 delPart?.OnLayerTopChange(layer, top?.GetPath());
-            if (top_visible != data.layer_top_visible)
+            if (top_show != data.layer_top_show)
             {
-                delPart?.OnLayerTopVisibleChange(layer, top_visible?.GetPath());
+                delPart?.OnLayerTopVisibleChange(layer, top_show?.GetPath());
                 layerPart.LegalLayerPanelVisible();
             }
             if (data.fullScreenCount != _fullScreenCount)
                 delPart?.OnFullScreenCount(_fullScreenCount > 0, _fullScreenCount);
 
             data.layer_top = null;
-            data.layer_top_visible = null;
+            data.layer_top_show = null;
             data.fullScreenCount = -1;
 
         }

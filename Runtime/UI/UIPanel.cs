@@ -23,19 +23,19 @@ namespace IFramework.UI
 
         private CanvasGroup _canvasGroup;
         private PanelState _lastState = PanelState.None;
-        public PanelState lastState { get { return _lastState; } }
-        public bool visible => lastState == PanelState.OnShow;
+        public PanelState lastState => _lastState;
+        internal bool show => lastState == PanelState.OnShow;
 
-        public int GetSiblingIndex() => transform.GetSiblingIndex();
-        public void SetSiblingIndex(int index) => transform.SetSiblingIndex(index);
-        public void SetPath(string path)
+        internal int GetSiblingIndex() => transform.GetSiblingIndex();
+        internal void SetSiblingIndex(int index) => transform.SetSiblingIndex(index);
+        internal void SetPath(string path)
         {
             this.path = path;
             string panelName = System.IO.Path.GetFileNameWithoutExtension(path);
             this.name = panelName;
         }
         public string GetPath() => this.path;
-        public void SetState(PanelState type)
+        internal void SetState(PanelState type)
         {
             _lastState = type;
             if (type == PanelState.OnLoad)
@@ -46,8 +46,8 @@ namespace IFramework.UI
             }
         }
 
-
-        public bool SwitchVisible(bool visible)
+        public bool visible => _canvasGroup.blocksRaycasts;
+        internal bool SwitchVisible(bool visible)
         {
             //if (visible == this.visible) return false;
             if (_canvasGroup.blocksRaycasts == visible) return false;

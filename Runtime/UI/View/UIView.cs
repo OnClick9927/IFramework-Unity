@@ -12,6 +12,13 @@ namespace IFramework.UI
 
     public abstract class UIView : GameObjectView, IUIView
     {
+        public UIPanel panel { get; private set; }
+
+        internal void SetPanel(UIPanel panel)
+        {
+            this.panel = panel;
+            SetGameObject(panel.gameObject);
+        }
         protected abstract void OnLoad();
         protected abstract void OnShow();
         protected abstract void OnHide();
