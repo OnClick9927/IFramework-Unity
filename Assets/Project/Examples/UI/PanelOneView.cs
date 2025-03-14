@@ -65,12 +65,12 @@ namespace IFramework
         private void Remove()
         {
             if (queue.Count == 0) return;
-            var pool = this.FindPool<PanelOneItemView>(view.Prefab_PanelOneItem);
+            var pool = this.FindItemPool<PanelOneItemView>(view.Prefab_PanelOneItem);
             pool.Set(queue.Pop());
         }
         private void Add()
         {
-            var pool = this.FindPool<PanelOneItemView>(view.Prefab_PanelOneItem);
+            var pool = this.FindItemPool<PanelOneItemView>(view.Prefab_PanelOneItem);
             var result = pool.Get();
             result.SetColor(new Color(Random.Range(0, 1f), Random.Range(0, 1f), Random.Range(0, 1f), 1));
             queue.Push(result);
