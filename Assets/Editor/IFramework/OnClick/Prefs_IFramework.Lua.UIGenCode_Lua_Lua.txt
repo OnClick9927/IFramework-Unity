@@ -1,6 +1,6 @@
 {
     "GenPath": "Assets/Lua/Lua/TestUI/",
-    "panelPath": "Assets/Project/Examples/UI/PanelOneItem.prefab",
+    "panelPath": "Assets/Project/Examples/UI/PanelOne.prefab",
     "state": {
         "scrollPos": {
             "x": 0.0,

@@ -137,7 +137,7 @@ namespace IFramework.UI
                 }
 
             }
-            public UIPanel GetTopVisiblePanel(int layer)
+            public UIPanel GetTopShowPanel(int layer)
             {
                 var layerName = module.GetLayerName(layer);
 
@@ -146,7 +146,7 @@ namespace IFramework.UI
                 var list = _panelOrders[layerName];
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
-                    if (list[i].visible)
+                    if (list[i].show)
                     {
                         return list[i];
                     }
@@ -184,7 +184,7 @@ namespace IFramework.UI
                         for (int j = list.Count - 1; j >= 0; j--)
                         {
                             var panel = list[j];
-                            var _visible = visible && panel.visible;
+                            var _visible = visible && panel.show;
                             if (panel.SwitchVisible(_visible))
                                 module.CallPanelVisibleChange(panel, _visible);
                             if (_visible)

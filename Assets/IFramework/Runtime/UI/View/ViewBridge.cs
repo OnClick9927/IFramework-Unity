@@ -69,7 +69,7 @@ namespace IFramework.UI
                 return false;
             }
             UIView ui_view = Activator.CreateInstance(viewType) as UIView;
-            ui_view.SetGameObject(panel.gameObject);
+            ui_view.SetPanel(panel);
             _view = ui_view;
             _views.Add(path, _view);
             return true;
