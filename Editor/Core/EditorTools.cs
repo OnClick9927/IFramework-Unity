@@ -12,9 +12,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 namespace IFramework
 {
@@ -245,7 +247,7 @@ namespace IFramework
 
         private static Type winType;
         static MethodInfo _AdvancedPopup, _AdvancedPopup_layout;
-        public static int AdvancedPopup(Rect rect, int selectedIndex, string[] displayedOptions,float minHeight, GUIStyle style)
+        public static int AdvancedPopup(Rect rect, int selectedIndex, string[] displayedOptions, float minHeight, GUIStyle style)
         {
             if (_AdvancedPopup == null)
             {
@@ -262,7 +264,7 @@ namespace IFramework
                 var pos = win.position;
                 win.minSize = new Vector2(win.minSize.x, minHeight);
             }
-            var value= _AdvancedPopup.Invoke(null, new object[]
+            var value = _AdvancedPopup.Invoke(null, new object[]
                 {
                        rect, selectedIndex,displayedOptions,style
                 });
@@ -396,14 +398,20 @@ namespace IFramework
 
         private static IList DrawArr(ref bool fold, string name, IList arr, Type ele)
         {
+            GUILayout.BeginVertical();
             IList array = Activator.CreateInstance(typeof(List<>).MakeGenericType(ele)) as IList;
 
             for (int i = 0; i < arr.Count; i++)
                 array.Add(arr[i]);
             var cout = array.Count;
-            GUILayout.BeginHorizontal();
-            fold = EditorGUILayout.Foldout(fold, $"{name}({ele.Name})");
-            if (GUILayout.Button("+", GUILayout.Width(30)))
+            //GUILayout.Label("", EditorStyles.toolbar);
+            var rect = EditorGUILayout.GetControlRect(GUILayout.Height(20));
+            GUI.Label(rect, "", EditorStyles.toolbarPopup);
+
+            var rs_second = RectEx.VerticalSplit(rect, rect.width - 20);
+
+            fold = EditorGUI.Foldout(rs_second[0], fold, $"{name}({ele.Name})", true);
+            if (GUI.Button(rs_second[1], EditorGUIUtility.TrIconContent("d_Toolbar Plus"), EditorStyles.toolbarButton))
             {
                 Array newArray = Array.CreateInstance(ele, array != null ? array.Count + 1 : 1);
                 if (array != null)
@@ -415,11 +423,11 @@ namespace IFramework
                 array = newArray;
                 SetFoldout(newArray, true);
             }
-            GUILayout.EndHorizontal();
+
             if (fold)
             {
-                GUILayout.Space(6);
-                GUILayout.BeginVertical(GUI.skin.box);
+                //GUILayout.Space(6);
+                GUILayout.BeginVertical();
                 for (int i = 0; i < array.Count; i++)
                 {
                     object listItem = array[i];
@@ -429,27 +437,38 @@ namespace IFramework
                             array[i] = DrawBase(listItem, $"Element {i}", ele);
                         else
                             array[i] = DrawDefaultInspector(listItem);
-                        if (GUILayout.Button("x", GUILayout.Width(20)))
+
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Minus"), GUILayout.Width(20)))
                         {
                             array.Remove(listItem);
                             break;
                         }
+
+                        using (new EditorGUI.DisabledGroupScope(i == 0))
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_scrollup"), GUILayout.Width(20)))
+                            {
+                                var temp = array[i];
+                                array[i] = array[i - 1];
+                                array[i - 1] = temp;
+
+                            }
+                        using (new EditorGUI.DisabledGroupScope(i == array.Count - 1))
+
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_scrolldown"), GUILayout.Width(20)))
+                            {
+                                var temp = array[i];
+                                array[i] = array[i + 1];
+                                array[i + 1] = temp;
+                            }
                     }
 
                     EditorGUILayout.EndHorizontal();
-                    DrawDivider();
+                    GUILayout.Space(2);
                 }
                 GUILayout.EndVertical();
             }
+            GUILayout.EndVertical();
             return array;
-        }
-        private static void DrawDivider()
-        {
-            GUILayout.Space(2);
-            //Color color = Color.black.WithAlpha(0.1f);
-            Rect rect = EditorGUILayout.GetControlRect(false, 2);
-            GUI.Label(rect, "", (GUIStyle)"WindowBottomResize");
-            GUILayout.Space(2);
         }
 
 

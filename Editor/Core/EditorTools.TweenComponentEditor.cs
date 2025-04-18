@@ -205,18 +205,17 @@ namespace IFramework
                 if (GUI.Button(rss[0], EditorGUIUtility.TrIconContent("d_Toolbar Minus")))
                     mode = Mode.Remove;
                 rss = RectEx.VerticalSplit(rss[1], rect.height, 0);
-                GUI.enabled = index != 0;
-                if (GUI.Button(rss[0], EditorGUIUtility.TrIconContent("d_scrollup")))
+                using (new EditorGUI.DisabledGroupScope(index == 0))
+                    if (GUI.Button(rss[0], EditorGUIUtility.TrIconContent("d_scrollup")))
                     mode = Mode.MoveUp;
                 rss = RectEx.VerticalSplit(rss[1], rect.height, 0);
-                GUI.enabled = index != comp.actors.Count - 1;
-                if (GUI.Button(rss[0], EditorGUIUtility.TrIconContent("d_scrolldown")))
+                using (new EditorGUI.DisabledGroupScope(index == comp.actors.Count - 1))
+                    if (GUI.Button(rss[0], EditorGUIUtility.TrIconContent("d_scrolldown")))
                     mode = Mode.MoveDown;
 
 
 
 
-                GUI.enabled = true;
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(20);
@@ -228,6 +227,7 @@ namespace IFramework
                     FieldDefaultInspector(actor.GetType().GetField("target"), actor);
 
                     actor.snap = EditorGUILayout.Toggle("Snap", actor.snap);
+                    actor.sourceDelta = EditorGUILayout.FloatField("Source Delta", actor.sourceDelta);
                     actor.duration = EditorGUILayout.FloatField("Duration", actor.duration);
                     actor.delay = EditorGUILayout.FloatField("Delay", actor.delay);
                     GUILayout.Space(10);
@@ -274,7 +274,7 @@ namespace IFramework
 
 
 
-                    actor.startType = (StartValueType)EditorGUILayout.EnumPopup(nameof(StartValueType), actor.startType);
+                    //actor.startType = (StartValueType)EditorGUILayout.EnumPopup(nameof(StartValueType), actor.startType);
 
                     foreach (var type in types)
                     {

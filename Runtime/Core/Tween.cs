@@ -13,6 +13,10 @@ using UnityEngine;
 
 namespace IFramework
 {
+    public enum TweenType
+    {
+        Normal, Shake, Punch, Jump, Bezier
+    }
     public enum LoopType
     {
         Restart,
@@ -59,9 +63,8 @@ namespace IFramework
     {
         ITweenGroup NewContext(Func<ITweenContext> func);
     }
-    public interface ITweenContext<T> : ITweenContext { }
 
-    public interface ITweenContext<T, Target> : ITweenContext<T> { }
+    public interface ITweenContext<T, Target> : ITweenContext { }
 
     public interface ITweenContextBox
     {
@@ -70,6 +73,59 @@ namespace IFramework
         void CancelTweenContexts();
         void CompleteTween(ITweenContext context);
         void CompleteTweenContexts();
+    }
+    class TweenContextBox : ITweenContextBox
+    {
+        private List<ITweenContext> contexts = new List<ITweenContext>();
+        public void AddTween(ITweenContext context)
+        {
+            if (contexts.Contains(context)) return;
+            contexts.Add(context);
+            context.OnComplete(RemoveTween);
+            context.OnCancel(RemoveTween);
+
+        }
+
+        private void RemoveTween(ITweenContext context)
+        {
+            if (contexts.Contains(context))
+            {
+                contexts.Remove(context);
+            }
+        }
+
+        public void CancelTween(ITweenContext context)
+        {
+            if (!contexts.Contains(context)) return;
+            context.Cancel();
+            RemoveTween(context);
+        }
+
+        public void CancelTweenContexts()
+        {
+            for (int i = 0; i < contexts.Count; i++)
+            {
+                var context = contexts[i];
+                context.Cancel();
+            }
+            contexts.Clear();
+        }
+
+        public void CompleteTween(ITweenContext context)
+        {
+            if (!contexts.Contains(context)) return;
+            context.Complete(true);
+            RemoveTween(context);
+        }
+        public void CompleteTweenContexts()
+        {
+            for (int i = 0; i < contexts.Count; i++)
+            {
+                var context = contexts[i];
+                context.Complete(true);
+            }
+            contexts.Clear();
+        }
     }
 
 
@@ -452,59 +508,6 @@ namespace IFramework
 
 
 
-    class TweenContextBox : ITweenContextBox
-    {
-        private List<ITweenContext> contexts = new List<ITweenContext>();
-        public void AddTween(ITweenContext context)
-        {
-            if (contexts.Contains(context)) return;
-            contexts.Add(context);
-            context.OnComplete(RemoveTween);
-            context.OnCancel(RemoveTween);
-
-        }
-
-        private void RemoveTween(ITweenContext context)
-        {
-            if (contexts.Contains(context))
-            {
-                contexts.Remove(context);
-            }
-        }
-
-        public void CancelTween(ITweenContext context)
-        {
-            if (!contexts.Contains(context)) return;
-            context.Cancel();
-            RemoveTween(context);
-        }
-
-        public void CancelTweenContexts()
-        {
-            for (int i = 0; i < contexts.Count; i++)
-            {
-                var context = contexts[i];
-                context.Cancel();
-            }
-            contexts.Clear();
-        }
-
-        public void CompleteTween(ITweenContext context)
-        {
-            if (!contexts.Contains(context)) return;
-            context.Complete(true);
-            RemoveTween(context);
-        }
-        public void CompleteTweenContexts()
-        {
-            for (int i = 0; i < contexts.Count; i++)
-            {
-                var context = contexts[i];
-                context.Complete(true);
-            }
-            contexts.Clear();
-        }
-    }
 
 
 
@@ -550,15 +553,11 @@ namespace IFramework
         }
 
     }
-    public enum TweenType
-    {
-        Normal, Shake, Punch, Jump
-    }
+
     class TweenContext<T, Target> : TweenContext, ITweenContext<T, Target>
     {
         private Target target;
         private static ValueCalculator<T> _calc;
-        private static Type _valueType;
 
         private T start;
         private T end;
@@ -579,6 +578,7 @@ namespace IFramework
 
 
         private TweenType _mode;
+        private T[] points;
         private int jumpCount;
         private float jumpDamping;
 
@@ -661,7 +661,7 @@ namespace IFramework
             var _deltaPercent = (1 - sourceDelta) + sourceDelta * _percent;
 
             var src = getter.Invoke(target);
-            T _cur = calc.Calculate(_mode, _start, _end, _convertPercent, src, _deltaPercent, snap, strength, frequency, dampingRatio, jumpCount, jumpDamping);
+            T _cur = calc.Calculate(_mode, _start, _end, _convertPercent, src, _deltaPercent, snap, strength, frequency, dampingRatio, jumpCount, jumpDamping, points);
             if (!src.Equals(_cur))
                 setter?.Invoke(target, _cur);
         }
@@ -731,29 +731,25 @@ namespace IFramework
 
             return this;
         }
+
+
+        public TweenContext<T, Target> BezierConfig(Target target, float duration, Func<Target, T> getter, Action<Target, T> setter, bool snap, T[] points)
+        {
+            if (points==null || points.Length<=2)
+            {
+                Log.FE("At Least 3 point");
+            }
+            this.Config(target, default, default, duration, getter, setter, snap);
+            _mode = TweenType.Bezier;
+            this.points = points;
+
+            return this;
+        }
+
         public void SetSourceDelta(float delta) => sourceDelta = delta;
         public void SetEvaluator(IValueEvaluator evaluator) => this.evaluator = evaluator;
         public void SetSnap(bool value) => snap = value;
-        //public void SetStart(T value)
-        //{
-        //    if (_start.Equals(start))
-        //        _start = value;
-        //    if (_end.Equals(start))
-        //        _end = value;
 
-
-        //    start = value;
-        //}
-        //public void SetEnd(T value)
-        //{
-        //    if (_start.Equals(end))
-        //        _start = value;
-        //    if (_end.Equals(end))
-        //        _end = value;
-
-
-        //    end = value;
-        //}
 
 
         public void SetDelay(float value)
@@ -1012,6 +1008,15 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
             return DoJump<T, Target>(target, getter.Invoke(target), end, duration, getter, setter, strength, jumpCount, jumpDamping, snap, autoRun);
 
         }
+
+
+        public static ITweenContext<T, Target> DoArray<T, Target>(Target target, float duration, Func<Target, T> getter, Action<Target, T> setter, T[] points, bool snap = false, bool autoRun = true)
+        {
+            var context = GetScheduler().AllocateContext<T, Target>(autoRun);
+            context.AsInstance().BezierConfig(target, duration, getter, setter, snap, points);
+            return context;
+        }
+ 
         public static ITweenGroup Sequence() => GetScheduler().AllocateSequence();
         public static ITweenGroup Parallel() => GetScheduler().AllocateParallel();
 
@@ -1357,7 +1362,7 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
             return Mathf.Cos(angularFrequency * t) * Mathf.Pow(E, -dampingFactor * t);
         }
         public abstract T Calculate(TweenType mode, T start, T end, float percent, T srcValue,
-            float srcPercent, bool snap, T strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping);
+            float srcPercent, bool snap, T strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping, T[] points);
         public abstract T CalculatorEnd(T start, T end);
 
 
@@ -1365,12 +1370,66 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
         protected static float Range(float min, float max) => UnityEngine.Random.Range(min, max);
 
         protected static float Range1() => Range(-1, 1);
+
+
+
+        private static Dictionary<int, float[]> arrays_Bezier = new Dictionary<int, float[]>();
+        private static float[] AllocateBezierArray(int length)
+        {
+            var min = 16;
+            while (min < length)
+                min *= 2;
+            float[] result = null;
+            if (arrays_Bezier.TryGetValue(min, out result))
+            {
+                return result;
+            }
+            return new float[min];
+        }
+        protected static void CycleBezierArray(float[] arr)
+        {
+            arrays_Bezier[arr.Length] = arr;
+        }
+        protected static float[] EvaluateBezier(float percent, int length)
+        {
+            float u = 1f - percent;
+
+            // 使用Bernstein多项式递推关系优化计算
+            float[] tempCoefficients = AllocateBezierArray(length);
+            tempCoefficients[0] = Mathf.Pow(u, length - 1);
+
+            for (int i = 1; i < length; i++)
+                tempCoefficients[i] = tempCoefficients[i - 1] * (percent / u) * (length - i) / i;
+
+            return tempCoefficients;
+        }
     }
     class ValueCalculator_Float : ValueCalculator<float>
     {
-        public override float Calculate(TweenType mode, float start, float end, float percent, float srcValue, float srcPercent, bool snap, float strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping)
+        public override float Calculate(TweenType mode, float start, float end, float percent, float srcValue, float srcPercent, bool snap, float strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping, float[] points)
         {
-            float dest = Mathf.Lerp(start, end, percent);
+
+            float dest = 0;
+            if (mode != TweenType.Bezier)
+                dest = Mathf.Lerp(start, end, percent);
+            else
+            {
+                if (percent == 1)
+                    dest = points[points.Length - 1];
+                else
+                {
+                    int length = points.Length;
+                    float[] tempCoefficients = EvaluateBezier(percent, length);
+                    for (int i = 0; i < length; i++)
+                    {
+                        dest += tempCoefficients[i] * points[i];
+                    }
+                    CycleBezierArray(tempCoefficients);
+                }
+
+            }
+
+
             dest = Mathf.Lerp(srcValue, dest, srcPercent);
             if (mode == TweenType.Shake || mode == TweenType.Punch)
             {
@@ -1409,9 +1468,28 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
     {
 
 
-        public override int Calculate(TweenType mode, int start, int end, float percent, int srcValue, float srcPercent, bool snap, int strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping)
+        public override int Calculate(TweenType mode, int start, int end, float percent, int srcValue, float srcPercent, bool snap, int strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping, int[] points)
         {
-            float dest = Mathf.Lerp(start, end, percent);
+            float dest = 0;
+            if (mode != TweenType.Bezier)
+                dest = Mathf.Lerp(start, end, percent);
+            else
+            {
+                if (percent == 1)
+                    dest = points[points.Length - 1];
+                else
+                {
+                    int length = points.Length;
+                    float[] tempCoefficients = EvaluateBezier(percent, length);
+                    for (int i = 0; i < length; i++)
+                    {
+                        dest += tempCoefficients[i] * points[i];
+                    }
+                    CycleBezierArray(tempCoefficients);
+                }
+
+            }
+
             dest = Mathf.Lerp(srcValue, dest, srcPercent);
             if (mode == TweenType.Shake || mode == TweenType.Punch)
             {
@@ -1448,9 +1526,31 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
 
     class ValueCalculator_Color : ValueCalculator<Color>
     {
-        public override Color Calculate(TweenType mode, Color start, Color end, float percent, Color srcValue, float srcPercent, bool snap, Color strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping)
+        public override Color Calculate(TweenType mode, Color start, Color end, float percent, Color srcValue, float srcPercent, bool snap, Color strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping, Color[] points)
         {
-            Color dest = Color.Lerp(start, end, percent);
+
+
+            Color dest = Color.clear;
+            if (mode != TweenType.Bezier)
+                dest = Color.Lerp(start, end, percent);
+            else
+            {
+                if (percent == 1)
+                    dest = points[points.Length - 1];
+                else
+                {
+                    int length = points.Length;
+                    float[] tempCoefficients = EvaluateBezier(percent, length);
+                    for (int i = 0; i < length; i++)
+                    {
+                        dest += tempCoefficients[i] * points[i];
+                    }
+                    CycleBezierArray(tempCoefficients);
+                }
+
+            }
+
+
             dest = Color.Lerp(srcValue, dest, srcPercent);
 
             if (mode == TweenType.Shake || mode == TweenType.Punch)
@@ -1506,9 +1606,39 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
             r.height = Mathf.Lerp(a.height, b.height, t);
             return r;
         }
-        public override Rect Calculate(TweenType mode, Rect start, Rect end, float percent, Rect srcValue, float srcPercent, bool snap, Rect strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping)
+        public override Rect Calculate(TweenType mode, Rect start, Rect end, float percent, Rect srcValue, float srcPercent, bool snap, Rect strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping, Rect[] points)
         {
-            Rect dest = Lerp(start, start, end, percent);
+
+
+            Rect dest = Rect.zero;
+            if (mode != TweenType.Bezier)
+                dest = Lerp(start, start, end, percent);
+            else
+            {
+                if (percent == 1)
+                    dest = points[points.Length - 1];
+                else
+                {
+                    int length = points.Length;
+                    float[] tempCoefficients = EvaluateBezier(percent, length);
+                    for (int i = 0; i < length; i++)
+                    {
+                        var value = tempCoefficients[i];
+                        var point = points[i];
+                        dest.x += point.x * value;
+                        dest.y += point.y * value;
+                        dest.width += point.width * value;
+                        dest.height += point.height * value;
+
+                    }
+                    CycleBezierArray(tempCoefficients);
+                }
+
+            }
+
+
+
+
             dest = Lerp(start, srcValue, dest, srcPercent);
             if (mode == TweenType.Shake || mode == TweenType.Punch)
             {
@@ -1572,10 +1702,29 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
     }
     class ValueCalculator_Vector2 : ValueCalculator<Vector2>
     {
-        public override Vector2 Calculate(TweenType mode, Vector2 start, Vector2 end, float percent, Vector2 srcValue, float srcPercent, bool snap, Vector2 strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping)
+        public override Vector2 Calculate(TweenType mode, Vector2 start, Vector2 end, float percent, Vector2 srcValue, float srcPercent, bool snap, Vector2 strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping, Vector2[] points)
         {
-            Vector2 dest = Vector2.Lerp(start, end, percent);
-            dest = Vector2.Lerp(srcValue, dest, srcPercent);
+            Vector2 dest = Vector2.zero;
+            if (mode != TweenType.Bezier)
+                dest = Vector2.Lerp(start, end, percent);
+            else
+            {
+                if (percent == 1)
+                    dest = points[points.Length - 1];
+                else
+                {
+                    int length = points.Length;
+                    float[] tempCoefficients = EvaluateBezier(percent, length);
+                    for (int i = 0; i < length; i++)
+                    {
+                        dest += tempCoefficients[i] * points[i];
+                    }
+                    CycleBezierArray(tempCoefficients);
+                }
+
+            }
+
+            dest = Vector3.Lerp(srcValue, dest, srcPercent);
             if (mode == TweenType.Shake || mode == TweenType.Punch)
             {
                 strength = new Vector2(strength.x * end.x, strength.y * end.y);
@@ -1616,10 +1765,28 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
     {
 
 
-
-        public override Vector3 Calculate(TweenType mode, Vector3 start, Vector3 end, float percent, Vector3 srcValue, float srcPercent, bool snap, Vector3 strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping)
+        public override Vector3 Calculate(TweenType mode, Vector3 start, Vector3 end, float percent, Vector3 srcValue, float srcPercent, bool snap, Vector3 strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping, Vector3[] points)
         {
-            Vector3 dest = Vector3.Lerp(start, end, percent);
+            Vector3 dest = Vector3.zero;
+            if (mode != TweenType.Bezier)
+                dest = Vector3.Lerp(start, end, percent);
+            else
+            {
+                if (percent == 1)
+                    dest = points[points.Length - 1];
+                else
+                {
+                    int length = points.Length;
+                    float[] tempCoefficients = EvaluateBezier(percent, length);
+                    for (int i = 0; i < length; i++)
+                    {
+                        dest += tempCoefficients[i] * points[i];
+                    }
+                    CycleBezierArray(tempCoefficients);
+                }
+
+            }
+
             dest = Vector3.Lerp(srcValue, dest, srcPercent);
             if (mode == TweenType.Shake || mode == TweenType.Punch)
             {
@@ -1666,10 +1833,29 @@ int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = tru
 
 
 
-        public override Vector4 Calculate(TweenType mode, Vector4 start, Vector4 end, float percent, Vector4 srcValue, float srcPercent, bool snap, Vector4 strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping)
+        public override Vector4 Calculate(TweenType mode, Vector4 start, Vector4 end, float percent, Vector4 srcValue, float srcPercent, bool snap, Vector4 strength, int frequency, float dampingRatio, int jumpCount, float jumpDamping, Vector4[] points)
         {
-            Vector4 dest = Vector4.Lerp(start, end, percent);
-            dest = Vector4.Lerp(srcValue, dest, srcPercent);
+            Vector4 dest = Vector4.zero;
+            if (mode != TweenType.Bezier)
+                dest = Vector4.Lerp(start, end, percent);
+            else
+            {
+                if (percent == 1)
+                    dest = points[points.Length - 1];
+                else
+                {
+                    int length = points.Length;
+                    float[] tempCoefficients = EvaluateBezier(percent, length);
+                    for (int i = 0; i < length; i++)
+                    {
+                        dest += tempCoefficients[i] * points[i];
+                    }
+                    CycleBezierArray(tempCoefficients);
+                }
+
+            }
+
+            dest = Vector3.Lerp(srcValue, dest, srcPercent);
             if (mode == TweenType.Shake || mode == TweenType.Punch)
             {
                 strength = new Vector4(strength.x * end.x, strength.y * end.y, strength.z * strength.z, strength.z * end.z);

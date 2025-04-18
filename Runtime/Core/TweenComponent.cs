@@ -33,7 +33,7 @@ namespace IFramework
 
             _percent = 0;
             var context = OnCreate();
-            context.SetLoop(loopType, loops).SetDelay(delay).SetSnap(snap).SetDuration(duration);
+            context.SetLoop(loopType, loops).SetDelay(delay).SetSnap(snap).SetDuration(duration).SetSourceDelta(sourceDelta);
             if (curveType == CurveType.Ease)
                 context.SetEase(ease);
             else
@@ -71,15 +71,11 @@ namespace IFramework
         public int loops = 1;
         public float delay = 0;
         public float duration = 1;
+        public float sourceDelta = 0;
         public bool snap = false;
         public AnimationCurve curve = new AnimationCurve();
         public Ease ease;
-        public enum StartValueType
-        {
-            Relative,
-            Direct
-        }
-        public StartValueType startType;
+
         internal abstract ITweenContext Create();
 
         internal abstract void ResetPercent();
