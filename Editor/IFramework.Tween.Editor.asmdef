@@ -1,0 +1,19 @@
+{
+    "name": "IFramework.Tween.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:0628f48b890088a42bf83e0af82e7b68",
+        "GUID:39bdcf9872c4f0246ae136f61158a209"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
