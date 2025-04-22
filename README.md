@@ -8,15 +8,12 @@ while(true)
     Console.Write("Thanks For EveryOne Who Used It Once !")
 ```
 QQ Group ：782290296 
-### Audio https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Audio
-### tween https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Tween
-### time  https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Timer
-### RedPoint https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.RedPoint
-### Record https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Recorder
-### 主体 https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework
-
-
-主体 支持 
+#### Audio https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Audio
+#### tween https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Tween
+#### time  https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Timer
+#### RedPoint https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.RedPoint
+#### Record https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Recorder
+#### 主体 https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework
 * Core
   * 通用单例
   * 优先级队列
@@ -29,7 +26,6 @@ QQ Group ：782290296
   * Log
   * 编辑器工具  序列化/拖拽/窗口/模板代码/项目设置/GUI
   * 支持组件添加回调
-
 * UI
   * 自定义加载 同步/异步，可等待
   * 内部处理 ui 多次点击的问题
@@ -45,8 +41,7 @@ QQ Group ：782290296
   * 支持异形屏幕适配
 
 
-
-* HotFix (基于XLUA、不想更新了😀)
+### 其他-> HotFix (基于XLUA、不想更新了😀)
   * 模板代码
   * lua 工具（ class、async、try、handler、using、EventSystem、ObservableObject、_G锁）
   * UI模块的 Lua扩展 （MVC）
