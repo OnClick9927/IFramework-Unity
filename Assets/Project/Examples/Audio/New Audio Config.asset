@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95b710acd80e1a146b8c24378ac7a245, type: 3}
+  m_Name: New Audio Config
+  m_EditorClassIdentifier: 
+  channels:
+  - one
+  - two
+  _sounds:
+  - id: 0
+    channel: 0
+    loop: 0
+    cover: 0
+    existTime: 10
+    clip: "Assets/Test/\u5976\u725B\u53EB\u58F0.mp3"
+    volume: -4.7
+  - id: 1
+    channel: 1
+    loop: 1
+    cover: 1
+    existTime: 10
+    clip: "Assets/Test/\u6E38\u620F\u80CC\u666F\u97F3\u6548.mp3"
+    volume: 0

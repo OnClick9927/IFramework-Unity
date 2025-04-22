@@ -1,0 +1,17 @@
+{
+    "name": "WooAudio.Editor",
+    "references": [
+        "GUID:3668dfd8c294aa645b3e4db0df87e92e"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
