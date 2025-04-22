@@ -1,0 +1,18 @@
+{
+    "datas": [
+        {
+            "path": "Assets/Project/Examples/UI/PanelOne.prefab",
+            "isResourcePath": false,
+            "layer": 0,
+            "fullScreen": true,
+            "order": 0
+        },
+        {
+            "path": "Assets/Project/Examples/UI/PanelTwo.prefab",
+            "isResourcePath": false,
+            "layer": 0,
+            "fullScreen": true,
+            "order": 0
+        }
+    ]
+}

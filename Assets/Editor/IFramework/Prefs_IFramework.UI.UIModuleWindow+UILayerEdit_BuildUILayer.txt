@@ -1,0 +1,4 @@
+{
+    "mode": 0,
+    "layerObjectPath": "Assets/Project/Examples/UI/New UI Layer Data.asset"
+}

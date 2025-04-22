@@ -1,0 +1,9 @@
+{
+    "enable": true,
+    "enable_F": true,
+    "enable_L": true,
+    "enable_W": true,
+    "enable_E": true,
+    "dockWindow": true,
+    "NameSpace": "IFramework"
+}

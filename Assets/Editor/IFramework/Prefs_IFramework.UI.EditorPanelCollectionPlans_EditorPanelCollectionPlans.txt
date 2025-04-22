@@ -1,0 +1,14 @@
+{
+    "_index": 0,
+    "_plans": [
+        {
+            "ConfigGenPath": "Assets",
+            "PanelCollectPath": "Assets",
+            "ScriptGenPath": "Assets",
+            "ScriptName": "PanelNames",
+            "name": "25_04_09_10_17_47",
+            "typeIndex": 1,
+            "ConfigName": "UICollect"
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+.idea/
+.vs/
+Temp/
+Logs/
+obj/
+Library/
+.vscode/
+.vsconfig
+ProjectSettings/
+UserSettings/
+*.sln
+*.csproj
+*.sln
+Assets/Editor/IFramework/OnClick
+Assets/Editor/IFramework/OnClick.meta
+Assets/Editor/IFramework/anonymous.meta

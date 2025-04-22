@@ -1,0 +1,76 @@
+--*********************************************************************************
+--Author:         OnClick
+--Version:        1.0
+--UnityVersion:   2021.3.33f1c1
+--Date:           2024-10-24
+--*********************************************************************************
+---StaticUsing
+local Button = StaticUsing("UnityEngine.UI.Button")
+local Transform = StaticUsing("UnityEngine.Transform")
+---StaticUsing
+---@class PanelOneView : UIView
+local PanelOneView = class("PanelOneView", UIView)
+
+function PanelOneView:ctor(gameObject)
+    self:SetGameObject(gameObject)
+end
+
+function PanelOneView:InitComponents()
+    self.view = {
+        --InitComponentsStart
+        ---@type UnityEngine.UI.Button
+        Close = self:GetComponent("Close@sm", typeof(Button)),
+
+        ---@type UnityEngine.UI.Button
+        add = self:GetComponent("add@sm", typeof(Button)),
+
+        ---@type UnityEngine.UI.Button
+        remove = self:GetComponent("remove@sm", typeof(Button)),
+
+        ---@type UnityEngine.Transform
+        items = self:GetComponent("items@sm", typeof(Transform)),
+
+
+        --InitComponentsEnd
+    }
+end
+
+local Launcher = StaticUsing("IFramework.Launcher")
+local game = Launcher.Instance.game
+local ui = game.module
+function PanelOneView:OnLoad()
+    ---@type UIItemPool
+    local items = UIItemPool(ui)
+    self:AddUIEvent(UnityEventHelper.BindButton(self.view.Close, function()
+        ui:Close(PanelNames_UIGame.PanelOne)
+    end))
+    self.items = {}
+    self:AddUIEvent(UnityEventHelper.BindButton(self.view.add, function()
+        local ins = items:Get("Assets/Project/Examples/UI/PanelOneItem.prefab", require "TestUI.PanelOneItemView",
+            self.view.items)
+        table.insert(self.items, ins)
+    end))
+    self:AddUIEvent(UnityEventHelper.BindButton(self.view.remove, function()
+        if self.items[1] then
+            local one = self.items[1]
+            table.remove(self.items, 1)
+            items:Set(one)
+        end
+    end))
+end
+
+function PanelOneView:OnShow()
+
+end
+
+function PanelOneView:OnHide()
+
+end
+
+function PanelOneView:OnClose()
+    self:DisposeEvents()
+    self:DisposeUIEvents()
+    self.view = nil
+end
+
+return PanelOneView

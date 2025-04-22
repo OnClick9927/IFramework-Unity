@@ -1,0 +1,41 @@
+{
+    "GenPath": "Assets/Project/Examples/UI/",
+    "panelPath": "Assets/Project/Examples/UI/PanelTwo.prefab",
+    "state": {
+        "scrollPos": {
+            "x": 0.0,
+            "y": 0.0
+        },
+        "m_SelectedIDs": [
+            18544,
+            18540
+        ],
+        "m_LastClickedID": 18544,
+        "m_ExpandedIDs": [
+            18522
+        ],
+        "m_RenameOverlay": {
+            "m_UserAcceptedRename": false,
+            "m_Name": "",
+            "m_OriginalName": "",
+            "m_EditFieldRect": {
+                "serializedVersion": "2",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 0.0,
+                "height": 0.0
+            },
+            "m_UserData": 0,
+            "m_IsWaitingForDelay": false,
+            "m_IsRenaming": false,
+            "m_OriginalEventType": 11,
+            "m_IsRenamingFilename": false,
+            "m_ClientGUIView": {
+                "instanceID": 0
+            }
+        },
+        "m_SearchString": ""
+    },
+    "_searchType": 0,
+    "_type": 1
+}

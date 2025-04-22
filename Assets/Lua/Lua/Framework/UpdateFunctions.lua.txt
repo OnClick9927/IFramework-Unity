@@ -1,0 +1,83 @@
+local function UpdateFunction(new, origin)
+    assert(LuaDataType.Function == type(new))
+    assert(LuaDataType.Function == type(origin))
+    local old_upvalue_map = {}
+    for i = 1, math.huge do
+        local name, value = debug.getupvalue(origin, i)
+        if not name then
+            break
+        end
+        old_upvalue_map[name] = value
+    end
+    for i = 1, math.huge do
+        local name, value = debug.getupvalue(new, i)
+        if not name then
+            break
+        end
+        local old_value = old_upvalue_map[name]
+        if old_value then
+            debug.setupvalue(new, i, old_value)
+        end
+    end
+end
+
+local function UpdateTable(new, origin, record)
+    assert(LuaDataType.Table == type(new))
+    assert(LuaDataType.Table == type(origin))
+    for key, value in pairs(new) do
+        local old_value = origin[key]
+        local type_value = type(value)
+        if type_value == LuaDataType.Function then
+            UpdateFunction(value, old_value)
+            origin[key] = value
+        elseif type_value == LuaDataType.Function then
+            if (record[value] == nil) then
+                record[value] = true
+                UpdateTable(value, old_value, record)
+            end
+        end
+    end
+    -- Update metatable.
+    local old_meta = debug.getmetatable(origin)
+    local new_meta = debug.getmetatable(new)
+    if type(old_meta) == LuaDataType.Table and type(new_meta) == LuaDataType.Table then
+        UpdateTable(new_meta, old_meta, record)
+    end
+end
+
+function UpdateFunctions(name)
+    local origin
+    if package.loaded[name] then
+        if package.loaded[name] == true then
+            package.loaded[name] = nil
+            local ok, err = pcall(require, name)
+            if not ok then
+                package.loaded[name] = origin
+                error("reload lua file failed.", err)
+            else
+                package.loaded[name] = require(name)
+            end
+            return
+        else
+            origin = package.loaded[name]
+            package.loaded[name] = nil
+        end
+    else
+        --没有加载过
+        return
+    end
+    local ok, err = pcall(require, name)
+    if not ok then
+        package.loaded[name] = origin
+        print("reload lua file failed.", err)
+        return
+    end
+    local newModule = package.loaded[name]
+    local record = {}
+    UpdateTable(newModule, origin, record)
+    if origin.OnReload ~= nil then
+        origin:OnReload()
+    end
+    print("replaced succeed")
+    package.loaded[name] = origin
+end

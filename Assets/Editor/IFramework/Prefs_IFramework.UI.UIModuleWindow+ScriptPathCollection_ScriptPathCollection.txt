@@ -1,0 +1,21 @@
+{
+    "segs": [
+        {
+            "prefab": "Assets/Project/Examples/UI/PanelOne.prefab",
+            "ScriptPath": "Assets/Lua/Lua/TestUI/PanelOneView.lua.txt",
+            "Paths": [
+                "Assets/Lua/Lua/TestUI/PanelOneView.lua.txt"
+            ]
+        },
+        {
+            "prefab": "Assets/Project/Examples/UI/PanelTwo.prefab",
+            "ScriptPath": "",
+            "Paths": []
+        },
+        {
+            "prefab": "Assets/Project/Examples/UI/Panel##Two 1 @.prefab",
+            "ScriptPath": "",
+            "Paths": []
+        }
+    ]
+}
