@@ -1,6 +1,4 @@
 # IFramework [Doc](https://onclick9927.github.io/2023/07/24/Doc/IFramework-Unity/1-IFramework-Unity-%E7%AE%80%E4%BB%8B/)
-## upm 添加包地址 https://gitee.com/OnClick9927/IFramework-Unity.git#src
-## upm 添加包地址 https://github.com/OnClick9927/IFramework-Unity.git#src
 
 
 
@@ -10,9 +8,14 @@ while(true)
     Console.Write("Thanks For EveryOne Who Used It Once !")
 ```
 QQ Group ：782290296 
+### tween https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Tween
+### time  https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Timer
+### RedPoint https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.RedPoint
+### Record https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Recorder
+### 主体 https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework
 
-### 主体
-支持
+
+支持 
 * Core
   * 通用单例
   * 优先级队列
@@ -25,8 +28,7 @@ QQ Group ：782290296
   * Log
   * 编辑器工具  序列化/拖拽/窗口/模板代码/项目设置/GUI
   * 支持组件添加回调
-  * tween 插值动画、可等待
-  * time  计时器、可等待
+
 * UI
   * 自定义加载 同步/异步，可等待
   * 内部处理 ui 多次点击的问题
@@ -40,13 +42,7 @@ QQ Group ：782290296
   * UI组件添加时 默认优化取消勾选Raycast 等
   * UI组件移除时候自动 移除CanvasRendererer
   * 支持异形屏幕适配
-* RedPoint
-  * 支持窗口查看每个节点的数量与绑定情况
-  * 支持自定义绑定
-* Record
-  * 支持自定义命令
-  * 支持命令克隆
-  * 支持命令组
+
 
 
 * HotFix (基于XLUA、不想更新了😀)
