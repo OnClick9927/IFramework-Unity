@@ -1,6 +1,9 @@
 {
     "name": "WooAudio",
-    "references": [],
+    "rootNamespace": "",
+    "references": [
+        "GUID:aafb561240261d94982201b9db7f83b1"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
