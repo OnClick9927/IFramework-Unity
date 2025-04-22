@@ -1,0 +1,13 @@
+{
+  "name": "com.woo.iframework",
+  "displayName": "IFramework",
+  "version": "1.2.47",
+  "unity": "2019.4",
+  "description": "IFramework",
+  "type": "library",
+  "author": {
+    "name": "woo",
+    "email": "2809399366@qq.com",
+    "url": "https://github.com/OnClick9927"
+  }
+}
