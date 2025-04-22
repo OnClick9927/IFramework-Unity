@@ -1,3 +1,4 @@
+cd ../
 chcp 65001
 @echo off
 git checkout --orphan latest_branch
