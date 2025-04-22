@@ -8,6 +8,7 @@ while(true)
     Console.Write("Thanks For EveryOne Who Used It Once !")
 ```
 QQ Group ：782290296 
+### Audio https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Audio
 ### tween https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Tween
 ### time  https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.Timer
 ### RedPoint https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework.RedPoint
@@ -15,7 +16,7 @@ QQ Group ：782290296
 ### 主体 https://github.com/OnClick9927/IFramework-Unity.git?path=Assets/IFramework
 
 
-支持 
+主体 支持 
 * Core
   * 通用单例
   * 优先级队列
