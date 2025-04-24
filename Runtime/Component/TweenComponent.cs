@@ -23,6 +23,8 @@ namespace IFramework
         }
         [SerializeField] private Mode mode = Mode.Sequence;
         [SerializeField] private float timeScale = 1;
+        [SerializeField] private string id;
+
         [SerializeField] private bool PlayOnAwake;
 
         [SerializeReference]
@@ -98,7 +100,7 @@ namespace IFramework
                      .OnBegin(onBegin.Invoke)
                      .OnComplete(onComplete.Invoke)
                      .OnTick(onTick.Invoke)
-                     .OnCancel(onCancel.Invoke).Run();
+                     .OnCancel(onCancel.Invoke).SetId(id).Run();
             }
             else
             {

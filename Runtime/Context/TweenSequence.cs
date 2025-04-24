@@ -15,6 +15,7 @@ namespace IFramework
     {
         private List<Func<ITweenContext>> list = new List<Func<ITweenContext>>();
         private Queue<Func<ITweenContext>> _queue = new Queue<Func<ITweenContext>>();
+
         public ITweenGroup NewContext(Func<ITweenContext> func)
         {
             if (func == null) return this;
@@ -65,6 +66,7 @@ namespace IFramework
         private void RunNext(ITweenContext context)
         {
             if (canceled || isDone) return;
+
             if (_queue.Count > 0)
             {
                 inner = _queue.Dequeue().Invoke();

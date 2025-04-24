@@ -9,11 +9,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 using static IFramework.EditorTools;
 namespace IFramework
 {
+
     [CustomEditor(typeof(TweenComponent))]
     class TweenComponentEditor : Editor
     {
@@ -60,7 +62,8 @@ namespace IFramework
                         var _type = x;
                         while (true)
                         {
-                            if (_type.IsGenericType && _type.GetGenericTypeDefinition() == typeof(TweenActorEditor<>))
+                            if (_type.IsGenericType && _type.GetGenericTypeDefinition() == typeof(TweenActorEditor<>)
+                            && _type.GetGenericArguments()[0] == type)
                             {
                                 return true;
                             }

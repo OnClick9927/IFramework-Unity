@@ -14,8 +14,8 @@ namespace IFramework
     struct EaseEvaluator : IValueEvaluator
     {
         public static EaseEvaluator Default = new EaseEvaluator(Ease.Linear);
-        private Ease _ease;
-        public EaseEvaluator(Ease ease) => _ease = ease;
+        public Ease ease;
+        public EaseEvaluator(Ease ease) => this.ease = ease;
         private static float Evaluate(Ease easeType, float time, float duration)
         {
             float percent = Mathf.Clamp01((time / duration));
@@ -110,7 +110,7 @@ namespace IFramework
                     return -(time /= duration) * (time - 2f);
             }
         }
-        float IValueEvaluator.Evaluate(float percent, float time, float duration) => Evaluate(_ease, time, duration);
+        float IValueEvaluator.Evaluate(float percent, float time, float duration) => Evaluate(ease, time, duration);
     }
 
 

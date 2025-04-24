@@ -9,6 +9,7 @@
 namespace IFramework
 {
     [MonoSingletonPath(nameof(IFramework.Tween))]
+    [UnityEngine.AddComponentMenu("")]
     class TweenScheduler_Runtime : MonoSingleton<TweenScheduler_Runtime>
     {
         public TweenScheduler scheduler;

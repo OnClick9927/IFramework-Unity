@@ -29,6 +29,7 @@ namespace IFramework
         public float duration = 1;
         public float sourceDelta = 0;
         public bool snap = false;
+        public string id;
         public AnimationCurve curve = new AnimationCurve();
         public Ease ease;
 
@@ -53,7 +54,7 @@ namespace IFramework
 
             _percent = 0;
             var context = OnCreate();
-            context.SetLoop(loopType, loops).SetDelay(delay).SetSnap(snap).SetDuration(duration).SetSourceDelta(sourceDelta);
+            context.SetLoop(loopType, loops).SetDelay(delay).SetSnap(snap).SetDuration(duration).SetSourceDelta(sourceDelta).SetId(id);
             if (curveType == CurveType.Ease)
                 context.SetEase(ease);
             else
