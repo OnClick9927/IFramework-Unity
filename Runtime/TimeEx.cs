@@ -173,7 +173,7 @@ namespace IFramework
             if (!UnityEditor.EditorApplication.isPlaying)
                 return editorScheduler;
 #endif
-            return TweenScheduler_Runtime.Instance.scheduler;
+            return TimerScheduler_Runtime.Instance.scheduler;
         }
 
 

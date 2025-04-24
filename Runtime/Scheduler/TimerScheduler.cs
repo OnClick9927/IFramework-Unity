@@ -13,46 +13,19 @@ namespace IFramework
 {
     class TimerScheduler : ITimerScheduler
     {
-        private SimpleObjectPool<TimerSequence> seuqencesPool;
-        private SimpleObjectPool<TimerParallel> parallelPool;
-
-        //private SimpleObjectPool<Timer> pool;
         private List<TimerContext> timers;
 
         private Dictionary<Type, ISimpleObjectPool> contextPools;
 
         public TimerScheduler()
         {
-            parallelPool = new SimpleObjectPool<TimerParallel>();
-            seuqencesPool = new SimpleObjectPool<TimerSequence>();
             contextPools = new Dictionary<Type, ISimpleObjectPool>();
-            //pool = new SimpleObjectPool<Timer>();
             timers = new List<TimerContext>();
         }
 
-        public ITimerGroup NewTimerSequence()
-        {
-            var seq = seuqencesPool.Get();
-            seq.scheduler = this;
-            return seq;
-        }
-        public ITimerGroup NewTimerParallel()
-        {
-            var seq = parallelPool.Get();
-            seq.scheduler = this;
-            return seq;
-        }
-        public void Cycle(TimerSequence seq) => seuqencesPool.Set(seq);
-        private void Cycle(TimerContext context)
-        {
-            var type = context.GetType();
-            ISimpleObjectPool _pool = null;
-            if (contextPools.TryGetValue(type, out _pool))
-                _pool.SetObject(context);
-            //pool.Set(timer);
-        }
-        public void Cycle(TimerParallel parallel) => parallelPool.Set(parallel);
-        public T NewTimerContext<T>() where T : TimerContext, new()
+        public ITimerGroup NewTimerSequence() => _NewTimerContext<TimerSequence>();
+        public ITimerGroup NewTimerParallel() => _NewTimerContext<TimerParallel>();
+        public T _NewTimerContext<T>() where T : TimerContextBase, new()
         {
             Type type = typeof(T);
             ISimpleObjectPool pool = null;
@@ -66,6 +39,14 @@ namespace IFramework
             cls.scheduler = this;
             return cls;
         }
+        public T NewTimerContext<T>() where T : TimerContext, new() => _NewTimerContext<T>();
+        public void Cycle(ITimerContext context)
+        {
+            var type = context.GetType();
+            ISimpleObjectPool _pool = null;
+            if (contextPools.TryGetValue(type, out _pool))
+                _pool.SetObject(context);
+        }
 
         public ITimerContext RunTimerContext(TimerContext context)
         {
@@ -73,24 +54,15 @@ namespace IFramework
             timers.Add(context);
             return context;
         }
-
-
-
         public void ClearTimers()
         {
             timers.Clear();
         }
-
-
-
-
         internal void Update()
         {
             float deltaTime = Launcher.GetDeltaTime();
             for (int i = timers.Count - 1; i >= 0; i--)
             {
-
-
                 var timer = timers[i];
                 if (timer.canceled)
                 {
@@ -98,7 +70,6 @@ namespace IFramework
                     Cycle(timer);
                     continue;
                 }
-
                 timer.Update(deltaTime);
                 if (timer.isDone)
                 {
@@ -109,8 +80,6 @@ namespace IFramework
 
 
         }
-
-
     }
 
 }
