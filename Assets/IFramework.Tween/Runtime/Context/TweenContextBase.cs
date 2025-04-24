@@ -12,25 +12,25 @@ namespace IFramework
 {
     abstract class TweenContextBase : ITweenContext, IPoolObject
     {
-
         public void Recycle()
         {
             if (!valid) return;
-            Tween.GetScheduler().CycleContext(this);
+            Tween.RecycleContext(this);
         }
         protected void TryRecycle()
         {
             if (!autoCycle) return;
             Recycle();
         }
-        public bool autoCycle { get; private set; }
+        public bool autoCycle { get;private set; }
         public bool isDone { get; private set; }
         public bool canceled { get; private set; }
         public bool valid { get; set; }
         public bool paused { get; private set; }
-        protected float timeScale { get; private set; }
+        public float timeScale { get; private set; }
+        public string id { get; private set; }
 
-
+        public TweenContextState state { get; private set; }
 
         private Action<ITweenContext> onBegin;
 
@@ -55,6 +55,7 @@ namespace IFramework
             onTick = null;
             autoCycle = true;
             timeScale = 1f;
+            id = string.Empty;
         }
         protected void InvokeCancel()
         {
@@ -79,9 +80,18 @@ namespace IFramework
         }
 
 
-        void IPoolObject.OnGet() => Reset();
+        void IPoolObject.OnGet()
+        {
+            state = TweenContextState.Allocate;
+            Reset();
+        }
 
-        void IPoolObject.OnSet() => Reset();
+        void IPoolObject.OnSet()
+        {
+            state = TweenContextState.Sleep;
+
+            Reset();
+        }
 
         public virtual ITweenContext SetTimeScale(float timeScale)
         {
@@ -96,17 +106,22 @@ namespace IFramework
         {
             if (!valid || paused) return;
             paused = true;
+            state = TweenContextState.Pause;
+
         }
         public virtual void UnPause()
         {
             if (!valid || !paused) return;
             paused = false;
+            state = TweenContextState.Run;
+
         }
 
 
 
         public virtual void Run()
         {
+            state = TweenContextState.Run;
             paused = false;
             canceled = false;
             isDone = false;
@@ -118,7 +133,11 @@ namespace IFramework
             this.autoCycle = cycle;
             return this;
         }
-
+        public ITweenContext SetId(string id)
+        {
+            this.id = id;
+            return this;
+        }
 
 
         public abstract void Stop();

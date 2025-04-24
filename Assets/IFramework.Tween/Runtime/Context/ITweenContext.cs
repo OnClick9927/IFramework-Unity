@@ -10,11 +10,21 @@ using System;
 
 namespace IFramework
 {
+    public enum TweenContextState
+    {
+        Allocate,
+        Run,
+        Pause,
+        Sleep,
+    }
     public interface ITweenContext
     {
+        string id { get; }
         bool isDone { get; }
         bool autoCycle { get; }
         bool paused { get; }
+
+        TweenContextState state {  get; }
     }
 
 

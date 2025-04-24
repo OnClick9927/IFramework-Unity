@@ -218,51 +218,73 @@ namespace IFramework
         private static TweenContext<T, Target> AsInstance<T, Target>(this ITweenContext<T, Target> context) => context as TweenContext<T, Target>;
         public static ITweenContext<T, Target> DoGoto<T, Target>(Target target, T start, T end, float duration, Func<Target, T> getter, Action<Target, T> setter, bool snap, bool autoRun = true)
         {
-            var context = GetScheduler().AllocateContext<T, Target>(autoRun);
+            var context = Allocate<T, Target>(autoRun);
             context.AsInstance().Config(target, start, end, duration, getter, setter, snap);
             return context;
         }
         public static ITweenContext<T, Target> DoShake<T, Target>(Target target, T start, T end, float duration, Func<Target, T> getter, Action<Target, T> setter, T strength,
             int frequency = 10, float dampingRatio = 1, bool snap = false, bool autoRun = true)
         {
-            var context = GetScheduler().AllocateContext<T, Target>(autoRun);
+            var context = Allocate<T, Target>(autoRun);
             context.AsInstance().ShakeConfig(target, start, end, duration, getter, setter, snap, strength, frequency, dampingRatio);
             return context;
         }
         public static ITweenContext<T, Target> DoPunch<T, Target>(Target target, T start, T end, float duration, Func<Target, T> getter, Action<Target, T> setter, T strength,
       int frequency = 10, float dampingRatio = 1, bool snap = false, bool autoRun = true)
         {
-            var context = GetScheduler().AllocateContext<T, Target>(autoRun);
+            var context = Allocate<T, Target>(autoRun);
             context.AsInstance().PunchConfig(target, start, end, duration, getter, setter, snap, strength, frequency, dampingRatio);
             return context;
-        }  
+        }
         public static ITweenContext<T, Target> DoJump<T, Target>(Target target, T start, T end, float duration, Func<Target, T> getter, Action<Target, T> setter, T strength,
    int jumpCount = 5, float jumpDamping = 2f, bool snap = false, bool autoRun = true)
         {
-            var context = GetScheduler().AllocateContext<T, Target>(autoRun);
+            var context = Allocate<T, Target>(autoRun);
             context.AsInstance().JumpConfig(target, start, end, duration, getter, setter, snap, strength, jumpCount, jumpDamping);
             return context;
         }
         public static ITweenContext<T, Target> DoArray<T, Target>(Target target, float duration, Func<Target, T> getter, Action<Target, T> setter, T[] points, bool snap = false, bool autoRun = true)
         {
-            var context = GetScheduler().AllocateContext<T, Target>(autoRun);
+            var context = Allocate<T, Target>(autoRun);
             context.AsInstance().ArrayConfig(target, duration, getter, setter, snap, points);
             return context;
         }
         public static ITweenContext<T, Target> DoBezier<T, Target>(Target target, float duration, Func<Target, T> getter, Action<Target, T> setter, T[] points, bool snap = false, bool autoRun = true)
         {
-            var context = GetScheduler().AllocateContext<T, Target>(autoRun);
+            var context = Allocate<T, Target>(autoRun);
             context.AsInstance().BezierConfig(target, duration, getter, setter, snap, points);
             return context;
         }
 
 
 
+        internal static event Action<ITweenContext> onContextAllocate, onContextRecycle;
+        internal static void RecycleContext(ITweenContext context)
+        {
+            Tween.GetScheduler().CycleContext(context);
+            onContextRecycle?.Invoke(context);
+        }
 
+        private static ITweenContext<T, Target> Allocate<T, Target>(bool autoRun)
+        {
+            var context = GetScheduler().AllocateContext<T, Target>(autoRun);
+            onContextAllocate?.Invoke(context);
+            return context;
+        }
 
-        public static ITweenGroup Sequence() => GetScheduler().AllocateSequence();
-        public static ITweenGroup Parallel() => GetScheduler().AllocateParallel();
+        public static ITweenGroup Sequence()
+        {
+            var context = GetScheduler().AllocateSequence();
+            onContextAllocate?.Invoke(context);
+            return context;
+        }
 
+        public static ITweenGroup Parallel()
+        {
+            var context = GetScheduler().AllocateParallel();
+            onContextAllocate?.Invoke(context);
+            return context;
+        }
 
         public static T ReStart<T>(this T context) where T : ITweenContext
         {
@@ -315,6 +337,11 @@ namespace IFramework
         public static T SetAutoCycle<T>(this T t, bool value) where T : ITweenContext
         {
             t.AsContextBase().SetAutoCycle(value);
+            return t;
+        }
+        public static T SetId<T>(this T t, string value) where T : ITweenContext
+        {
+            t.AsContextBase().SetId(value);
             return t;
         }
         public static T Run<T>(this T t) where T : ITweenContext

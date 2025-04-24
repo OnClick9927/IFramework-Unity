@@ -24,7 +24,7 @@ namespace IFramework.AudioEx
             else
             {
                 var source = new GameObject($"{channel}_{index++}").AddComponent<AudioSource>();
-                source.transform.SetParent(Audio.ins.transform);
+                source.transform.SetParent(Audio.Instance.transform);
                 player = new AudioPlayer(source);
             }
             player.BeginLife();
@@ -39,7 +39,7 @@ namespace IFramework.AudioEx
         }
         public void Play(int sound_id)
         {
-            if (Audio.ins.config.GetSoundCover(sound_id))
+            if (Audio.Instance.config.GetSoundCover(sound_id))
                 StopChannel();
             Get().Play(sound_id);
         }

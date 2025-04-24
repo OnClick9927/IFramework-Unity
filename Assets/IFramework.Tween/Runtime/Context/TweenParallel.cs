@@ -16,6 +16,7 @@ namespace IFramework
         private List<Func<ITweenContext>> list = new List<Func<ITweenContext>>();
         private List<ITweenContext> contexts = new List<ITweenContext>();
 
+
         public ITweenGroup NewContext(Func<ITweenContext> func)
         {
             if (func == null) return this;

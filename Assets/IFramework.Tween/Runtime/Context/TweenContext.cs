@@ -14,7 +14,7 @@ namespace IFramework
 {
     abstract class TweenContext : TweenContextBase, ITweenContext
     {
-        protected float time { get; private set; }
+        public float time { get; private set; }
         protected void SetTime(float value) => time = value;
         internal void Update(float deltaTime)
         {
@@ -56,7 +56,7 @@ namespace IFramework
     }
 
 
-    class TweenContext<T, Target> : TweenContext, ITweenContext<T, Target>
+    sealed class TweenContext<T, Target> : TweenContext, ITweenContext<T, Target>
     {
 
 
@@ -79,34 +79,40 @@ namespace IFramework
         }
 
 
-        private Target target;
         private static ValueCalculator<T> _calc;
 
-        private T start;
-        private T end;
-        private bool snap;
-        private float delay;
-        private float duration;
-        private float sourceDelta;
-        private IValueEvaluator evaluator;
-        private int loops;
-        private LoopType loopType;
-        private Func<Target, T> getter;
-        private Action<Target, T> setter;
-        private T _start;
-        private T _end;
+        public Target target;
+        public TweenType _mode;
+        public T start;
+        public T end;
+        public bool snap;
+        public float delay;
+        public float duration;
+        public float sourceDelta;
+        public IValueEvaluator evaluator;
+        public int loops;
+        public LoopType loopType;
+        public Func<Target, T> getter;
+        public Action<Target, T> setter;
+        public int jumpCount;
+        public float jumpDamping;
+        public int frequency;
+        public float dampingRatio;
+        public T strength;
+        public T[] points;
 
-        private bool _wait_delay_flag;
-        private int _loop;
 
 
-        private TweenType _mode;
-        private T[] points;
-        private T[] _points;
-        private int _points_length;
+        [Space(20)]
+        public T _start;
+        public T _end;
+        public T[] _points;
+        public int _points_length;
+        public bool _wait_delay_flag;
+        public int _loop;
+        public bool _set2Start_called = false;
 
-        private int jumpCount;
-        private float jumpDamping;
+
 
         private static ValueCalculator<T> calc
         {
@@ -152,10 +158,6 @@ namespace IFramework
 
         }
 
-        private bool _set2Start_called = false;
-        private int frequency;
-        private float dampingRatio;
-        private T strength;
 
 
         protected override bool MoveNext(float delta)
@@ -216,10 +218,14 @@ namespace IFramework
             {
                 if (loopType == LoopType.PingPong)
                 {
+
+                    bool same = this._points[0].Equals(this.points[0]);
                     for (int i = 0; i < _points_length; i++)
                     {
-                        this._points[i] = this.points[_points_length - 1 - i];
-
+                        if (same)
+                            this._points[i] = this.points[_points_length - 1 - i];
+                        else
+                            this._points[i] = this.points[i];
                     }
                 }
                 else if (loopType == LoopType.Add)

@@ -21,12 +21,12 @@ MonoBehaviour:
     loop: 0
     cover: 0
     existTime: 10
-    clip: "Assets/Test/\u5976\u725B\u53EB\u58F0.mp3"
-    volume: -4.7
+    clip: "Assets/Project/Examples/Audio/\u5976\u725B\u53EB\u58F0.mp3"
+    volume: -0.09
   - id: 1
     channel: 1
     loop: 1
     cover: 1
     existTime: 10
-    clip: "Assets/Test/\u6E38\u620F\u80CC\u666F\u97F3\u6548.mp3"
+    clip: "Assets/Project/Examples/Audio/\u6E38\u620F\u80CC\u666F\u97F3\u6548.mp3"
     volume: 0

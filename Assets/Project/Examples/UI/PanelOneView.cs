@@ -102,8 +102,8 @@ namespace IFramework
             });
             //TweenTest();
             //TweenTest2();
-            //Test2();
-            Test();
+            Test2();
+            //Test();
         }
         private async void Test()
         {

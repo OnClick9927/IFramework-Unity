@@ -30,6 +30,7 @@ namespace IFramework
             GUILayout.BeginVertical(EditorStyles.helpBox);
             FieldDefaultInspector(actor.GetType().GetField("target"), actor);
 
+            actor.id = EditorGUILayout.TextField("ID", actor.id);
             actor.snap = EditorGUILayout.Toggle("Snap", actor.snap);
             actor.sourceDelta = EditorGUILayout.FloatField("Source Delta", actor.sourceDelta);
             actor.duration = EditorGUILayout.FloatField("Duration", actor.duration);

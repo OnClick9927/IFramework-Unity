@@ -12,10 +12,10 @@ namespace IFramework
 {
     struct AnimationCurveEvaluator : IValueEvaluator
     {
-        private AnimationCurve _curve;
+        public AnimationCurve curve;
 
-        public AnimationCurveEvaluator(AnimationCurve curve) => _curve = curve;
-        float IValueEvaluator.Evaluate(float percent, float time, float duration) => _curve.Evaluate(percent);
+        public AnimationCurveEvaluator(AnimationCurve curve) => this.curve = curve;
+        float IValueEvaluator.Evaluate(float percent, float time, float duration) => curve.Evaluate(percent);
     }
 
 
