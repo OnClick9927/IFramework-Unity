@@ -9,14 +9,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
+using System.Runtime.Remoting.Contexts;
+using System.Security;
+using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 namespace IFramework
 {
@@ -243,7 +246,7 @@ namespace IFramework
                             return true;
                         }
                         _type = _type.BaseType;
-                        if (_type==null)
+                        if (_type == null)
                         {
                             break;
                         }
@@ -323,12 +326,11 @@ namespace IFramework
 
         public static object DrawDefaultInspector(object obj)
         {
-            GUILayout.BeginVertical();
             var type = obj.GetType();
             //得到字段的值,只能得到public类型的字典的值
             FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
             //排序一下，子类的字段在后，父类的在前
-            Array.Sort(fieldInfos, FieldsSprtBy);
+            //Array.Sort(fieldInfos, FieldsSprtBy);
 
             //判断需要过滤不显示的字段
             List<FieldInfo> needShowField = new List<FieldInfo>();
@@ -352,6 +354,7 @@ namespace IFramework
                     needShowField.Add(field);
                 }
             }
+            GUILayout.BeginVertical();
             foreach (var field in needShowField)
             {
                 FieldDefaultInspector(field, obj);
@@ -368,6 +371,8 @@ namespace IFramework
             };
         private static bool IsBaseType(Type type)
         {
+            if (type.IsSubclassOf(typeof(UnityEngine.Object)))
+                return true;
             if (type.IsEnum || _base.Contains(type)) return true;
             return false;
         }
@@ -403,18 +408,34 @@ namespace IFramework
             }
             return value;
         }
+        private static object DrawObj(object value, string name, Type fieldType)
+        {
+
+            bool fold = GetFoldout(value);
+            fold = EditorGUILayout.Foldout(fold, $"{name}", true);
+            SetFoldout(value, fold);
+            if (fold)
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(20);
+                var Newvalue= DrawDefaultInspector(value);
+                GUILayout.EndHorizontal();
+                return Newvalue;
+            }
+            return value;
+        }
+
         private static float DrawRange(string name, float value, float min, float max)
         {
             return EditorGUILayout.Slider(name, (float)value, min, max);
         }
-
         private static string DrawMutiLine(string name, string value, int lines)
         {
             GUILayout.Label(name);
             return EditorGUILayout.TextArea(value, GUILayout.MinHeight(lines * 18));
         }
 
-        static MethodInfo method;
+
         private static Dictionary<int, bool> _unfoldDictionary = new Dictionary<int, bool>();
 
         private static IList DrawArr(ref bool fold, string name, IList arr, Type ele)
@@ -431,7 +452,7 @@ namespace IFramework
 
             var rs_second = RectEx.VerticalSplit(rect, rect.width - 20);
 
-            fold = EditorGUI.Foldout(rs_second[0], fold, $"{name}({ele.Name})", true);
+            fold = EditorGUI.Foldout(rs_second[0], fold, $"{name}({ele.Name}): {cout}", true);
             if (GUI.Button(rs_second[1], EditorGUIUtility.TrIconContent("d_Toolbar Plus"), EditorStyles.toolbarButton))
             {
                 Array newArray = Array.CreateInstance(ele, array != null ? array.Count + 1 : 1);
@@ -493,11 +514,31 @@ namespace IFramework
         }
 
 
-        public static void FieldDefaultInspector(FieldInfo field, object obj)
+        public static void FieldDefaultInspector(MemberInfo field, object obj)
         {
-            var fieldType = field.FieldType;
-            var showType = field.FieldType;
-            var value = field.GetValue(obj);
+
+            if (obj is Delegate) return;
+            if (!(field is FieldInfo) && !(field is PropertyInfo)) return;
+
+            Type fieldType = null;
+            Type showType = null;
+            object value = null;
+            if (field is FieldInfo)
+            {
+                fieldType = (field as FieldInfo).FieldType;
+                showType = (field as FieldInfo).FieldType;
+                value = (field as FieldInfo).GetValue(obj);
+            }
+            else if (field is PropertyInfo)
+            {
+
+                fieldType = (field as PropertyInfo).PropertyType;
+                showType = (field as PropertyInfo).PropertyType;
+                value = (field as PropertyInfo).GetValue(obj);
+            }
+            if (typeof(Delegate).IsAssignableFrom(fieldType)) return;
+
+
             var newValue = value;
             var name = field.Name;
             var attributes = field.GetCustomAttributes();
@@ -550,31 +591,21 @@ namespace IFramework
                     array.SetValue(result[i], i);
                 newValue = array;
             }
-
-            else
-                newValue = DrawBase(value, name, fieldType);
-            if (value != newValue)
-                field.SetValue(obj, newValue);
-        }
-
-        private static int FieldsSprtBy(FieldInfo f1, FieldInfo f2)
-        {
-            if (f1 == null || f2 == null) return 0;
-            var e1 = f1.DeclaringType == f1.ReflectedType;
-            var e2 = f2.DeclaringType == f2.ReflectedType;
-            if (e1 != e2)
+            else if (IsBaseType(fieldType))
             {
-                if (e1)
-                {
-                    return 1;
-                }
-
-                return -1;
+                newValue = DrawBase(value, name, fieldType);
             }
+            else
+                newValue = DrawObj(value, name, fieldType);
 
-            return 0;
+            if (value != newValue)
+            {
+                if (field is FieldInfo)
+                    (field as FieldInfo).SetValue(obj, newValue);
+                else if ((field as PropertyInfo).CanWrite)
+                    (field as PropertyInfo).SetValue(obj, newValue);
+            }
         }
-
 
         public static bool GetFoldout(object obj)
         {
@@ -591,6 +622,76 @@ namespace IFramework
         {
             if (obj == null) return;
             _unfoldDictionary[obj.GetHashCode()] = unfold;
+        }
+
+
+
+
+
+        public static void DrawStackTrace(string stackTrack)
+        {
+            GUIStyle style = "CN Message";
+            var result = Regex.Matches(stackTrack, @"\(at <a href.+>(.+)</a>\)").ToArray();
+            foreach (var item in result)
+            {
+                EditorGUILayout.LabelField(item.Value, style);
+
+                var _rect = GUILayoutUtility.GetLastRect();
+                EditorGUIUtility.AddCursorRect(_rect, MouseCursor.Link);
+                if (GUI.Button(_rect, "", style))
+                {
+                    var match = Regex.Match(stackTrack, @">.+:([0-9]+)</a>");
+                    var r = match.Value.Replace("</a>", "").Replace(">", "").Replace("//", "/");
+                    var rs = r.Split(':');
+                    string path = rs[0];
+                    int line = int.Parse(rs[1]);
+                    UnityEditorInternal.InternalEditorUtility.TryOpenErrorFileFromConsole(path, line);
+                }
+
+            }
+        }
+        public static string AddHyperLink(this System.Diagnostics.StackTrace stackTrace)
+        {
+            if (stackTrace == null) return "";
+            StringBuilder sb = new StringBuilder();
+            sb.Clear();
+            for (int i = 0; i < stackTrace.FrameCount; i++)
+            {
+                var sf = stackTrace.GetFrame(i);
+
+                if (sf.GetILOffset() != -1)
+                {
+                    string fileName = null;
+                    try
+                    {
+                        fileName = sf.GetFileName();
+                    }
+                    catch (NotSupportedException) { }
+                    catch (SecurityException) { }
+
+                    if (fileName != null)
+                    {
+                        sb.Append(' ');
+                        sb.AppendFormat(CultureInfo.InvariantCulture, "(at {0})", AppendHyperLink(fileName, sf.GetFileLineNumber().ToString()));
+                        sb.AppendLine();
+                    }
+                }
+            }
+            return sb.ToString();
+        }
+        static string AppendHyperLink(string path, string line)
+        {
+            var fi = new FileInfo(path);
+            if (fi.Directory == null)
+            {
+                return fi.Name;
+            }
+            else
+            {
+                var fname = fi.FullName.Replace(Path.DirectorySeparatorChar, '/').Replace(Application.dataPath, "");
+                var withAssetsPath = "Assets/" + fname;
+                return "<a href=\"" + withAssetsPath + "\" line=\"" + line + "\">" + withAssetsPath + ":" + line + "</a>";
+            }
         }
 
     }
