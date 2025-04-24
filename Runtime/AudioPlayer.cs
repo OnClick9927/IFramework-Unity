@@ -24,7 +24,7 @@ namespace IFramework.AudioEx
         {
             this.volume = volume;
             if (!lifeEnd && sound_id != 0)
-                _source.volume = GetTargetVolume(Audio.ins.config.GetSoundVolume(sound_id));
+                _source.volume = GetTargetVolume(Audio.Instance.config.GetSoundVolume(sound_id));
         }
 
 
@@ -33,8 +33,8 @@ namespace IFramework.AudioEx
             if (lifeEnd) return;
             AudioClip clip = asset.GetClip();
             _source.clip = clip;
-            _source.volume = GetTargetVolume(Audio.ins.config.GetSoundVolume(sound_id));
-            _source.loop = Audio.ins.config.GetSoundLoop(sound_id);
+            _source.volume = GetTargetVolume(Audio.Instance.config.GetSoundVolume(sound_id));
+            _source.loop = Audio.Instance.config.GetSoundLoop(sound_id);
             _source.Play(0);
         }
         public void Play(int sound_id)

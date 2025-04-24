@@ -19,7 +19,7 @@ namespace IFramework.AudioEx
         public AudioAsset(string path, float life)
         {
             this.path = path;
-            context = Audio.ins.asset.CreateContext(path);
+            context = Audio.Instance.asset.CreateContext(path);
             context.Load(path);
             this.time = life;
         }

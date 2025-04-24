@@ -10,7 +10,9 @@ using UnityEngine;
 
 namespace IFramework.AudioEx
 {
-    public class Audio : MonoBehaviour
+    [MonoSingletonPath(nameof(Audio))]
+    [AddComponentMenu("")]
+    public class Audio : MonoSingleton<Audio>
     {
 
         internal IAudioConfig config;
@@ -22,30 +24,30 @@ namespace IFramework.AudioEx
         private static Audio _ins;
         private Dictionary<string, AudioAsset> assets;
 
-        internal static Audio ins
-        {
-            get
-            {
-                if (_ins == null)
-                {
-                    _ins = new GameObject("Audio").AddComponent<Audio>();
-                    DontDestroyOnLoad(ins.gameObject);
-                }
-                return _ins;
-            }
-        }
+        //internal static Audio ins
+        //{
+        //    get
+        //    {
+        //        if (_ins == null)
+        //        {
+        //            _ins = new GameObject("Audio").AddComponent<Audio>();
+        //            DontDestroyOnLoad(ins.gameObject);
+        //        }
+        //        return _ins;
+        //    }
+        //}
 
         public static void Init(IAudioPrefRecorder recorder, IAudioAsset asset)
         {
-            ins.asset = asset;
-            ins.recorder = recorder;
-            ins.pref = recorder.Read();
-            if (ins.pref == null)
-                ins.pref = new AudioPref();
-            if (ins.assets == null)
-                ins.assets = new Dictionary<string, AudioAsset>();
-            if (ins.channels == null)
-                ins.channels = new Dictionary<int, AudioChannel>();
+            Instance.asset = asset;
+            Instance.recorder = recorder;
+            Instance.pref = recorder.Read();
+            if (Instance.pref == null)
+                Instance.pref = new AudioPref();
+            if (Instance.assets == null)
+                Instance.assets = new Dictionary<string, AudioAsset>();
+            if (Instance.channels == null)
+                Instance.channels = new Dictionary<int, AudioChannel>();
         }
         public static void SetDefaultVolume(int channel, float vol)
         {
@@ -54,7 +56,7 @@ namespace IFramework.AudioEx
         }
         public static void SetConfig(IAudioConfig config)
         {
-            ins.config = config;
+            Instance.config = config;
         }
 
 
@@ -89,26 +91,26 @@ namespace IFramework.AudioEx
 
         public static void SetVolume(int channel, float volume)
         {
-            ins.pref.SetVolume(channel, volume);
-            ins.recorder.Write(ins.pref);
+            Instance.pref.SetVolume(channel, volume);
+            Instance.recorder.Write(Instance.pref);
 
             AudioChannel chan = GetChannel(channel);
             chan.SetVolume(volume);
         }
-        public static float GetVolume(int channel) => ins.pref.GetVolume(channel);
+        public static float GetVolume(int channel) => Instance.pref.GetVolume(channel);
         public static void Play(int sound_id)
         {
-            AudioChannel chan = GetChannel(ins.config.GetSoundChannel(sound_id));
+            AudioChannel chan = GetChannel(Instance.config.GetSoundChannel(sound_id));
             chan.Play(sound_id);
         }
         public static void Stop(int sound_id, bool all = false)
         {
-            AudioChannel chan = GetChannel(ins.config.GetSoundChannel(sound_id));
+            AudioChannel chan = GetChannel(Instance.config.GetSoundChannel(sound_id));
             chan.Stop(sound_id, all);
         }
         public static void StopAllChannel()
         {
-            foreach (var item in ins.channels.Values)
+            foreach (var item in Instance.channels.Values)
             {
                 item.StopChannel();
             }
@@ -124,11 +126,11 @@ namespace IFramework.AudioEx
         private static AudioChannel GetChannel(int channel)
         {
             AudioChannel chan;
-            if (!ins.channels.TryGetValue(channel, out chan))
+            if (!Instance.channels.TryGetValue(channel, out chan))
             {
                 chan = new AudioChannel(channel);
                 chan.SetVolume(GetVolume(channel));
-                ins.channels.Add(channel, chan);
+                Instance.channels.Add(channel, chan);
             }
             return chan;
         }
@@ -138,19 +140,19 @@ namespace IFramework.AudioEx
             while (release.Count > 0)
             {
                 var item = release.Dequeue();
-                ins.assets.Remove(item.path);
+                Instance.assets.Remove(item.path);
                 item.ReleaseAsset();
             }
         }
         private static void AddToRelease(AudioAsset asset) => release.Enqueue(asset);
         internal static AudioAsset Prepare(int sound_id)
         {
-            string path = ins.config.GetSoundPath(sound_id);
+            string path = Instance.config.GetSoundPath(sound_id);
             AudioAsset asset;
-            if (!ins.assets.TryGetValue(path, out asset))
+            if (!Instance.assets.TryGetValue(path, out asset))
             {
-                asset = new AudioAsset(path, ins.config.GetSoundExistTime(sound_id));
-                ins.assets.Add(path, asset);
+                asset = new AudioAsset(path, Instance.config.GetSoundExistTime(sound_id));
+                Instance.assets.Add(path, asset);
             }
             asset.Retain();
             return asset;
