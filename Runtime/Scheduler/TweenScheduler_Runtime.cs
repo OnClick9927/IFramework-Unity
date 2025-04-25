@@ -25,7 +25,7 @@ namespace IFramework
         }
         protected override void OnDestroy()
         {
-            scheduler.CancelAllTween();
+            scheduler.KillTweens();
             base.OnDestroy();
         }
 

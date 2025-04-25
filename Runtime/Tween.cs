@@ -14,107 +14,8 @@ using UnityEngine;
 namespace IFramework
 {
 
-
-    partial class Tween
+    public static partial class Tween
     {
-        class TweenContextBox
-        {
-            private List<ITweenContext> contexts = new List<ITweenContext>();
-            public void AddTween(ITweenContext context)
-            {
-                if (contexts.Contains(context)) return;
-                contexts.Add(context);
-                context.OnComplete(RemoveTween);
-                context.OnCancel(RemoveTween);
-            }
-
-            private void RemoveTween(ITweenContext context)
-            {
-                if (contexts.Contains(context))
-                {
-                    contexts.Remove(context);
-                }
-            }
-            public ITweenContext FindTween(ITweenContext context)
-            {
-                if (!contexts.Contains(context)) return null;
-                return context;
-            }
-
-            public IReadOnlyList<ITweenContext> FindTweens()
-            {
-                return contexts;
-            }
-
-            static SimpleObjectPool<TweenContextBox> boxes = new SimpleObjectPool<TweenContextBox>();
-            public static TweenContextBox New()
-            {
-                var box = boxes.Get();
-                return box;
-            }
-            public static void Recycle(TweenContextBox box)
-            {
-                box.contexts.Clear();
-                boxes.Set(box);
-            }
-        }
-
-
-        private static Dictionary<object, TweenContextBox> boxes = new Dictionary<object, TweenContextBox>();
-        private static TweenContextBox FindBox(object obj)
-        {
-            TweenContextBox box;
-            boxes.TryGetValue(obj, out box);
-            return box;
-        }
-        private static TweenContextBox GetBox(object obj)
-        {
-            TweenContextBox box;
-            if (!boxes.TryGetValue(obj, out box))
-            {
-                box = TweenContextBox.New();
-                boxes.Add(obj, box);
-            }
-            return box;
-        }
-        public static void RemoveTweenBox(this object obj)
-        {
-            TweenContextBox box;
-            if (boxes.Remove(obj, out box))
-            {
-                TweenContextBox.Recycle(box);
-            }
-        }
-
-        public static ITweenContext FindTween(this object obj, ITweenContext context)
-        {
-            var box = FindBox(obj);
-            if (box == null) return null;
-            return box.FindTween(context);
-        }
-        public static IReadOnlyList<ITweenContext> FindTweens(this object obj)
-        {
-            var box = FindBox(obj);
-            if (box == null) return null;
-            return box.FindTweens();
-        }
-        public static void CancelTweenContexts(this object obj)
-        {
-            var list = obj.FindTweens();
-            if (list == null) return;
-            for (int i = 0; i < list.Count; i++)
-            {
-                var context = list[i];
-                context.Cancel();
-            }
-        }
-        public static T AddTo<T>(this T context, object view) where T : ITweenContext
-        {
-            GetBox(view).AddTween(context);
-            return context;
-        }
-
-
         struct ITweenContextAwaitor<T> : IAwaiter<T> where T : ITweenContext
         {
             private T op;
@@ -152,12 +53,6 @@ namespace IFramework
         }
         public static IAwaiter<T> GetAwaiter<T>(this T context) where T : ITweenContext => new ITweenContextAwaitor<T>(context);
 
-    }
-
-    public static partial class Tween
-    {
-
-
 
 
 
@@ -165,8 +60,8 @@ namespace IFramework
         private static TweenScheduler editorScheduler;
         private static void OnModeChange(UnityEditor.PlayModeStateChange mode)
         {
-            if (mode == UnityEditor.PlayModeStateChange.EnteredPlayMode)
-                editorScheduler?.CancelAllTween();
+            if (mode == UnityEditor.PlayModeStateChange.ExitingEditMode)
+                editorScheduler?.KillTweens();
 
         }
 
@@ -189,7 +84,6 @@ namespace IFramework
 #endif
             return TweenScheduler_Runtime.Instance.scheduler;
         }
-        public static void CancelAllTween() => GetScheduler().CancelAllTween();
 
         static Dictionary<Type, object> value_calcs = new Dictionary<Type, object>()
         {
@@ -302,8 +196,18 @@ namespace IFramework
         }
 
 
-        private static TweenContextBase AsContextBase(this ITweenContext t) => t as TweenContextBase;
+        internal static TweenContextBase AsContextBase(this ITweenContext t) => t as TweenContextBase;
         public static void Cancel<T>(this T context) where T : ITweenContext => context.Complete(false);
+
+        public static T AddTo<T>(this T context, object view) where T : ITweenContext
+        {
+            context.AsContextBase().SetOwner(view);
+            return context;
+        }
+        public static void KillTweens(this object obj) => GetScheduler().KillTweens(obj);
+        public static void KillTweens() => GetScheduler().KillTweens();
+
+
         public static T Pause<T>(this T t) where T : ITweenContext
         {
             t.AsContextBase().Pause();
@@ -346,9 +250,10 @@ namespace IFramework
         }
         public static T Run<T>(this T t) where T : ITweenContext
         {
+            var _base = t.AsContextBase();
+            
             t.AsContextBase().Run();
-            if (!(t is ITweenGroup))
-                Tween.GetScheduler().AddToRun(t);
+            Tween.GetScheduler().AddToRun(t);
             return t;
         }
         public static T OnComplete<T>(this T t, Action<ITweenContext> action) where T : ITweenContext

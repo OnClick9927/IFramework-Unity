@@ -9,7 +9,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -19,26 +18,6 @@ namespace IFramework
     [EditorWindowCache("TweenWatcher")]
     class TweenWatcher : EditorWindow
     {
-        class Temp
-        {
-            public ITweenContext context;
-            public string stack;
-            public float time;
-        }
-        static List<Temp> contexts = new List<Temp>();
-        [InitializeOnLoadMethod]
-        public static void GG()
-        {
-            UnityEditor.EditorApplication.playModeStateChanged -= OnModeChange;
-            UnityEditor.EditorApplication.playModeStateChanged += OnModeChange;
-            Tween.onContextAllocate += Tween_onContextAllocate;
-            Tween.onContextRecycle += Tween_onContextRecycle;
-            _select_id = -1;
-        }
-
-
-
-        private static int _select_id = -1;
         private class Tree : TreeView
         {
             public Tree(TreeViewState state) : base(state)
@@ -62,7 +41,7 @@ namespace IFramework
             }
             protected override void SingleClickedItem(int id)
             {
-                _select_id = id;
+                _selected = contexts[id];
 
                 base.SingleClickedItem(id);
             }
@@ -104,18 +83,41 @@ namespace IFramework
 
             }
         }
+
+        class Temp
+        {
+            public ITweenContext context;
+            public string stack;
+            public float time;
+        }
+        static List<Temp> contexts = new List<Temp>();
+        [InitializeOnLoadMethod]
+        public static void GG()
+        {
+            UnityEditor.EditorApplication.playModeStateChanged -= OnModeChange;
+            UnityEditor.EditorApplication.playModeStateChanged += OnModeChange;
+            Tween.onContextAllocate += Tween_onContextAllocate;
+            Tween.onContextRecycle += Tween_onContextRecycle;
+            _selected = null;
+        }
+
+
+
+        private static Temp _selected;
         private SplitView split = new SplitView()
         {
-
             split = 200,
-
         };
         private static Tree tree;
         TreeViewState state = new TreeViewState();
         private static void OnModeChange(UnityEditor.PlayModeStateChange mode)
         {
-            contexts.Clear();
-            _select_id = -1;
+            if (mode== PlayModeStateChange.ExitingEditMode || mode== PlayModeStateChange.ExitingPlayMode)
+            {
+                contexts.Clear();
+                _selected = null;
+            }
+      
         }
         static void ReloadWindow()
         {
@@ -127,12 +129,9 @@ namespace IFramework
         }
         private static void Tween_onContextRecycle(ITweenContext obj)
         {
-            if (_select_id != -1)
+            if (_selected != null && _selected.context == obj)
             {
-                if (contexts[_select_id].context == obj)
-                {
-                    _select_id = -1;
-                }
+                _selected = null;
             }
 
             contexts.RemoveAll(x => x.context == obj);
@@ -195,7 +194,7 @@ namespace IFramework
         {
 
 
-            if (_select_id >= 0 && _select_id < contexts.Count)
+            if (_selected!=null)
             {
                 split.OnGUI(new Rect(Vector2.zero, position.size));
                 tree.OnGUI(split.rects[0]);
@@ -203,14 +202,14 @@ namespace IFramework
                 var rect = split.rects[1];
                 GUILayout.BeginArea(rect);
 
-                var context = contexts[_select_id];
+                var context = _selected;
 
                 GUILayout.BeginHorizontal(GUILayout.Height(30));
                 GUILayout.Label(GetName(context.context), EditorStyles.largeLabel);
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("x", GUILayout.Width(30)))
                 {
-                    _select_id = -1;
+                    _selected = null;
                 }
                 GUILayout.EndHorizontal();
                 scroll = GUILayout.BeginScrollView(scroll);

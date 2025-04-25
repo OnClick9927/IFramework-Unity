@@ -29,6 +29,7 @@ namespace IFramework
         public bool paused { get; private set; }
         public float timeScale { get; private set; }
         public string id { get; private set; }
+        public object owner {  get; private set; }
 
         public TweenContextState state { get; private set; }
 
@@ -56,6 +57,7 @@ namespace IFramework
             autoCycle = true;
             timeScale = 1f;
             id = string.Empty;
+            owner = null;
         }
         protected void InvokeCancel()
         {
@@ -128,17 +130,18 @@ namespace IFramework
             onBegin?.Invoke(this);
         }
 
-        public ITweenContext SetAutoCycle(bool cycle)
+        public void SetAutoCycle(bool cycle)
         {
             this.autoCycle = cycle;
-            return this;
         }
-        public ITweenContext SetId(string id)
+        public void SetId(string id)
         {
             this.id = id;
-            return this;
         }
-
+        public void SetOwner(object owner)
+        {
+            this.owner = owner;
+        }
 
         public abstract void Stop();
 
