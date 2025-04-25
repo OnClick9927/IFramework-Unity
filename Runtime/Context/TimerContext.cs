@@ -41,13 +41,7 @@ namespace IFramework
             this.time = 0;
             this.beginCalled = false;
         }
-        public override void Complete()
-        {
-            if (!valid || isDone) return;
-            InvokeComplete();
-            //scheduler.Cycle(this);
-        }
-
+ 
         public override void Cancel()
         {
             if (!valid || canceled) return;
@@ -56,7 +50,11 @@ namespace IFramework
 
         }
 
-
+        public override void Stop()
+        {
+            if (!valid || canceled || isDone) return;
+            SetCancel();
+        }
     }
 
 }

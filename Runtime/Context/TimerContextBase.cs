@@ -17,6 +17,10 @@ namespace IFramework
         public bool isDone { get; private set; }
         public bool canceled { get; private set; }
         public bool valid { get; set; }
+
+        public string id { get; private set; }
+        public object owner { get; private set; }
+
         internal TimerScheduler scheduler;
 
         //public bool valid { get; internal set; }
@@ -48,6 +52,12 @@ namespace IFramework
             canceled = true;
             onCancel?.Invoke(this);
         }
+        protected void SetCancel()
+        {
+            if (canceled) return;
+            canceled = true;
+
+        }
         protected void InvokeComplete()
         {
             if (isDone) return;
@@ -57,6 +67,8 @@ namespace IFramework
 
         protected virtual void Reset()
         {
+            id = string.Empty;
+            owner = null;
             onBegin = null;
             onCancel = null;
             onComplete = null;
@@ -72,9 +84,16 @@ namespace IFramework
         }
 
 
-
+        public abstract void Stop();
         public abstract void Cancel();
-        public abstract void Complete();
+        protected void Complete()
+        {
+            if (isDone) return;
+            InvokeComplete();
+            if (this is ITimerGroup)
+                scheduler.Cycle(this);
+
+        }
 
 
         public virtual void SetTimeScale(float timeScale)
@@ -82,7 +101,16 @@ namespace IFramework
             if (!valid) return;
             this.timeScale = timeScale;
         }
-
+        public void SetId(string id)
+        {
+            if (!valid) return;
+            this.id = id;
+        }
+        public void SetOwner(object owner)
+        {
+            if (!valid) return;
+            this.owner = owner;
+        }
         public abstract void Pause();
 
         public abstract void UnPause();

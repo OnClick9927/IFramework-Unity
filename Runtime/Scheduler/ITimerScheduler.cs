@@ -10,9 +10,9 @@ namespace IFramework
 {
     public interface ITimerScheduler
     {
-        ITimerGroup NewTimerSequence();
-        ITimerGroup NewTimerParallel();
-        T NewTimerContext<T>() where T : TimerContext, new();
+        ITimerGroup Sequence();
+        ITimerGroup Parallel();
+        T NewContext<T>() where T : TimerContext, new();
         ITimerContext RunTimerContext(TimerContext context);
     }
 

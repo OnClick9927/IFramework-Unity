@@ -23,18 +23,23 @@ namespace IFramework
             return this;
         }
 
-
-        public override void Cancel()
+        private void _Cancel(bool invoke)
         {
-            if (canceled) return;
+            if (!valid || canceled || isDone) return;
+            if (invoke)
+                InvokeCancel();
+            else
+                SetCancel();
             for (int i = 0; i < contexts.Count; i++)
             {
                 var context = contexts[i];
-                context.Cancel();
+                context.Stop();
             }
-            InvokeCancel();
             scheduler.Cycle(this);
         }
+        public override void Stop() => _Cancel(false);
+        public override void Cancel() => _Cancel(true);
+
 
         protected override void Reset()
         {
@@ -43,18 +48,6 @@ namespace IFramework
             queue.Clear();
             contexts.Clear();
         }
-
-
-
-        public override void Complete()
-        {
-            if (isDone) return;
-            InvokeComplete();
-
-            scheduler.Cycle(this);
-
-        }
-
 
 
         private void OnContextEnd(ITimerContext context)

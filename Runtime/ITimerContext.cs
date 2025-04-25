@@ -15,7 +15,7 @@ namespace IFramework
 
     public interface ITimerContext
     {
-        //string guid { get; }
+        string id { get; }
         bool isDone { get; }
         bool canceled { get; }
 
