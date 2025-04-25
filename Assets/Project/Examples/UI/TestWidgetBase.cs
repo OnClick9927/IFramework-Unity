@@ -16,21 +16,13 @@ namespace IFramework
         protected override void OnClearFields()
         {
             base.OnClearFields();
-            this.CancelTweenContexts();
-            this.CancelTimerContexts();
+            this.KillTweens();
+            this.KillTimers();
+            
         }
         protected override void AfterOnClose()
         {
-            base.AfterOnClose();
-            var children = GetChildren();
-            this.RemoveTweenBox();
-            this.RemoveTimerBox();
-            for (int i = 0; i < children.Count; i++)
-            {
-                var child = children[i];
-                child.RemoveTweenBox();
-                child.RemoveTimerBox();
-            }
+      
         }
     }
 }

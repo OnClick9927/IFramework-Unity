@@ -25,7 +25,7 @@ namespace IFramework
         }
         protected override void OnDestroy()
         {
-            scheduler.ClearTimers();
+            scheduler.KillTimers();
             base.OnDestroy();
         }
 

@@ -14,7 +14,7 @@ using static IFramework.UI.UnityEventHelper;
 
 namespace IFramework.UI
 {
-    public abstract class GameObjectView : IUIEventBox
+    public abstract class GameObjectView : IUIEventOwner, IEventsOwner
     {
         public GameObject gameObject { get; private set; }
         public Transform transform { get; private set; }
@@ -122,68 +122,9 @@ namespace IFramework.UI
         public void SetAsChild(GameObjectView view) => view.SetParent(this);
 
 
-        private EventBox _eventBox;
-        private UIEventBox __eventBox_ui;
-        protected IEventEntity SubscribeEvent(string msg, Action<IEventArgs> action)
-        {
-            if (_eventBox == null)
-                _eventBox = new EventBox();
-            return _eventBox.Subscribe(msg, action);
-        }
-        public IEventEntity SubscribeEvent<T>(IEventHandler<T> handler) where T : IEventArgs
-        {
-            if (_eventBox == null)
-                _eventBox = new EventBox();
-            return _eventBox.Subscribe(handler);
-        }
-        protected void UnSubscribeEvent<T>(IEventHandler<T> handler) where T : IEventArgs
-        {
-            if (_eventBox == null) return;
-            _eventBox.UnSubscribe(handler);
-        }
-        protected void UnSubscribeEvent(string msg, Action<IEventArgs> action)
-        {
-            if (_eventBox == null) return;
-            _eventBox.UnSubscribe(msg, action);
-        }
-        protected void UnSubscribeEvent(IEventEntity entity)
-        {
-            if (_eventBox == null) return;
-            _eventBox.UnSubscribe(entity);
-        }
 
 
-        void IUIEventBox.AddUIEvent(UIEventEntity entity)
-        {
-            if (__eventBox_ui == null)
-                __eventBox_ui = new UIEventBox();
-            entity.AddTo(__eventBox_ui);
-        }
 
-        public void DisposeUIEvent(UIEventEntity entity)
-        {
-            if (__eventBox_ui == null) return;
-            __eventBox_ui.DisposeUIEvent(entity);
-        }
-
-        public void DisposeUIEvents()
-        {
-            if (__eventBox_ui != null)
-            {
-                __eventBox_ui.DisposeUIEvents();
-                __eventBox_ui = null;
-            }
-        }
-
-
-        public void DisposeEvents()
-        {
-            if (_eventBox != null)
-            {
-                _eventBox.Dispose();
-                _eventBox = null;
-            }
-        }
 
         public void ClearWidgetPools()
         {
@@ -205,8 +146,8 @@ namespace IFramework.UI
         {
             OnClearFields();
             DisposeChildren();
-            DisposeEvents();
-            DisposeUIEvents();
+            this.DisposeEvents();
+            this.DisposeUIEvents();
             ClearWidgetPools();
         }
         private void DisposeChildren()

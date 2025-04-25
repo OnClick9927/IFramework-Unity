@@ -17,6 +17,7 @@ using System.Runtime.Remoting.Contexts;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -408,17 +409,30 @@ namespace IFramework
             }
             return value;
         }
+
+
+
         private static object DrawObj(object value, string name, Type fieldType)
         {
+            bool fold = false;
 
-            bool fold = GetFoldout(value);
-            fold = EditorGUILayout.Foldout(fold, $"{name}", true);
-            SetFoldout(value, fold);
+            if (value == null)
+            {
+                EditorGUILayout.LabelField(name, "Null");
+            }
+
+            else
+            {
+                fold = GetFoldout(value);
+                fold = EditorGUILayout.Foldout(fold, $"{name}", true);
+                EditorGUI.LabelField(GUILayoutUtility.GetLastRect(), "   ", value.GetType().FullName);
+                SetFoldout(value, fold);
+            }
             if (fold)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(20);
-                var Newvalue= DrawDefaultInspector(value);
+                var Newvalue = DrawDefaultInspector(value);
                 GUILayout.EndHorizontal();
                 return Newvalue;
             }
@@ -521,24 +535,24 @@ namespace IFramework
             if (!(field is FieldInfo) && !(field is PropertyInfo)) return;
 
             Type fieldType = null;
-            Type showType = null;
+            //Type showType = null;
             object value = null;
             if (field is FieldInfo)
             {
                 fieldType = (field as FieldInfo).FieldType;
-                showType = (field as FieldInfo).FieldType;
+                //showType = (field as FieldInfo).FieldType;
                 value = (field as FieldInfo).GetValue(obj);
             }
             else if (field is PropertyInfo)
             {
 
                 fieldType = (field as PropertyInfo).PropertyType;
-                showType = (field as PropertyInfo).PropertyType;
+                //showType = (field as PropertyInfo).PropertyType;
                 value = (field as PropertyInfo).GetValue(obj);
             }
             if (typeof(Delegate).IsAssignableFrom(fieldType)) return;
 
-
+            Again:
             var newValue = value;
             var name = field.Name;
             var attributes = field.GetCustomAttributes();
@@ -591,12 +605,38 @@ namespace IFramework
                     array.SetValue(result[i], i);
                 newValue = array;
             }
+
+
+
             else if (IsBaseType(fieldType))
             {
                 newValue = DrawBase(value, name, fieldType);
             }
             else
-                newValue = DrawObj(value, name, fieldType);
+            {
+                if (fieldType != typeof(System.Object))
+                {
+                    newValue = DrawObj(value, name, fieldType);
+                }
+                else
+                {
+                    if (value != null)
+                    {
+                        fieldType = value.GetType();
+                        //DrawTypeObj(value, name);
+                        if (fieldType != typeof(System.Object))
+                            goto Again;
+                        else
+                            return;
+
+                    }
+                    else
+                    {
+                        newValue = DrawObj(value, name, fieldType);
+
+                    }
+                }
+            }
 
             if (value != newValue)
             {

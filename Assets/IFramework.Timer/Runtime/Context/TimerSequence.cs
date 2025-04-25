@@ -20,13 +20,18 @@ namespace IFramework
             return this;
         }
 
-        public override void Cancel()
+        private void _Cancel(bool invoke)
         {
-            if (canceled) return;
-            InvokeCancel();
+            if (!valid || canceled || isDone) return;
+            if (invoke)
+                InvokeCancel();
+            else
+                SetCancel();
+            inner?.Cancel();
             scheduler.Cycle(this);
-
         }
+        public override void Stop() => _Cancel(false);
+        public override void Cancel() => _Cancel(true);
 
         protected override void Reset()
         {
@@ -37,14 +42,7 @@ namespace IFramework
 
 
 
-        public override void Complete()
-        {
-            if (isDone) return;
-            InvokeComplete();
-
-            scheduler.Cycle(this);
-
-        }
+   
 
         private ITimerContext inner;
 

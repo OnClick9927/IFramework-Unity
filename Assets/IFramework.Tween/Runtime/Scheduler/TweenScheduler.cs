@@ -28,17 +28,19 @@ namespace IFramework
                 var context = contexts_run[i];
                 (context as TweenContext).Update(deltaTime);
             }
+
+
+
             for (int i = 0; i < contexts_wait_to_run.Count; i++)
             {
                 var context = contexts_wait_to_run[i];
                 context.Run();
             }
-            contexts_wait_to_run.Clear();
         }
 
         private List<ITweenContext> contexts_run = new List<ITweenContext>();
         private List<ITweenContext> contexts_wait_to_run = new List<ITweenContext>();
-
+        private List<ITweenGroup> contexts_group = new List<ITweenGroup>();
 
         public ITweenContext<T, Target> AllocateContext<T, Target>(bool auto_run)
         {
@@ -87,30 +89,86 @@ namespace IFramework
         public void CycleContext(ITweenContext context)
         {
             var type = context.GetType();
-
-
             ISimpleObjectPool pool = null;
             if (!contextPools.TryGetValue(type, out pool)) return;
             contexts_run.Remove(context);
             contexts_wait_to_run.Remove(context);
-
+            if (context is ITweenGroup)
+                contexts_group.Remove(context as ITweenGroup);
             pool.SetObject(context);
         }
 
-        public void CancelAllTween()
+        public void KillTweens()
         {
+            for (int i = contexts_group.Count - 1; i >= 0; i--)
+            {
+                var context = contexts_group[i];
+                context.Stop();
+                context.Recycle();
+            }
+            for (int i = contexts_wait_to_run.Count - 1; i >= 0; i--)
+            {
+                var context = contexts_wait_to_run[i];
+                context.Stop();
+                context.Recycle();
+            }
             for (int i = contexts_run.Count - 1; i >= 0; i--)
             {
                 var context = contexts_run[i];
-                context.Cancel();
+                context.Stop();
+                context.Recycle();
             }
+        }
+        public void KillTweens(object obj)
+        {
+            for (int i = contexts_group.Count - 1; i >= 0; i--)
+            {
+                var context = contexts_group[i];
+                if (context.AsContextBase().owner != obj) continue;
+                context.Stop();
+                context.Recycle();
+            }
+            for (int i = contexts_wait_to_run.Count - 1; i >= 0; i--)
+            {
+                var context = contexts_wait_to_run[i];
+                if (context.AsContextBase().owner != obj) continue;
+
+                context.Stop();
+                context.Recycle();
+            }
+            for (int i = contexts_run.Count - 1; i >= 0; i--)
+            {
+                var context = contexts_run[i];
+                if (context.AsContextBase().owner != obj) continue;
+                context.Stop();
+                context.Recycle();
+            }
+
+
+
         }
 
         internal void AddToRun(ITweenContext context)
         {
-            if (context == null || contexts_run.Contains(context)) return;
-            contexts_run.Add(context);
+            if (context == null || contexts_run.Contains(context))
+            {
+                return;
+            }
+            if (context is ITweenGroup)
+            {
+                contexts_group.Add(context as ITweenGroup);
+            }
+            else
+            {
+                contexts_run.Add(context);
+                contexts_wait_to_run.Remove(context);
+            }
+
         }
+
+
+
+
     }
 
 

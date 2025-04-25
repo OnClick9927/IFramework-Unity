@@ -15,8 +15,8 @@ using UnityEngine;
 using static IFramework.EditorTools;
 namespace IFramework
 {
-    [EditorWindowCache("TweenWatcher")]
-    class TweenWatcher : EditorWindow
+    [EditorWindowCache("TimerWatcher")]
+    class TimerWatcher : EditorWindow
     {
         private class Tree : TreeView
         {
@@ -86,7 +86,7 @@ namespace IFramework
 
         class Temp
         {
-            public ITweenContext context;
+            public ITimerContext context;
             public string stack;
             public float time;
         }
@@ -96,8 +96,8 @@ namespace IFramework
         {
             UnityEditor.EditorApplication.playModeStateChanged -= OnModeChange;
             UnityEditor.EditorApplication.playModeStateChanged += OnModeChange;
-            Tween.onContextAllocate += Tween_onContextAllocate;
-            Tween.onContextRecycle += Tween_onContextRecycle;
+            TimerScheduler.onContextAllocate += Tween_onContextAllocate;
+            TimerScheduler.onContextRecycle += Tween_onContextRecycle;
             _selected = null;
         }
 
@@ -106,18 +106,20 @@ namespace IFramework
         private static Temp _selected;
         private SplitView split = new SplitView()
         {
+
             split = 200,
+
         };
         private static Tree tree;
         TreeViewState state = new TreeViewState();
         private static void OnModeChange(UnityEditor.PlayModeStateChange mode)
         {
-            if (mode== PlayModeStateChange.ExitingEditMode || mode== PlayModeStateChange.ExitingPlayMode)
+            if (mode == PlayModeStateChange.ExitingEditMode || mode == PlayModeStateChange.ExitingPlayMode)
             {
                 contexts.Clear();
                 _selected = null;
             }
-      
+
         }
         static void ReloadWindow()
         {
@@ -127,7 +129,7 @@ namespace IFramework
 
             };
         }
-        private static void Tween_onContextRecycle(ITweenContext obj)
+        private static void Tween_onContextRecycle(ITimerContext obj)
         {
             if (_selected != null && _selected.context == obj)
             {
@@ -140,9 +142,9 @@ namespace IFramework
 
 
 
-        private static void Tween_onContextAllocate(ITweenContext obj)
+        private static void Tween_onContextAllocate(ITimerContext obj)
         {
-            string trackStr = new System.Diagnostics.StackTrace(2, true).AddHyperLink();
+            string trackStr = new System.Diagnostics.StackTrace(3, true).AddHyperLink();
             contexts.Add(new Temp()
             {
                 context = obj,
@@ -177,13 +179,13 @@ namespace IFramework
         }
         private Vector2 scroll, scroll2;
 
-        private static string GetName(ITweenContext context)
+        private static string GetName(ITimerContext context)
         {
             var type = context.GetType();
             if (type.IsGenericType)
             {
                 var args = type.GetGenericArguments();
-                return $"{nameof(TweenContext)}<{args[0].Name},{args[1].Name}>";
+                return $"{nameof(ITimerContext)}<{args[0].Name},{args[1].Name}>";
             }
             else
             {
@@ -194,7 +196,7 @@ namespace IFramework
         {
 
 
-            if (_selected!=null)
+            if (_selected != null)
             {
                 split.OnGUI(new Rect(Vector2.zero, position.size));
                 tree.OnGUI(split.rects[0]);
@@ -226,7 +228,7 @@ namespace IFramework
                 GUILayout.Space(10);
                 scroll2 = GUILayout.BeginScrollView(scroll2, EditorStyles.helpBox, GUILayout.Height(150));
                 EditorTools.DrawStackTrace(context.stack);
-             
+
                 GUILayout.EndScrollView();
 
 

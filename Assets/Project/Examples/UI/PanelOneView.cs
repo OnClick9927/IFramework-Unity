@@ -59,7 +59,7 @@ namespace IFramework
         {
             var pos = transform.position;
             var _tween = await Tween.Parallel()
-                       .NewContext(() => this.view.OpenOne.transform.DoLocalScale( Vector3.one, Vector3.one * 2, 0.2f, false).SetLoop(LoopType.PingPong, 6))
+                       .NewContext(() => this.view.OpenOne.transform.DoLocalScale(Vector3.one, Vector3.one * 2, 0.2f, false).SetLoop(LoopType.PingPong, 6))
                       .NewContext(() => this.view.OpenOne.transform.DoPosition(pos, Vector3.one, 0.2f, true).SetLoop(LoopType.PingPong, 6))
                                .Run().AddTo(this).SetAutoCycle(false);
 
@@ -74,29 +74,29 @@ namespace IFramework
         protected override void OnLoad()
         {
 
-            BindButton(this.view.remove, () =>
-            {
-                Events.Publish(eve_key_remove, null);
-            }).AddTo(this);
-            BindButton(view.OpenOne, () =>
-            {
-                (Game.Current as UIGame).ui.Show(PanelNames_UIGame.PanelTwo);
-            });
+            this.BindButton(this.view.remove, () =>
+             {
+                 Events.Publish(eve_key_remove, null);
+             });
+            this.BindButton(view.OpenOne, () =>
+             {
+                 (Game.Current as UIGame).ui.Show(PanelNames_UIGame.PanelTwo);
+             });
             CreateWidgetPool<PanelOneItemWidget>(view.Prefab_PanelOneItem, view.items, () => new PanelOneItemWidget());
             //collection = new UIItemViewCollection((Launcher.Instance.game as UIGame).ui);
-            BindButton(this.view.Close, (Game.Current as UIGame).CloseView).AddTo(this);
-            BindButton(this.view.add, () =>
-            {
-                //Events.Publish(new AddArg() { time = Time.deltaTime });
-                Events.Publish(nameof(AddArg), new AddArg() { time = Time.deltaTime });
+            this.BindButton(this.view.Close, (Game.Current as UIGame).CloseView);
+            this.BindButton(this.view.add, () =>
+                 {
+                     //Events.Publish(new AddArg() { time = Time.deltaTime });
+                     Events.Publish(nameof(AddArg), new AddArg() { time = Time.deltaTime });
 
-            }).AddTo(this);
-            SubscribeEvent<AddArg>(this);
-            SubscribeEvent(eve_key_remove, (e) =>
+                 });
+            this.SubscribeEvent<AddArg>(this);
+            this.SubscribeEvent(eve_key_remove, (e) =>
             {
                 Remove();
             });
-            SubscribeEvent(nameof(AddArg), (e) =>
+            this.SubscribeEvent(nameof(AddArg), (e) =>
             {
                 Debug.Log("add");
             });
@@ -127,7 +127,7 @@ namespace IFramework
             Debug.LogError("HH0");
             Debug.LogError(Time.time);
 
-            var seq = await TimeEx.Scheduler.NewTimerParallel()
+            var seq = await TimeEx.Scheduler.Parallel()
                      .NewContext((scheduler) =>
                      scheduler.While((time, delta) => Time.time <= 5f).OnComplete((context) =>
                      {
