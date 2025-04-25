@@ -16,48 +16,26 @@ namespace IFramework.UI
     {
         public abstract class UIEventEntity : IDisposable
         {
+            public IUIEventOwner owner;
             public abstract void Dispose();
         }
         private class UIEventEntity_Void : UIEventEntity
         {
-            UnityEvent _event;
-            UnityAction _action;
+            public UnityEvent _event;
+            public UnityAction _action;
 
-            public UIEventEntity_Void(UnityEvent @event, UnityAction action)
-            {
-                _event = @event;
-                _action = action;
-            }
 
             public override void Dispose()
             {
                 _event.RemoveListener(_action);
-            }
-        }
-        private class UIEventEntity_Delegate : UIEventEntity
-        {
-            private Delegate _delegate;
-
-            public UIEventEntity_Delegate(Delegate @delegate, Delegate action)
-            {
-                _delegate = @delegate;
-            }
-
-            public override void Dispose()
-            {
-                _delegate = null;
             }
         }
         private class UIEventEntity<T> : UIEventEntity
         {
-            UnityEvent<T> _event;
-            UnityAction<T> _action;
+            public UnityEvent<T> _event;
+            public UnityAction<T> _action;
 
-            public UIEventEntity(UnityEvent<T> @event, UnityAction<T> action)
-            {
-                _event = @event;
-                _action = action;
-            }
+
 
             public override void Dispose()
             {
@@ -65,74 +43,107 @@ namespace IFramework.UI
             }
         }
 
-        public interface IUIEventBox
+        public interface IUIEventOwner
         {
-            void AddUIEvent(UIEventEntity entity);
-            void DisposeUIEvent(UIEventEntity entity);
-            void DisposeUIEvents();
+
         }
 
-        public class UIEventBox : IUIEventBox
-        {
-            private List<UIEventEntity> uIEventEntities = new List<UIEventEntity>();
-            public void AddUIEvent(UIEventEntity entity)
-            {
-                if (uIEventEntities.Contains(entity)) return;
-                uIEventEntities.Add(entity);
-            }
-            public void DisposeUIEvent(UIEventEntity entity)
-            {
-                entity.Dispose();
-                uIEventEntities.Remove(entity);
-            }
-            public void DisposeUIEvents()
-            {
-                for (int i = 0; i < uIEventEntities.Count; i++)
-                {
-                    uIEventEntities[i].Dispose();
-                }
-                uIEventEntities.Clear();
-            }
-        }
-        public static UIEventEntity BindInputField(InputField input, UnityAction<string> callback)
+
+        public static UIEventEntity BindInputField(this IUIEventOwner obj, InputField input, UnityAction<string> callback)
         {
             input.onValueChanged.AddListener(callback);
-            var entity = new UIEventEntity<string>(input.onValueChanged, callback);
-            return entity;
+            var entity = Allocate<UIEventEntity<string>>();
+            entity._action = callback;
+            entity._event = input.onValueChanged;
+            return entity.AddTo(obj);
         }
-        public static UIEventEntity BindToggle(Toggle toggle, UnityAction<bool> callback)
+        public static UIEventEntity BindToggle(this IUIEventOwner obj,Toggle toggle, UnityAction<bool> callback)
         {
             toggle.onValueChanged.AddListener(callback);
-            var entity = new UIEventEntity<bool>(toggle.onValueChanged, callback);
-            return entity;
+            var entity = Allocate<UIEventEntity<bool>>();
+            entity._action = callback;
+            entity._event = toggle.onValueChanged;
+            return entity.AddTo(obj);
         }
-        public static UIEventEntity BindSlider(Slider slider, UnityAction<float> callback)
+        public static UIEventEntity BindSlider(this IUIEventOwner obj, Slider slider, UnityAction<float> callback)
         {
             slider.onValueChanged.AddListener(callback);
-            var entity = new UIEventEntity<float>(slider.onValueChanged, callback);
-            return entity;
+            var entity = Allocate<UIEventEntity<float>>();
+            entity._action = callback;
+            entity._event = slider.onValueChanged;
+            return entity.AddTo(obj);
         }
-        public static UIEventEntity BindOnEndEdit(InputField input, UnityAction<string> callback)
+        public static UIEventEntity BindOnEndEdit(this IUIEventOwner obj,InputField input, UnityAction<string> callback)
         {
             input.onEndEdit.AddListener(callback);
-            var entity = new UIEventEntity<string>(input.onEndEdit, callback);
-            return entity;
+            var entity = Allocate<UIEventEntity<string>>();
+            entity._action = callback;
+            entity._event = input.onEndEdit;
+            return entity.AddTo(obj);
         }
-        public static UIEventEntity BindOnValidateInput(InputField input, InputField.OnValidateInput callback)
-        {
-            input.onValidateInput = callback;
-            var entity = new UIEventEntity_Delegate(input.onValidateInput, callback);
-            return entity;
-        }
-        public static UIEventEntity BindButton(Button button, UnityAction callback)
+
+        public static UIEventEntity BindButton(this IUIEventOwner obj,Button button, UnityAction callback)
         {
             button.onClick.AddListener(callback);
-            var entity = new UIEventEntity_Void(button.onClick, callback);
-            return entity;
+            var entity = Allocate<UIEventEntity_Void>();
+            entity._action = callback;
+            entity._event = button.onClick;
+            return entity.AddTo(obj);
         }
-        public static UIEventEntity AddTo(this UIEventEntity entity, IUIEventBox box)
+
+
+        private static Dictionary<Type, ISimpleObjectPool> pools = new Dictionary<Type, ISimpleObjectPool>();
+
+        public static T Allocate<T>() where T : UIEventEntity, new()
         {
-            box.AddUIEvent(entity);
+            var type = typeof(T);
+            ISimpleObjectPool pool;
+            if (!pools.TryGetValue(type, out pool))
+            {
+                pool = new SimpleObjectPool<T>();
+                pools.Add(type, pool);
+            }
+            return (pool as SimpleObjectPool<T>).Get();
+        }
+
+        private static List<UIEventEntity> pairs = new List<UIEventEntity>();
+
+        private static Dictionary<IUIEventOwner, bool> help = new Dictionary<IUIEventOwner, bool>();
+
+
+
+
+
+
+        public static void DisposeUIEvents(this IUIEventOwner obj)
+        {
+            if (!help.ContainsKey(obj)) return;
+
+            for (int i = pairs.Count - 1; i >= 0; i--)
+            {
+                var e = pairs[i];
+                if (e.owner == obj)
+                {
+                    e.Dispose();
+
+                    var type = e.GetType();
+                    ISimpleObjectPool pool;
+                    if (pools.TryGetValue(type, out pool))
+                    {
+                        pool.SetObject(e);
+                    }
+                    pairs.RemoveAt(i);
+                }
+            }
+
+            help.Remove(obj);
+        }
+        private static UIEventEntity AddTo(this UIEventEntity entity, IUIEventOwner obj)
+        {
+            entity.owner = obj;
+            pairs.Add(entity);
+            if (!help.TryGetValue(entity.owner, out bool _))
+                help.Add(entity.owner, true);
             return entity;
         }
     }
