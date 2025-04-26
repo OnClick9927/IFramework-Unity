@@ -14,8 +14,6 @@ namespace IFramework
 
     public static partial class TimeEx
     {
-
-
         public static void KillTimers(this object obj)
         {
             var scheduler = GetScheduler() as TimerScheduler;
@@ -84,7 +82,7 @@ namespace IFramework
             UnityEditor.EditorApplication.update += editorScheduler.Update;
         }
 #endif
-        internal static ITimerScheduler GetScheduler()
+        internal static TimerScheduler GetScheduler()
         {
 #if UNITY_EDITOR
             if (!UnityEditor.EditorApplication.isPlaying)
@@ -150,58 +148,83 @@ namespace IFramework
         }
         private static TimerContextBase AsContextBase(this ITimerContext t) => t as TimerContextBase;
 
-        public static ITimerScheduler Scheduler => GetScheduler();
+        internal static event Action<ITimerContext> onContextAllocate, onContextRecycle;
 
-
-        public static ITimerContext Until(this ITimerScheduler scheduler, TimerFunc condition, float interval = min2Delta)
+        internal static void Cycle(ITimerContext context)
         {
-            var cls = scheduler.NewContext<ConditionTimerContext>();
+            GetScheduler().Cycle(context);
+            onContextRecycle?.Invoke(context);
+        }
+
+        public static T NewContext<T>() where T : TimerContext, new()
+        {
+            var context = GetScheduler().NewContext<T>();
+            onContextAllocate?.Invoke(context);
+            return context;
+        }
+
+        public static ITimerGroup Sequence()
+        {
+            var context = GetScheduler().Sequence();
+            onContextAllocate?.Invoke(context);
+            return context;
+        }
+
+        public static ITimerGroup Parallel()
+        {
+            var context = GetScheduler().Parallel();
+            onContextAllocate?.Invoke(context);
+
+            return context;
+        }
+
+        public static ITimerContext RunTimerContext(TimerContext context) => GetScheduler().RunTimerContext(context);
+        public static ITimerContext Until(TimerFunc condition, float interval = min2Delta)
+        {
+            var cls = NewContext<ConditionTimerContext>();
             bool succ = cls.Condition(condition, interval, true, false);
-            return succ ? scheduler.RunTimerContext(cls) : null;
+            return succ ? RunTimerContext(cls) : null;
         }
-        public static ITimerContext While(this ITimerScheduler scheduler, TimerFunc condition, float interval = min2Delta)
+        public static ITimerContext While(TimerFunc condition, float interval = min2Delta)
         {
-            var cls = scheduler.NewContext<ConditionTimerContext>();
+            var cls = NewContext<ConditionTimerContext>();
             bool succ = cls.Condition(condition, interval, false, false);
-            return succ ? scheduler.RunTimerContext(cls) : null;
+            return succ ? RunTimerContext(cls) : null;
         }
-        public static ITimerContext DoWhile(this ITimerScheduler scheduler, TimerFunc condition, float interval = min2Delta)
+        public static ITimerContext DoWhile(TimerFunc condition, float interval = min2Delta)
         {
-            var cls = scheduler.NewContext<ConditionTimerContext>();
+            var cls = NewContext<ConditionTimerContext>();
 
             bool succ = cls.Condition(condition, interval, false, true);
-            return succ ? scheduler.RunTimerContext(cls) : null;
+            return succ ? RunTimerContext(cls) : null;
         }
-        public static ITimerContext DoUntil(this ITimerScheduler scheduler, TimerFunc condition, float interval = min2Delta)
+        public static ITimerContext DoUntil(TimerFunc condition, float interval = min2Delta)
         {
-            var cls = scheduler.NewContext<ConditionTimerContext>();
+            var cls = NewContext<ConditionTimerContext>();
             bool succ = cls.Condition(condition, interval, true, true);
-            return succ ? scheduler.RunTimerContext(cls) : null;
+            return succ ? RunTimerContext(cls) : null;
         }
-        public static ITimerContext Delay(this ITimerScheduler scheduler, float delay, TimerAction action = null)
+        public static ITimerContext Delay(float delay, TimerAction action = null)
         {
-            var cls = scheduler.NewContext<TickTimerContext>();
+            var cls = NewContext<TickTimerContext>();
             bool succ = cls.Delay(delay, action);
-            return succ ? scheduler.RunTimerContext(cls) : null;
+            return succ ? RunTimerContext(cls) : null;
         }
-        public static ITimerContext Frame(this ITimerScheduler scheduler) => scheduler.Delay(min2Delta);
-        public static ITimerContext Tick(this ITimerScheduler scheduler, float interval, int times, TimerAction action)
+        public static ITimerContext Frame() => Delay(min2Delta);
+        public static ITimerContext Tick(float interval, int times, TimerAction action)
         {
-            var cls = scheduler.NewContext<TickTimerContext>();
+            var cls = NewContext<TickTimerContext>();
             bool succ = cls.Tick(interval, times, action);
-            return succ ? scheduler.RunTimerContext(cls) : null;
+            return succ ? RunTimerContext(cls) : null;
 
         }
-        public static ITimerContext DelayAndTick(this ITimerScheduler scheduler, float delay, TimerAction delayCall, float interval, int times, TimerAction action)
+        public static ITimerContext DelayAndTick(float delay, TimerAction delayCall, float interval, int times, TimerAction action)
         {
-            var cls = scheduler.NewContext<TickTimerContext>();
+            var cls = NewContext<TickTimerContext>();
             bool succ = cls.DelayAndTick(delay, delayCall, interval, times, action);
-            return succ ? scheduler.RunTimerContext(cls) : null;
+            return succ ? RunTimerContext(cls) : null;
 
         }
-
-
-
     }
 
 }

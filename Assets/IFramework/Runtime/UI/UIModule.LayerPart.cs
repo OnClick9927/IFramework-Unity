@@ -37,7 +37,7 @@ namespace IFramework.UI
             }
 
             private Dictionary<string, List<UIPanel>> _panelOrders;
-            private Dictionary<string, RuntimeUILayerData> _layers;
+            private Dictionary<string, RectTransform> _layers;
             private UIModule module;
             private Empty4Raycast raycast;
             private BaseRaycaster raycast_unity;
@@ -47,9 +47,9 @@ namespace IFramework.UI
             {
                 this.module = module;
                 _panelOrders = new Dictionary<string, List<UIPanel>>();
-                _layers = new Dictionary<string, RuntimeUILayerData>();
+                _layers = new Dictionary<string, RectTransform>();
             }
-            private RuntimeUILayerData CreateLayer(string layerName, Transform parent)
+            private RectTransform CreateLayer(string layerName, Transform parent)
             {
                 GameObject go = new GameObject(layerName);
                 RectTransform rect = go.AddComponent<RectTransform>();
@@ -61,16 +61,10 @@ namespace IFramework.UI
                 rect.sizeDelta = Vector3.zero;
                 rect.localRotation = Quaternion.identity;
                 rect.localScale = Vector3.one;
-                var data = new RuntimeUILayerData()
-                {
-                    //group = group,
-                    rect = rect,
-                    parent = parent,
-                    name = layerName,
-                };
-                _layers.Add(layerName, data);
+     
+                _layers.Add(layerName, rect);
 
-                return data;
+                return rect;
             }
             public void CreateLayers(Canvas canvas)
             {
@@ -84,12 +78,12 @@ namespace IFramework.UI
                 if (raycast_unity == null)
                 {
                     var ray = CreateLayer(UILayerData.rayCast_layer, canvas.transform);
-                    raycast = ray.rect.gameObject.AddComponent<Empty4Raycast>();
+                    raycast = ray.gameObject.AddComponent<Empty4Raycast>();
                 }
                 AcceptRayCast();
             }
 
-            public RuntimeUILayerData GetRTLayerData(string layer) => _layers[layer];
+            public RectTransform GetLayerTransform(string layer) => _layers[layer];
 
 
             public void RefuseRayCast()

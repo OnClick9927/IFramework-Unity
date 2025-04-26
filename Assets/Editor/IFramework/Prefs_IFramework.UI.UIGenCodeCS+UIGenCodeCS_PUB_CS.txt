@@ -1,5 +1,5 @@
 {
     "NameSpace": "",
-    "viewBaseIndex": 1,
-    "widgetBaseIndex": 1
+    "viewBaseIndex": 0,
+    "widgetBaseIndex": 0
 }

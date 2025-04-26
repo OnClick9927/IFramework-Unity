@@ -10,7 +10,6 @@ namespace IFramework
 {
     public delegate bool TimerFunc(float time, float delta);
     public delegate void TimerAction(float time, float delta);
-    public delegate ITimerContext TimerContextCreate(ITimerScheduler scheduler);
 
 
     public interface ITimerContext

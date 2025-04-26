@@ -25,6 +25,7 @@ namespace IFramework.UI
         private IUIDelegate delPart;
         public Canvas canvas { get; private set; }
 
+        private SimpleObjectPool<ShowPanelAsyncOperation> show_op = new SimpleObjectPool<ShowPanelAsyncOperation>();
 
         class LayerChangeCheckData
         {
@@ -145,6 +146,7 @@ namespace IFramework.UI
             EndChangeLayerTopChangeCheck(layer, path, true, check_show);
             if (op != null)
                 op.SetComplete();
+            show_op.Set(op);
         }
 
         public ShowPanelAsyncOperation Show(string path)
@@ -156,7 +158,7 @@ namespace IFramework.UI
                 throw new Exception("Please Set UILoader First");
 
 
-            ShowPanelAsyncOperation show_op = new ShowPanelAsyncOperation();
+            ShowPanelAsyncOperation show_op = this.show_op.Get();
             var layer = GetPanelLayer(path);
             BeginChangeLayerTopChangeCheck(layer, check_show);
             loadPart.LoadPanel(path, layer, show_op);
@@ -274,7 +276,7 @@ namespace IFramework.UI
         public void AcceptRayCast() => layerPart.AcceptRayCast();
         public void ForceRefuseRayCast() => layerPart.ForceRefuseRayCast();
         public void ForceAcceptRayCast() => layerPart.ForceAcceptRayCast();
-        private RuntimeUILayerData GetRTLayerData(string layer) => layerPart.GetRTLayerData(layer);
+        private RectTransform GetLayerTransform(string layer) => layerPart.GetLayerTransform(layer);
 
 
         public int GetPanelLayer(string path) => this.assetPart.GetPanelLayer(path);

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2684407524549855315}
   - component: {fileID: 2153269587179137474}
   m_Layer: 5
-  m_Name: hide@sm
+  m_Name: Hide@sm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -582,7 +582,7 @@ MonoBehaviour:
     fieldName: Close
     fieldType: UnityEngine.UI.Button
   - gameObject: {fileID: 512209309649795875}
-    fieldName: hide
+    fieldName: Hide
     fieldType: UnityEngine.UI.Button
   adaptType: 60
   adaptRect: {fileID: 8286719379367330600}

@@ -65,7 +65,7 @@ namespace IFramework
 
             Debug.LogError("xxl");
 
-            await TimeEx.Scheduler.Delay(0.5f).AddTo(this);
+            await TimeEx.Delay(0.5f).AddTo(this);
             await _tween.ReStart();
 
             Debug.LogError("xxl");
@@ -78,9 +78,11 @@ namespace IFramework
              {
                  Events.Publish(eve_key_remove, null);
              });
-            this.BindButton(view.OpenOne, () =>
+            this.BindButton(view.OpenOne, async () =>
              {
-                 (Game.Current as UIGame).ui.Show(PanelNames_UIGame.PanelTwo);
+                 Log.L("BeginShow");
+                 await (Game.Current as UIGame).ui.Show(PanelNames_UIGame.PanelTwo);
+                 Log.L("EndShow");
              });
             CreateWidgetPool<PanelOneItemWidget>(view.Prefab_PanelOneItem, view.items, () => new PanelOneItemWidget());
             //collection = new UIItemViewCollection((Launcher.Instance.game as UIGame).ui);
@@ -101,8 +103,8 @@ namespace IFramework
                 Debug.Log("add");
             });
             //TweenTest();
-            //TweenTest2();
-            Test2();
+            TweenTest2();
+            //Test2();
             //Test();
         }
         private async void Test()
@@ -110,11 +112,11 @@ namespace IFramework
             Debug.LogError("HH0");
             Debug.LogError(Time.time);
 
-            await TimeEx.Scheduler.While((time, delta) => Time.time <= 5f).AddTo(this);
+            await TimeEx.While((time, delta) => Time.time <= 5f).AddTo(this);
             Debug.LogError(Time.time);
 
-            await TimeEx.Scheduler.Delay(1f).AddTo(this);
-            await TimeEx.Scheduler.Delay(1f, (time, delta) =>
+            await TimeEx.Delay(1f).AddTo(this);
+            await TimeEx.Delay(1f, (time, delta) =>
             {
                 Debug.LogError("HH1");
             }).AddTo(this);
@@ -127,18 +129,23 @@ namespace IFramework
             Debug.LogError("HH0");
             Debug.LogError(Time.time);
 
-            var seq = await TimeEx.Scheduler.Parallel()
-                     .NewContext((scheduler) =>
-                     scheduler.While((time, delta) => Time.time <= 5f).OnComplete((context) =>
+            var seq = await TimeEx.Sequence()
+                     .NewContext(() =>
+                     TimeEx.While((time, delta) => Time.time <= 5f).OnComplete((context) =>
                      {
                          Debug.LogError("HH1");
                          Debug.LogError(Time.time);
 
                      }))
-                     .NewContext((scheduler) => scheduler.Delay(1f, (time, delta) =>
+                     .NewContext(() => TimeEx.Delay(1f, (time, delta) =>
                      {
                          Debug.LogError("HH2");
                      }))
+
+                       .NewContext(() => TimeEx.Delay(1f, (time, delta) =>
+                       {
+                           Debug.LogError("HH3");
+                       }))
                      .Run().AddTo(this);
 
 

@@ -10,15 +10,15 @@ namespace IFramework
         class View
         {
             //FieldsStart
-            public UnityEngine.UI.Button Close;
-            public UnityEngine.UI.Button hide;
+		public UnityEngine.UI.Button Close;
+		public UnityEngine.UI.Button Hide;
 
             //FieldsEnd
             public View(PanelTwoView context)
             {
                 //InitComponentsStart
-                Close = context.GetComponent<UnityEngine.UI.Button>("Close@sm");
-                hide = context.GetComponent<UnityEngine.UI.Button>("hide@sm");
+			Close = context.GetComponent<UnityEngine.UI.Button>("Close@sm");
+			Hide = context.GetComponent<UnityEngine.UI.Button>("Hide@sm");
 
                 //InitComponentsEnd
             }
@@ -32,7 +32,7 @@ namespace IFramework
         {
 
             this.BindButton(view.Close, () => { (Game.Current as UIGame).ui.Close(PanelNames_UIGame.PanelTwo); });
-            this.BindButton(view.hide, () => { (Game.Current as UIGame).ui.Hide(PanelNames_UIGame.PanelTwo); });
+            this.BindButton(view.Hide, () => { (Game.Current as UIGame).ui.Hide(PanelNames_UIGame.PanelTwo); });
 
         }
         protected override void OnShow() { }

@@ -10,7 +10,7 @@ namespace IFramework
 {
     public interface ITimerGroup : ITimerContext
     {
-        ITimerGroup NewContext(TimerContextCreate func);
+        ITimerGroup NewContext(System.Func<ITimerContext> func);
         ITimerGroup Run();
     }
 

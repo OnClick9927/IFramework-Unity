@@ -34,6 +34,8 @@ namespace IFramework.UI
                     panels.Remove(path);
                 }
             }
+            private SimpleObjectPool<LoadPanelAsyncOperation> load_op = new SimpleObjectPool<LoadPanelAsyncOperation>();
+
             public LoadPart(UIModule module)
             {
                 this.module = module;
@@ -55,13 +57,13 @@ namespace IFramework.UI
                     OnShowCallBack(true, path, panel, show_op);
                 else
                 {
-                    RectTransform parent = module.GetRTLayerData(module.GetLayerName(layer)).rect;
+                    RectTransform parent = module.GetLayerTransform(module.GetLayerName(layer));
                     var result = module.assetPart.LoadPanel(parent, path);
                     if (result != null)
                         UILoadComplete(result, path, show_op);
                     else
                     {
-                        LoadPanelAsyncOperation op = new LoadPanelAsyncOperation();
+                        LoadPanelAsyncOperation op = load_op.Get();
                         op.path = path;
                         op.parent = parent;
                         op.show = show_op;
@@ -100,6 +102,7 @@ namespace IFramework.UI
                     while (asyncLoadQueue.Count > 0 && asyncLoadQueue.Peek().isDone)
                     {
                         LoadPanelAsyncOperation op = asyncLoadQueue.Dequeue();
+                        load_op.Set(op);
                         UILoadComplete(op.value, op.path, op.show);
                     }
                 }

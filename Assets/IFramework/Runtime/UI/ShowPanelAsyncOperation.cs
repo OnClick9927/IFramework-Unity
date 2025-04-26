@@ -13,11 +13,11 @@ using UnityEngine;
 
 namespace IFramework.UI
 {
-    struct UIAsyncOperationAwaitor : IAwaiter<UIAsyncOperation>
+    struct UIAsyncOperationAwaitor : IAwaiter<ShowPanelAsyncOperation>
     {
-        private UIAsyncOperation op;
+        private ShowPanelAsyncOperation op;
         private Queue<Action> actions;
-        public UIAsyncOperationAwaitor(UIAsyncOperation op)
+        public UIAsyncOperationAwaitor(ShowPanelAsyncOperation op)
         {
             this.op = op;
             actions = new Queue<Action>();
@@ -34,7 +34,7 @@ namespace IFramework.UI
 
         public bool IsCompleted => op.isDone;
 
-        public UIAsyncOperation GetResult() => op;
+        public ShowPanelAsyncOperation GetResult() => op;
         public void OnCompleted(Action continuation)
         {
             actions?.Enqueue(continuation);
@@ -47,16 +47,21 @@ namespace IFramework.UI
 
 
     }
-    public class UIAsyncOperation : IAwaitable<UIAsyncOperationAwaitor, UIAsyncOperation>
+    public class ShowPanelAsyncOperation : IAwaitable<UIAsyncOperationAwaitor, ShowPanelAsyncOperation>, IPoolObject
     {
         public Action completed;
         public bool _isDone = false;
 
         public bool isDone { get { return _isDone; } }
 
-        public bool IsCompleted => _isDone;
+        bool IPoolObject.valid { get; set; }
 
+        internal void Reset()
+        {
+            _isDone = false;
+            completed = null;
 
+        }
         public void SetComplete()
         {
             _isDone = true;
@@ -64,26 +69,52 @@ namespace IFramework.UI
             completed = null;
         }
 
-        public IAwaiter<UIAsyncOperation> GetAwaiter()
+        public IAwaiter<ShowPanelAsyncOperation> GetAwaiter()
         {
             return new UIAsyncOperationAwaitor(this);
         }
 
-
-    }
-    public class UIAsyncOperation<T> : UIAsyncOperation
-    {
-        public T value;
-
-        public void SetValue(T value)
+        void IPoolObject.OnGet()
         {
-            this.value = value;
-            base.SetComplete();
+            Reset();
+        }
+
+        void IPoolObject.OnSet()
+        {
         }
     }
-    public class ShowPanelAsyncOperation : UIAsyncOperation { }
-    public class LoadPanelAsyncOperation : UIAsyncOperation<UIPanel>
+
+    public class LoadPanelAsyncOperation : IPoolObject
     {
+        internal UIPanel value;
+        private bool _isDone;
+
+        public bool isDone { get { return _isDone; } }
+
+        bool IPoolObject.valid { get; set; }
+
+        public void SetValue(UIPanel value)
+        {
+            this.value = value;
+            _isDone = true;
+        }
+
+        void IPoolObject.OnGet()
+        {
+            Reset();
+        }
+
+        void IPoolObject.OnSet()
+        {
+        }
+
+        internal void Reset()
+        {
+            _isDone = false;
+            value = null;
+            path = string.Empty;
+            parent = null;
+        }
         public string path;
         public RectTransform parent;
         internal ShowPanelAsyncOperation show;
