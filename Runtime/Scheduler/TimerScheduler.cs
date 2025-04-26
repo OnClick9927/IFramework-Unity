@@ -11,7 +11,7 @@ using System;
 
 namespace IFramework
 {
-     class TimerScheduler : ITimerScheduler
+    class TimerScheduler
     {
         private List<TimerContext> timers;
         private List<ITimerGroup> groups;
@@ -40,7 +40,6 @@ namespace IFramework
             groups.Add(group);
             return group;
         }
-        internal static event Action<ITimerContext> onContextAllocate, onContextRecycle;
 
         public T _NewTimerContext<T>() where T : TimerContextBase, new()
         {
@@ -54,7 +53,6 @@ namespace IFramework
             var simple = pool as SimpleObjectPool<T>;
             var cls = simple.Get();
             cls.scheduler = this;
-            onContextAllocate?.Invoke(cls);
             return cls;
         }
         public T NewContext<T>() where T : TimerContext, new() => _NewTimerContext<T>();
@@ -69,7 +67,6 @@ namespace IFramework
             ISimpleObjectPool _pool = null;
             if (contextPools.TryGetValue(type, out _pool))
                 _pool.SetObject(context);
-            onContextRecycle?.Invoke(context);
         }
 
         public ITimerContext RunTimerContext(TimerContext context)
@@ -113,17 +110,7 @@ namespace IFramework
             for (int i = timers.Count - 1; i >= 0; i--)
             {
                 var timer = timers[i];
-                if (timer.canceled)
-                {
-                    Cycle(timer);
-                    continue;
-                }
                 timer.Update(deltaTime);
-                if (timer.isDone)
-                {
-                    Cycle(timer);
-                }
-
             }
 
 

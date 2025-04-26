@@ -96,8 +96,8 @@ namespace IFramework
         {
             UnityEditor.EditorApplication.playModeStateChanged -= OnModeChange;
             UnityEditor.EditorApplication.playModeStateChanged += OnModeChange;
-            TimerScheduler.onContextAllocate += Tween_onContextAllocate;
-            TimerScheduler.onContextRecycle += Tween_onContextRecycle;
+            TimeEx.onContextAllocate += Tween_onContextAllocate;
+            TimeEx.onContextRecycle += Tween_onContextRecycle;
             _selected = null;
         }
 

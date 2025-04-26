@@ -42,19 +42,7 @@ namespace IFramework
             this.beginCalled = false;
         }
  
-        public override void Cancel()
-        {
-            if (!valid || canceled) return;
-            InvokeCancel();
-            //scheduler.Cycle(this);
-
-        }
-
-        public override void Stop()
-        {
-            if (!valid || canceled || isDone) return;
-            SetCancel();
-        }
+    
     }
 
 }

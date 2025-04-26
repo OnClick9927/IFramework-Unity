@@ -83,15 +83,24 @@ namespace IFramework
             timeScale = 1;
         }
 
-
-        public abstract void Stop();
-        public abstract void Cancel();
+        protected virtual void StopChildren() { }
+        private void _Cancel(bool invoke)
+        {
+            if (!valid || canceled || isDone) return;
+            if (invoke)
+                InvokeCancel();
+            else
+                SetCancel();
+            StopChildren();
+            TimeEx.Cycle(this);
+        }
+        public void Stop() => _Cancel(false);
+        public void Cancel() => _Cancel(true);
         protected void Complete()
         {
             if (isDone) return;
             InvokeComplete();
-            if (this is ITimerGroup)
-                scheduler.Cycle(this);
+            TimeEx.Cycle(this);
 
         }
 

@@ -12,26 +12,20 @@ namespace IFramework
 {
     class TimerSequence : TimerContextBase, ITimerGroup
     {
-        private Queue<TimerContextCreate> queue = new Queue<TimerContextCreate>();
-        public ITimerGroup NewContext(TimerContextCreate func)
+        public Queue<System.Func<ITimerContext>> queue = new Queue<System.Func<ITimerContext>>();
+        public ITimerGroup NewContext(System.Func<ITimerContext> func)
         {
             if (func == null) return this;
             queue.Enqueue(func);
             return this;
         }
 
-        private void _Cancel(bool invoke)
+        protected override void StopChildren()
         {
-            if (!valid || canceled || isDone) return;
-            if (invoke)
-                InvokeCancel();
-            else
-                SetCancel();
+            base.StopChildren();
             inner?.Cancel();
-            scheduler.Cycle(this);
+
         }
-        public override void Stop() => _Cancel(false);
-        public override void Cancel() => _Cancel(true);
 
         protected override void Reset()
         {
@@ -51,7 +45,7 @@ namespace IFramework
             if (canceled || isDone) return;
             if (queue.Count > 0)
             {
-                inner = queue.Dequeue().Invoke(this.scheduler);
+                inner = queue.Dequeue().Invoke();
                 if (inner != null)
                 {
                     inner.OnTick(InvokeTick);

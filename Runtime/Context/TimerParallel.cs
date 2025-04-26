@@ -13,32 +13,24 @@ namespace IFramework
     class TimerParallel : TimerContextBase, ITimerGroup
     {
 
-        private Queue<TimerContextCreate> queue = new Queue<TimerContextCreate>();
+        public Queue<System.Func<ITimerContext>> queue = new Queue<System.Func<ITimerContext>>();
         private List<ITimerContext> contexts = new List<ITimerContext>();
 
-        public ITimerGroup NewContext(TimerContextCreate func)
+        public ITimerGroup NewContext(System.Func<ITimerContext> func)
         {
             if (func == null) return this;
             queue.Enqueue(func);
             return this;
         }
-
-        private void _Cancel(bool invoke)
+        protected override void StopChildren()
         {
-            if (!valid || canceled || isDone) return;
-            if (invoke)
-                InvokeCancel();
-            else
-                SetCancel();
             for (int i = 0; i < contexts.Count; i++)
             {
                 var context = contexts[i];
                 context.Stop();
             }
-            scheduler.Cycle(this);
         }
-        public override void Stop() => _Cancel(false);
-        public override void Cancel() => _Cancel(true);
+
 
 
         protected override void Reset()
@@ -66,7 +58,7 @@ namespace IFramework
             if (queue.Count > 0)
                 while (queue.Count > 0)
                 {
-                    var context = queue.Dequeue().Invoke(this.scheduler);
+                    var context = queue.Dequeue().Invoke();
                     context.OnCancel(OnContextEnd);
                     context.OnComplete(OnContextEnd);
                     context.OnTick(_OnTick);
