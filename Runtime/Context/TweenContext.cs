@@ -37,22 +37,8 @@ namespace IFramework
             OnRun();
         }
         protected abstract void OnRun();
-        public override void Complete(bool callComplete)
-        {
-            if (isDone) return;
-            if (callComplete)
-                InvokeComplete();
-            else
-                InvokeCancel();
-            TryRecycle();
-        }
 
-        public override void Stop()
-        {
-            SetCancel();
-            TryRecycle();
-        }
-
+ 
     }
 
 

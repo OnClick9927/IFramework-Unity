@@ -13,7 +13,7 @@ namespace IFramework
 {
     class TweenParallel : TweenContextBase, ITweenGroup
     {
-        private List<Func<ITweenContext>> list = new List<Func<ITweenContext>>();
+        public List<Func<ITweenContext>> list = new List<Func<ITweenContext>>();
         private List<ITweenContext> contexts = new List<ITweenContext>();
 
 
@@ -23,36 +23,15 @@ namespace IFramework
             list.Add(func);
             return this;
         }
-
-        public override void Stop()
+        protected override void StopChildren()
         {
             for (int i = 0; i < contexts.Count; i++)
             {
                 var context = contexts[i];
                 context.Stop();
             }
-            TryRecycle();
         }
 
-
-        private void Cancel()
-        {
-            if (canceled) return;
-            InvokeCancel();
-            for (int i = 0; i < contexts.Count; i++)
-            {
-                var context = contexts[i];
-                context.Cancel();
-            }
-            TryRecycle();
-
-        }
-        private void Complete()
-        {
-            if (isDone) return;
-            InvokeComplete();
-            TryRecycle();
-        }
         protected override void Reset()
         {
             base.Reset();
@@ -61,13 +40,6 @@ namespace IFramework
             contexts.Clear();
         }
 
-        public override void Complete(bool callComplete)
-        {
-            if (callComplete)
-                Complete();
-            else
-                Cancel();
-        }
         private void OnContextEnd(ITweenContext context)
         {
 

@@ -13,7 +13,7 @@ namespace IFramework
 {
     class TweenSequence : TweenContextBase, ITweenGroup
     {
-        private List<Func<ITweenContext>> list = new List<Func<ITweenContext>>();
+        public List<Func<ITweenContext>> list = new List<Func<ITweenContext>>();
         private Queue<Func<ITweenContext>> _queue = new Queue<Func<ITweenContext>>();
 
         public ITweenGroup NewContext(Func<ITweenContext> func)
@@ -23,26 +23,13 @@ namespace IFramework
             return this;
         }
         private ITweenContext inner;
-        public override void Stop()
+
+        protected override void StopChildren()
         {
             inner?.Stop();
             inner = null;
-            TryRecycle();
         }
-        private void Cancel()
-        {
-            if (canceled) return;
-            InvokeCancel();
-            inner?.Cancel();
-            TryRecycle();
 
-        }
-        private void Complete()
-        {
-            if (isDone) return;
-            InvokeComplete();
-            TryRecycle();
-        }
         protected override void Reset()
         {
             base.Reset();
@@ -50,15 +37,6 @@ namespace IFramework
             list.Clear();
             _queue.Clear();
         }
-
-        public override void Complete(bool callComplete)
-        {
-            if (callComplete)
-                Complete();
-            else
-                Cancel();
-        }
-
 
 
 

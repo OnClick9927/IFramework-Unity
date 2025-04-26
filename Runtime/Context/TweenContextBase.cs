@@ -22,14 +22,14 @@ namespace IFramework
             if (!autoCycle) return;
             Recycle();
         }
-        public bool autoCycle { get;private set; }
+        public bool autoCycle { get; private set; }
         public bool isDone { get; private set; }
         public bool canceled { get; private set; }
         public bool valid { get; set; }
         public bool paused { get; private set; }
         public float timeScale { get; private set; }
         public string id { get; private set; }
-        public object owner {  get; private set; }
+        public object owner { get; private set; }
 
         public TweenContextState state { get; private set; }
 
@@ -102,7 +102,43 @@ namespace IFramework
             return this;
         }
 
-        public abstract void Complete(bool callComplete);
+
+
+        protected virtual void StopChildren() { }
+        private void Cancel()
+        {
+            if (canceled) return;
+            InvokeCancel();
+            StopChildren();
+            TryRecycle();
+
+        }
+        protected void Complete()
+        {
+            if (isDone) return;
+            InvokeComplete();
+            StopChildren();
+            TryRecycle();
+        }
+        public void Stop()
+        {
+            if (!valid) return;
+            SetCancel();
+            StopChildren();
+            TryRecycle();
+        }
+
+        public void Complete(bool callComplete)
+        {
+            if (isDone || canceled) return;
+            if (callComplete)
+                Complete();
+            else
+                Cancel();
+        }
+
+
+
 
         public virtual void Pause()
         {
@@ -143,7 +179,6 @@ namespace IFramework
             this.owner = owner;
         }
 
-        public abstract void Stop();
 
     }
 
