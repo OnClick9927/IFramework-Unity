@@ -328,6 +328,13 @@ namespace IFramework
         public static object DrawDefaultInspector(object obj)
         {
             var type = obj.GetType();
+
+            if (typeof(Delegate).IsAssignableFrom(type))
+            {
+                DrawDelegate(type, obj as Delegate);
+                return obj;
+            }
+
             //得到字段的值,只能得到public类型的字典的值
             FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
             //排序一下，子类的字段在后，父类的在前
@@ -452,13 +459,17 @@ namespace IFramework
 
         private static Dictionary<int, bool> _unfoldDictionary = new Dictionary<int, bool>();
 
-        private static IList DrawArr(ref bool fold, string name, IList arr, Type ele)
+        private static IList DrawArr(ref bool fold, string name, IEnumerable arr, Type ele)
         {
             GUILayout.BeginVertical();
             IList array = Activator.CreateInstance(typeof(List<>).MakeGenericType(ele)) as IList;
-
-            for (int i = 0; i < arr.Count; i++)
-                array.Add(arr[i]);
+            var ie = arr.GetEnumerator();
+            while (ie.MoveNext())
+            {
+                array.Add(ie.Current);
+            }
+            //for (int i = 0; i < arr.Count; i++)
+            //    array.Add(arr[i]);
             var cout = array.Count;
             //GUILayout.Label("", EditorStyles.toolbar);
             var rect = EditorGUILayout.GetControlRect(GUILayout.Height(20));
@@ -527,11 +538,13 @@ namespace IFramework
             return array;
         }
 
-
+        private static void DrawDelegate(MemberInfo field, Delegate value)
+        {
+            EditorGUILayout.LabelField($"{value.Target} <--> {value.Method.Name}");
+        }
         public static void FieldDefaultInspector(MemberInfo field, object obj)
         {
 
-            if (obj is Delegate) return;
             if (!(field is FieldInfo) && !(field is PropertyInfo)) return;
 
             Type fieldType = null;
@@ -550,9 +563,13 @@ namespace IFramework
                 //showType = (field as PropertyInfo).PropertyType;
                 value = (field as PropertyInfo).GetValue(obj);
             }
-            if (typeof(Delegate).IsAssignableFrom(fieldType)) return;
+            else if (typeof(Delegate).IsAssignableFrom(fieldType))
+            {
+                DrawDelegate(fieldType, value as Delegate);
+                return;
+            }
 
-            Again:
+        Again:
             var newValue = value;
             var name = field.Name;
             var attributes = field.GetCustomAttributes();
@@ -583,6 +600,24 @@ namespace IFramework
                 SetFoldout(array, fold);
                 for (int i = 0; i < result.Count; i++)
                     array.Add(result[i]);
+
+                newValue = array;
+            }
+            else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Queue<>))
+            {
+                Type elementType = fieldType.GetGenericArguments()[0];
+                ICollection array = (ICollection)value;
+
+                if (array == null)
+                    array = Activator.CreateInstance(typeof(Queue<>).MakeGenericType(elementType)) as ICollection;
+                var fold = GetFoldout(value);
+                var result = DrawArr(ref fold, name, array, elementType);
+
+                fieldType.GetMethod(nameof(Queue.Clear)).Invoke(value, null);
+                //array.Clear();
+                SetFoldout(array, fold);
+                for (int i = 0; i < result.Count; i++)
+                    fieldType.GetMethod(nameof(Queue.Enqueue)).Invoke(value, new object[] { result[i] });
                 newValue = array;
             }
             // 处理数组类型
@@ -597,9 +632,12 @@ namespace IFramework
                 var fold = GetFoldout(value);
                 var result = DrawArr(ref fold, name, array, elementType);
                 Array.Clear(array, 0, array.Length);
+
+
                 if (array.Length != result.Count)
                     array = Array.CreateInstance(elementType, result.Count);
                 SetFoldout(array, fold);
+
 
                 for (int i = 0; i < result.Count; i++)
                     array.SetValue(result[i], i);
@@ -680,7 +718,7 @@ namespace IFramework
                 EditorGUIUtility.AddCursorRect(_rect, MouseCursor.Link);
                 if (GUI.Button(_rect, "", style))
                 {
-                    var match = Regex.Match(stackTrack, @">.+:([0-9]+)</a>");
+                    var match = Regex.Match(item.Value, @">.+:([0-9]+)</a>");
                     var r = match.Value.Replace("</a>", "").Replace(">", "").Replace("//", "/");
                     var rs = r.Split(':');
                     string path = rs[0];
