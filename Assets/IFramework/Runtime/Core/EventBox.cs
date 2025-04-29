@@ -20,7 +20,7 @@ namespace IFramework
 
         public abstract void Invoke(IEventArgs args);
         public abstract void Dispose();
-        public abstract bool Equals(string msg, Action<IEventArgs> args);
+        //public abstract bool Equals(string msg, Action<IEventArgs> args);
 
         protected virtual void Reset()
         {
@@ -36,10 +36,10 @@ namespace IFramework
     class EventEntity : EventEntityBase
     {
         public Action<IEventArgs> action;
-        public override bool Equals(string msg, Action<IEventArgs> args)
-        {
-            return this.msg == msg && action == args;
-        }
+        //public override bool Equals(string msg, Action<IEventArgs> args)
+        //{
+        //    return this.msg == msg && action == args;
+        //}
 
         public override void Invoke(IEventArgs args) => action?.Invoke(args);
         public override void Dispose() => Events.UnSubscribe(this);
@@ -51,19 +51,11 @@ namespace IFramework
 
     class EventEntity<T> : EventEntityBase where T : IEventArgs
     {
-        public Action<T> action_T;
+        public IEventHandler<T> action_T;
 
-        public override bool Equals(string msg, Action<IEventArgs> args)
-        {
-            return this.msg == msg && action_T.Equals(args);
-        }
-        public bool Equals(string msg, Action<T> args)
-        {
-            return this.msg == msg && action_T.Equals(args);
-        }
         public override void Invoke(IEventArgs args)
         {
-            action_T?.Invoke((T)args);
+            action_T?.OnEvent((T)args);
         }
         public override void Dispose() => Events.UnSubscribe<T>(this);
         protected override void Reset()
@@ -127,6 +119,12 @@ namespace IFramework
             TryRecycleList(listen.msg, list);
             pool_0.Set(listen);
         }
+
+
+
+
+
+
         internal static IEventEntity Subscribe<T>(IEventHandler<T> handler) where T : IEventArgs
         {
             var type = typeof(T);
@@ -141,7 +139,7 @@ namespace IFramework
             var __pool = pool as SimpleObjectPool<EventEntity<T>>;
             var l = __pool.Get();
             l.msg = msg;
-            l.action_T = handler.OnEvent;
+            l.action_T = handler;
 
 
             list.Add(l);
@@ -176,64 +174,137 @@ namespace IFramework
         public static void Publish<T>(T args) where T : IEventArgs => Publish(typeof(T).Name, args);
 
 
-        private static List<EventEntityBase> pairs = new List<EventEntityBase>();
+        //private static List<EventEntityBase> pairs = new List<EventEntityBase>();
 
-        private static Dictionary<IEventsOwner, bool> help = new Dictionary<IEventsOwner, bool>();
+        private static Dictionary<IEventsOwner, List<EventEntityBase>> help = new Dictionary<IEventsOwner, List<EventEntityBase>>();
 
-
-
-
-        public static void DisposeEvents(this IEventsOwner self)
+        private static List<EventEntityBase> GetList(IEventsOwner msg)
         {
-            if (!help.ContainsKey(self)) return;
-            for (int i = pairs.Count - 1; i >= 0; i--)
+            List<EventEntityBase> result = null;
+            if (!help.TryGetValue(msg, out result))
             {
-                var e = pairs[i];
-                if (e.owner == self)
-                {
-                    e.Dispose();
-                    pairs.RemoveAt(i);
-                }
+                result = pool_3.Get();
+                help.Add(msg, result);
             }
-            help.Remove(self);
+            return result;
         }
-        public static void DisposeEvent(this IEventsOwner self, IEventEntity listen)
+        private static List<EventEntityBase> FindList(IEventsOwner msg)
         {
-            if (!help.ContainsKey(self)) return;
+            List<EventEntityBase> result = null;
+            help.TryGetValue(msg, out result);
 
-            for (int i = pairs.Count - 1; i >= 0; i--)
-            {
-                var e = pairs[i];
-                if (e == listen && e.owner == self)
-                {
-                    e.Dispose();
-                    pairs.RemoveAt(i);
-                    break;
-                }
-            }
-
+            return result;
         }
+
+
+
+        private static void TryRecycleList(IEventsOwner key, List<EventEntityBase> list)
+        {
+            if (list.Count != 0) return;
+            pool_3.Set(list);
+            help.Remove(key);
+        }
+
+
+
         public static IEventEntity SubscribeEvent(this IEventsOwner self, string msg, Action<IEventArgs> action)
         {
             EventEntityBase entity = Subscribe(msg, action) as EventEntityBase;
             entity.owner = self;
-            if (!help.TryGetValue(entity.owner, out bool _))
-                help.Add(entity.owner, true);
-
-            pairs.Add(entity);
+            var list = GetList(self);
+            list.Add(entity);
             return entity;
         }
         public static IEventEntity SubscribeEvent<T>(this IEventsOwner self, IEventHandler<T> handler) where T : IEventArgs
         {
             EventEntityBase entity = Subscribe<T>(handler) as EventEntityBase;
             entity.owner = self;
-            if (!help.TryGetValue(entity.owner, out bool _))
-                help.Add(entity.owner, true);
-
-            pairs.Add(entity);
+            var list = GetList(self);
+            list.Add(entity);
             return entity;
         }
 
+        public static void DisposeEvents(this IEventsOwner self)
+        {
+            var list = FindList(self);
+
+            if (list == null) return;
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var e = list[i];
+                if (e.owner == self)
+                {
+                    e.Dispose();
+                    list.RemoveAt(i);
+                }
+            }
+            TryRecycleList(self, list);
+        }
+
+
+
+
+
+
+        public static void DisposeEvent(this IEventsOwner self, IEventEntity listen)
+        {
+            var list = FindList(self);
+
+            if (list == null) return;
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var e = list[i];
+                if (e == listen && e.owner == self)
+                {
+                    e.Dispose();
+                    list.RemoveAt(i);
+                    break;
+                }
+            }
+            TryRecycleList(self, list);
+
+        }
+        public static void DisposeEvent(this IEventsOwner self, string msg, Action<IEventArgs> action)
+        {
+            var list = FindList(self);
+
+            if (list == null) return;
+
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var e = list[i];
+                if (e is EventEntity && e.msg == msg && e.owner == self)
+                {
+                    var eventEntity = e as EventEntity;
+                    if (eventEntity.action != action) continue;
+                    e.Dispose();
+                    list.RemoveAt(i);
+                    break;
+                }
+            }
+            TryRecycleList(self, list);
+
+        }
+        public static void DisposeEvent<T>(this IEventsOwner self, IEventHandler<T> handler) where T : IEventArgs
+        {
+            var list = FindList(self);
+
+            if (list == null) return;
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var e = list[i];
+                if (e is EventEntity<T> && e.owner == self)
+                {
+                    var eventEntity = e as EventEntity<T>;
+                    if (eventEntity.action_T != handler) continue;
+                    e.Dispose();
+                    list.RemoveAt(i);
+                    break;
+                }
+            }
+            TryRecycleList(self, list);
+
+        }
 
     }
 }
