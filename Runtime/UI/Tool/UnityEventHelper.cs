@@ -57,7 +57,7 @@ namespace IFramework.UI
             entity._event = input.onValueChanged;
             return entity.AddTo(obj);
         }
-        public static UIEventEntity BindToggle(this IUIEventOwner obj,Toggle toggle, UnityAction<bool> callback)
+        public static UIEventEntity BindToggle(this IUIEventOwner obj, Toggle toggle, UnityAction<bool> callback)
         {
             toggle.onValueChanged.AddListener(callback);
             var entity = Allocate<UIEventEntity<bool>>();
@@ -73,7 +73,7 @@ namespace IFramework.UI
             entity._event = slider.onValueChanged;
             return entity.AddTo(obj);
         }
-        public static UIEventEntity BindOnEndEdit(this IUIEventOwner obj,InputField input, UnityAction<string> callback)
+        public static UIEventEntity BindOnEndEdit(this IUIEventOwner obj, InputField input, UnityAction<string> callback)
         {
             input.onEndEdit.AddListener(callback);
             var entity = Allocate<UIEventEntity<string>>();
@@ -82,7 +82,7 @@ namespace IFramework.UI
             return entity.AddTo(obj);
         }
 
-        public static UIEventEntity BindButton(this IUIEventOwner obj,Button button, UnityAction callback)
+        public static UIEventEntity BindButton(this IUIEventOwner obj, Button button, UnityAction callback)
         {
             button.onClick.AddListener(callback);
             var entity = Allocate<UIEventEntity_Void>();
@@ -93,7 +93,7 @@ namespace IFramework.UI
 
 
         private static Dictionary<Type, ISimpleObjectPool> pools = new Dictionary<Type, ISimpleObjectPool>();
-
+        static SimpleObjectPool<List<UIEventEntity>> listPool = new SimpleObjectPool<List<UIEventEntity>>();
         public static T Allocate<T>() where T : UIEventEntity, new()
         {
             var type = typeof(T);
@@ -106,44 +106,57 @@ namespace IFramework.UI
             return (pool as SimpleObjectPool<T>).Get();
         }
 
-        private static List<UIEventEntity> pairs = new List<UIEventEntity>();
+        //private static List<UIEventEntity> pairs = new List<UIEventEntity>();
 
-        private static Dictionary<IUIEventOwner, bool> help = new Dictionary<IUIEventOwner, bool>();
+        private static Dictionary<IUIEventOwner, List<UIEventEntity>> help = new Dictionary<IUIEventOwner, List<UIEventEntity>>();
 
 
+        private static List<UIEventEntity> GetList(IUIEventOwner msg)
+        {
+            List<UIEventEntity> result = null;
+            if (!help.TryGetValue(msg, out result))
+            {
+                result = listPool.Get();
+                help.Add(msg, result);
+            }
+            return result;
+        }
+        private static List<UIEventEntity> FindList(IUIEventOwner msg)
+        {
+            List<UIEventEntity> result = null;
+            help.TryGetValue(msg, out result);
 
+            return result;
+        }
 
 
 
         public static void DisposeUIEvents(this IUIEventOwner obj)
         {
-            if (!help.ContainsKey(obj)) return;
+            var list = FindList(obj);
+            if (list == null) return;
 
-            for (int i = pairs.Count - 1; i >= 0; i--)
+            for (int i = list.Count - 1; i >= 0; i--)
             {
-                var e = pairs[i];
-                if (e.owner == obj)
-                {
-                    e.Dispose();
+                var e = list[i];
+                e.Dispose();
 
-                    var type = e.GetType();
-                    ISimpleObjectPool pool;
-                    if (pools.TryGetValue(type, out pool))
-                    {
-                        pool.SetObject(e);
-                    }
-                    pairs.RemoveAt(i);
+                var type = e.GetType();
+                ISimpleObjectPool pool;
+                if (pools.TryGetValue(type, out pool))
+                {
+                    pool.SetObject(e);
                 }
             }
-
             help.Remove(obj);
+            list.Clear();
+            listPool.Set(list);
         }
         private static UIEventEntity AddTo(this UIEventEntity entity, IUIEventOwner obj)
         {
             entity.owner = obj;
-            pairs.Add(entity);
-            if (!help.TryGetValue(entity.owner, out bool _))
-                help.Add(entity.owner, true);
+            var list = GetList(obj);
+            list.Add(entity);
             return entity;
         }
     }
