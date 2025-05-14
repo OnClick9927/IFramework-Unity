@@ -8,16 +8,8 @@ while(true)
     Console.Write("Thanks For EveryOne Who Used It Once !")
 ```
 QQ Group ：782290296 
+
 #### Audio https://github.com/OnClick9927/IFramework-Unity.git#Audio
-
-
-#### [插值动画](https://github.com/OnClick9927/WooTween)
-#### [计时器](https://github.com/OnClick9927/WooTimer)
-#### [资源热更](https://github.com/OnClick9927/WooAsset)
-#### [本地化](https://github.com/OnClick9927/WooLocalization)
-#### [轨道编辑器](https://github.com/OnClick9927/ActionEditor)
-
-
 #### RedPoint https://github.com/OnClick9927/IFramework-Unity.git#RedPoint
 #### Record https://github.com/OnClick9927/IFramework-Unity.git#Recorder
 #### 主体 https://github.com/OnClick9927/IFramework-Unity.git#src
@@ -46,6 +38,14 @@ QQ Group ：782290296
   * UI组件添加时 默认优化取消勾选Raycast 等
   * UI组件移除时候自动 移除CanvasRendererer
   * 支持异形屏幕适配
+
+
+#### 相关仓库地址
+ [插值动画](https://github.com/OnClick9927/WooTween)
+ [计时器](https://github.com/OnClick9927/WooTimer)
+ [资源热更](https://github.com/OnClick9927/WooAsset)
+ [本地化](https://github.com/OnClick9927/WooLocalization)
+ [轨道编辑器](https://github.com/OnClick9927/ActionEditor)
 
 
 ### 其他-> HotFix (基于XLUA、不想更新了😀)
