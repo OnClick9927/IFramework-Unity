@@ -8,12 +8,7 @@ while(true)
     Console.Write("Thanks For EveryOne Who Used It Once !")
 ```
 QQ Group ：782290296 
-## 相关仓库地址
- [插值动画](https://github.com/OnClick9927/WooTween)
- [计时器](https://github.com/OnClick9927/WooTimer)
- [资源热更](https://github.com/OnClick9927/WooAsset)
- [本地化](https://github.com/OnClick9927/WooLocalization)
- [轨道编辑器](https://github.com/OnClick9927/ActionEditor)
+
  
 #### Audio https://github.com/OnClick9927/IFramework-Unity.git#Audio
 #### RedPoint https://github.com/OnClick9927/IFramework-Unity.git#RedPoint
@@ -55,5 +50,10 @@ QQ Group ：782290296
   * UI模块的 Lua扩展 （MVC）
   * 热重载
 
-
+## 相关仓库地址
+ [插值动画](https://github.com/OnClick9927/WooTween)
+ [计时器](https://github.com/OnClick9927/WooTimer)
+ [资源热更](https://github.com/OnClick9927/WooAsset)
+ [本地化](https://github.com/OnClick9927/WooLocalization)
+ [轨道编辑器](https://github.com/OnClick9927/ActionEditor)
 
