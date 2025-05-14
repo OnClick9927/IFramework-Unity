@@ -8,7 +8,13 @@ while(true)
     Console.Write("Thanks For EveryOne Who Used It Once !")
 ```
 QQ Group ：782290296 
-
+## 相关仓库地址
+ [插值动画](https://github.com/OnClick9927/WooTween)
+ [计时器](https://github.com/OnClick9927/WooTimer)
+ [资源热更](https://github.com/OnClick9927/WooAsset)
+ [本地化](https://github.com/OnClick9927/WooLocalization)
+ [轨道编辑器](https://github.com/OnClick9927/ActionEditor)
+ 
 #### Audio https://github.com/OnClick9927/IFramework-Unity.git#Audio
 #### RedPoint https://github.com/OnClick9927/IFramework-Unity.git#RedPoint
 #### Record https://github.com/OnClick9927/IFramework-Unity.git#Recorder
@@ -40,12 +46,7 @@ QQ Group ：782290296
   * 支持异形屏幕适配
 
 
-#### 相关仓库地址
- [插值动画](https://github.com/OnClick9927/WooTween)
- [计时器](https://github.com/OnClick9927/WooTimer)
- [资源热更](https://github.com/OnClick9927/WooAsset)
- [本地化](https://github.com/OnClick9927/WooLocalization)
- [轨道编辑器](https://github.com/OnClick9927/ActionEditor)
+
 
 
 ### 其他-> HotFix (基于XLUA、不想更新了😀)
