@@ -9,8 +9,15 @@ while(true)
 ```
 QQ Group ：782290296 
 #### Audio https://github.com/OnClick9927/IFramework-Unity.git#Audio
-#### [tween](https://github.com/OnClick9927/WooTween)
-#### time  https://github.com/OnClick9927/IFramework-Unity.git#Timer
+
+
+#### [插值动画](https://github.com/OnClick9927/WooTween)
+#### [计时器](https://github.com/OnClick9927/WooTimer)
+#### [资源热更](https://github.com/OnClick9927/WooAsset)
+#### [本地化](https://github.com/OnClick9927/WooLocalization)
+#### [轨道编辑器](https://github.com/OnClick9927/ActionEditor)
+
+
 #### RedPoint https://github.com/OnClick9927/IFramework-Unity.git#RedPoint
 #### Record https://github.com/OnClick9927/IFramework-Unity.git#Recorder
 #### 主体 https://github.com/OnClick9927/IFramework-Unity.git#src
