@@ -237,8 +237,6 @@ namespace IFramework.UI
                 var selection = this.GetSelection().Select(x => GetGameObject(x)).ToList();
                 if (selection.Count == 0) return;
                 var normal = selection.FindAll(y => context.CouldMark(y));
-                var prefab = selection.FindAll(y => !context.CouldMark(y));
-
                 for (int i = 0; i < normal.Count; i++)
                 {
                     var go = normal[i];

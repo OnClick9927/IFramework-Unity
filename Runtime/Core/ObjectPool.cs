@@ -117,4 +117,18 @@ namespace IFramework
             return new T();
         }
     }
+    public class StaticPool<T> where T : class, new()
+    {
+        internal static readonly SimpleObjectPool<T> s_Pool = new SimpleObjectPool<T>();
+
+        public static T Get()
+        {
+            return s_Pool.Get();
+        }
+        public static void Set(T toRelease)
+        {
+            s_Pool.Set(toRelease);
+        }
+    }
+
 }

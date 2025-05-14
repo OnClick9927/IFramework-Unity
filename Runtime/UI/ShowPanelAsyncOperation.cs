@@ -20,7 +20,7 @@ namespace IFramework.UI
         public UIAsyncOperationAwaitor(ShowPanelAsyncOperation op)
         {
             this.op = op;
-            actions = new Queue<Action>();
+            actions = StaticPool<Queue<Action>>.Get();
             op.completed += OnCompleted;
         }
 
@@ -30,6 +30,7 @@ namespace IFramework.UI
             {
                 actions.Dequeue()?.Invoke();
             }
+            StaticPool<Queue<Action>>.Set(actions);
         }
 
         public bool IsCompleted => op.isDone;
