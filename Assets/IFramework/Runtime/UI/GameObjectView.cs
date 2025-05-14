@@ -202,6 +202,9 @@ namespace IFramework.UI
             }
         }
 
+        public WidgetPool<T> CreateWidgetPool<T>(GameObject prefab, Transform parent) where T : GameObjectView, new() => CreateWidgetPool<T>(prefab, transform, () => new T());
+
+
         public WidgetPool<T> FindWidgetPool<T>(GameObject prefab) where T : GameObjectView
         {
             if (widgetPools == null) return null;
@@ -209,18 +212,6 @@ namespace IFramework.UI
                 return pool as WidgetPool<T>;
             return null;
         }
-
-        public T GetWidgetFromPool<T>(GameObject prefab, Transform parent = null) where T : GameObjectView
-        {
-            var pool = FindWidgetPool<T>(prefab);
-            return pool.Get(parent);
-        }
-        public void SetWidgetToPool<T>(GameObject prefab, T ins) where T : GameObjectView
-        {
-            var pool = FindWidgetPool<T>(prefab);
-            pool.Set(ins);
-        }
-
 
     }
 }

@@ -47,30 +47,7 @@ namespace IFramework
         {
             view = new View(this);
         }
-        async void TweenTest()
-        {
 
-            var tween = await this.view.OpenOne.transform.DoLocalScale(Vector3.one * 2, 0.2f, false).SetLoop(LoopType.PingPong, 6).AddTo(this);
-            Debug.LogError("xxl");
-
-
-        }
-        async void TweenTest2()
-        {
-            var pos = transform.position;
-            var _tween = await Tween.Parallel()
-                       .NewContext(() => this.view.OpenOne.transform.DoLocalScale(Vector3.one, Vector3.one * 2, 0.2f, false).SetLoop(LoopType.PingPong, 6))
-                      .NewContext(() => this.view.OpenOne.transform.DoPosition(pos, Vector3.one, 0.2f, true).SetLoop(LoopType.PingPong, 6))
-                               .Run().AddTo(this).SetAutoCycle(false);
-
-            Debug.LogError("xxl");
-
-            await TimeEx.Delay(0.5f).AddTo(this);
-            await _tween.ReStart();
-
-            Debug.LogError("xxl");
-
-        }
         protected override void OnLoad()
         {
 
@@ -102,58 +79,9 @@ namespace IFramework
             {
                 Debug.Log("add");
             });
-            //TweenTest();
-            TweenTest2();
-            //Test2();
-            //Test();
-        }
-        private async void Test()
-        {
-            Debug.LogError("HH0");
-            Debug.LogError(Time.time);
-
-            await TimeEx.While((time, delta) => Time.time <= 5f).AddTo(this);
-            Debug.LogError(Time.time);
-
-            await TimeEx.Delay(1f).AddTo(this);
-            await TimeEx.Delay(1f, (time, delta) =>
-            {
-                Debug.LogError("HH1");
-            }).AddTo(this);
-            if (this.gameObject)
-                Debug.LogError("HH4");
+     
         }
 
-        private async void Test2()
-        {
-            Debug.LogError("HH0");
-            Debug.LogError(Time.time);
-
-            var seq = await TimeEx.Sequence()
-                     .NewContext(() =>
-                     TimeEx.While((time, delta) => Time.time <= 5f).OnComplete((context) =>
-                     {
-                         Debug.LogError("HH1");
-                         Debug.LogError(Time.time);
-
-                     }))
-                     .NewContext(() => TimeEx.Delay(1f, (time, delta) =>
-                     {
-                         Debug.LogError("HH2");
-                     }))
-
-                       .NewContext(() => TimeEx.Delay(1f, (time, delta) =>
-                       {
-                           Debug.LogError("HH3");
-                       }))
-                     .Run().AddTo(this);
-
-
-            Debug.LogError(Time.time);
-
-            if (this.gameObject)
-                Debug.LogError("HH4");
-        }
 
         private Stack<PanelOneItemWidget> queue = new Stack<PanelOneItemWidget>();
         private void Remove()

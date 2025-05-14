@@ -5,6 +5,7 @@
  *Date:           2024-10-24
 *********************************************************************************/
 using IFramework.UI;
+//using WooTween;
 namespace IFramework
 {
     public abstract class TestWidgetBase : GameObjectView
@@ -16,8 +17,8 @@ namespace IFramework
         protected override void OnClearFields()
         {
             base.OnClearFields();
-            this.KillTweens();
-            this.KillTimers();
+            //this.KillTweens();
+            //this.KillTimers();
             
         }
         protected override void AfterOnClose()
