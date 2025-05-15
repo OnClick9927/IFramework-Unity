@@ -103,8 +103,12 @@ namespace IFramework.UI
 
             if (top_show != data.top_show)
             {
-                string _path = top_show.GetPath();
-                delPart?.OnTopShowChange(GetPanelLayer(_path), _path);
+                string _path = top_show?.GetPath();
+                if (top_show == null)
+                    delPart?.OnTopShowChange(0, _path);
+                else
+                    delPart?.OnTopShowChange(GetPanelLayer(_path), _path);
+
             }
             if (layer_top != data.layer_top)
                 delPart?.OnLayerTopChange(layer, layer_top?.GetPath());
@@ -303,6 +307,24 @@ namespace IFramework.UI
         public UIPanel GetTopShow() => layerPart.GetTopShow();
         public List<string> GetVisibleList() => layerPart.GetVisibleList();
 
+        List<string> help_under = StaticPool<List<string>>.Get();
+        public List<string> GetVisibleListUnder(int layer)
+        {
+            var all = GetVisibleList();
+            help_under.Clear();
+            bool ready = false;
+            for (int i = 0; i < all.Count; i++)
+            {
+                string path = all[i];
+                if (ready || GetPanelLayer(path) <= layer)
+                {
+                    ready = true;
+                    help_under.Add(path);
+                }
+            }
+            return help_under;
+
+        }
 
 
     }
