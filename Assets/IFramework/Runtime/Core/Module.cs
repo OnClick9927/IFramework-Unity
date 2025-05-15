@@ -107,6 +107,13 @@ namespace IFramework
         public T CreateModule<T>(string name = Module.defaultName, int priority = 0) where T : Module => CreateModule(typeof(T), name, priority) as T;
 
 
+        public IReadOnlyCollection<Module> FindModules(Type type)
+        {
+            if (!_dic.ContainsKey(type)) return null;
+            return _dic[type].Values;
+
+
+        }
 
         public Module FindModule(Type type, string name = Module.defaultName)
         {

@@ -53,7 +53,7 @@ namespace IFramework.Lua
             Log.L("OnLayerTopChange");
         }
 
-        void IUIDelegate.OnLayerTopVisibleChange(int layer, string path)
+        void IUIDelegate.OnLayerTopShowChange(int layer, string path)
         {
             Log.L("OnLayerTopVisibleChange");
 
@@ -80,6 +80,10 @@ namespace IFramework.Lua
         {
             Log.L("OnPanelShow");
 
+        }
+
+        public void OnTopShowChange(int layer, string path)
+        {
         }
     }
 }

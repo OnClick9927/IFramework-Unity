@@ -67,9 +67,9 @@ public class UIGame : Game, IUIDelegate
         Log.L("OnLayerTopChange");
     }
 
-    void IUIDelegate.OnLayerTopVisibleChange(int layer, string path)
+    void IUIDelegate.OnLayerTopShowChange(int layer, string path)
     {
-        Log.L("OnLayerTopVisibleChange");
+        Log.L("OnLayerTopShowChange");
 
     }
 
@@ -95,7 +95,7 @@ public class UIGame : Game, IUIDelegate
         Log.L("OnPanelShow");
 
     }
-    public void OnVisibleChange(string path, bool visible)
+    void IUIDelegate.OnVisibleChange(string path, bool visible)
     {
         Log.L("OnVisibleChange");
     }
@@ -104,5 +104,8 @@ public class UIGame : Game, IUIDelegate
 
     }
 
-
+    void IUIDelegate.OnTopShowChange(int layer, string path)
+    {
+        Log.L("OnTopShowChange");
+    }
 }

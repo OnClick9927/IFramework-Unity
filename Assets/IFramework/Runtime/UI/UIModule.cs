@@ -31,6 +31,7 @@ namespace IFramework.UI
         {
             public UIPanel layer_top = null;
             public UIPanel layer_top_show = null;
+            public UIPanel top_show = null;
             public int fullScreenCount;
         }
         private int _fullScreenCount;
@@ -64,8 +65,10 @@ namespace IFramework.UI
 
         private void BeginChangeLayerTopChangeCheck(int layer, LayerChangeCheckData data)
         {
-            data.layer_top = layerPart.GetTopPanel(layer);
-            data.layer_top_show = layerPart.GetTopShowPanel(layer);
+            data.layer_top = GetLayerTop(layer);
+            data.layer_top_show = GetLayerTopShow(layer);
+            data.top_show = GetTopShow();
+
             data.fullScreenCount = _fullScreenCount;
         }
         private void CalcHideSceneCount(string path, bool show)
@@ -94,13 +97,20 @@ namespace IFramework.UI
         private void EndChangeLayerTopChangeCheck(int layer, string path, bool show, LayerChangeCheckData data)
         {
             CalcHideSceneCount(path, show);
-            var top = layerPart.GetTopPanel(layer);
-            var top_show = layerPart.GetTopShowPanel(layer);
-            if (top != data.layer_top)
-                delPart?.OnLayerTopChange(layer, top?.GetPath());
-            if (top_show != data.layer_top_show)
+            var layer_top = GetLayerTop(layer);
+            var layer_top_show = GetLayerTopShow(layer);
+            var top_show = GetTopShow();
+
+            if (top_show != data.top_show)
             {
-                delPart?.OnLayerTopVisibleChange(layer, top_show?.GetPath());
+                string _path = top_show.GetPath();
+                delPart?.OnTopShowChange(GetPanelLayer(_path), _path);
+            }
+            if (layer_top != data.layer_top)
+                delPart?.OnLayerTopChange(layer, layer_top?.GetPath());
+            if (layer_top_show != data.layer_top_show)
+            {
+                delPart?.OnLayerTopShowChange(layer, layer_top_show?.GetPath());
                 layerPart.LegalLayerPanelVisible();
             }
             if (data.fullScreenCount != _fullScreenCount)
@@ -285,5 +295,15 @@ namespace IFramework.UI
         public int LayerNameToIndex(string layerName) => this.assetPart.LayerNameToIndex(layerName);
         public string GetLayerName(int layer) => this.assetPart.GetLayerName(layer);
         public bool GetIsPanelOpen(string path) => loadPart.Find(path) != null;
+
+        public UIPanel FindPanel(string path) => loadPart.Find(path);
+
+        public UIPanel GetLayerTop(int layer) => layerPart.GetLayerTop(layer);
+        public UIPanel GetLayerTopShow(int layer) => layerPart.GetLayerTopShow(layer);
+        public UIPanel GetTopShow() => layerPart.GetTopShow();
+        public List<string> GetVisibleList() => layerPart.GetVisibleList();
+
+
+
     }
 }
