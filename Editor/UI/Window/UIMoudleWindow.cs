@@ -84,7 +84,12 @@ namespace IFramework.UI
             GUILayout.EndArea();
 
         }
+        private void OnInspectorUpdate()
+        {
+            Repaint();
 
+        }
+       
         private void OnHierarchyChange()
         {
             _tabs[_name].OnHierarchyChanged();

@@ -500,6 +500,8 @@ namespace IFramework
                     object listItem = array[i];
                     EditorGUILayout.BeginHorizontal();
                     {
+                        GUILayout.Space(20);
+
                         if (IsBaseType(ele))
                             array[i] = DrawBase(listItem, $"Element {i}", ele);
                         else

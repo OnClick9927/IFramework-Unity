@@ -12,7 +12,8 @@ namespace IFramework.UI
     {
         void OnFullScreenCount(bool hide, int count);
         void OnLayerTopChange(int layer, string path);
-        void OnLayerTopVisibleChange(int layer, string path);
+        void OnTopShowChange(int layer, string path);
+        void OnLayerTopShowChange(int layer, string path);
         void OnVisibleChange(string path, bool visible);
         void OnPanelClose(string path);
         void OnPanelHide(string path);

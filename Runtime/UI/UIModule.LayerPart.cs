@@ -61,7 +61,7 @@ namespace IFramework.UI
                 rect.sizeDelta = Vector3.zero;
                 rect.localRotation = Quaternion.identity;
                 rect.localScale = Vector3.one;
-     
+
                 _layers.Add(layerName, rect);
 
                 return rect;
@@ -132,9 +132,18 @@ namespace IFramework.UI
                 var layerName = module.GetLayerName(layer);
                 var list = GetPanelsByLayerName(layerName);
                 SetAsLastOrder(path, panel);
-
             }
-            public UIPanel GetTopShowPanel(int layer)
+            public UIPanel GetTopShow()
+            {
+                for (int layer = layerNames.Count - 1; layer >= 0; layer--)
+                {
+                    var panel = GetLayerTopShow(layer);
+                    if (panel != null)
+                        return panel;
+                }
+                return null;
+            }
+            public UIPanel GetLayerTopShow(int layer)
             {
                 var layerName = module.GetLayerName(layer);
                 var list = FindPanelsByLayerName(layerName);
@@ -148,7 +157,7 @@ namespace IFramework.UI
                 }
                 return null;
             }
-            public UIPanel GetTopPanel(int layer)
+            public UIPanel GetLayerTop(int layer)
             {
                 var layerName = module.GetLayerName(layer);
                 var list = FindPanelsByLayerName(layerName);
@@ -161,11 +170,12 @@ namespace IFramework.UI
                 var layerName = module.GetLayerName(layer);
                 FindPanelsByLayerName(layerName)?.Remove(panel);
             }
-
+            private List<string> visibles = new List<string>();
+            public List<string> GetVisibleList() => visibles;
             public void LegalLayerPanelVisible()
             {
                 bool visible = true;
-
+                visibles.Clear();
                 for (int i = layerNames.Count - 1; i >= 0; i--)
                 {
                     var layerName = layerNames[i];
@@ -181,6 +191,7 @@ namespace IFramework.UI
                         if (_visible)
                         {
                             var path = panel.GetPath();
+                            visibles.Add(path);
                             if (module.GetPanelFullScreen(path))
                                 visible = false;
                         }
