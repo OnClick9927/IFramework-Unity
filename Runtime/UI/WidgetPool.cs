@@ -104,8 +104,8 @@ namespace IFramework.UI
         public void Set(T t)
         {
             classes.Enqueue(t);
-            t.ClearFields();
             SetGameobject(t.gameObject);
+            t.ClearFields();
         }
 
     }
