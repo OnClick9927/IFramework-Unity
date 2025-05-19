@@ -149,6 +149,7 @@ namespace IFramework.UI
             this.DisposeEvents();
             this.DisposeUIEvents();
             ClearWidgetPools();
+            this.gameObject = null;
         }
         private void DisposeChildren()
         {
