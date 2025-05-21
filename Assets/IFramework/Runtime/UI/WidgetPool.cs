@@ -17,6 +17,10 @@ namespace IFramework.UI
     {
         void Clear();
     }
+    public interface IPoolAbleWidget
+    {
+        void OnSet();
+    }
     public class WidgetPool<T> : IWidgetPool where T : GameObjectView
     {
         private GameObject prefab;
@@ -32,7 +36,7 @@ namespace IFramework.UI
         {
             this.parentView = parentView;
             if (inParent)
-                SetGameobject(prefab);
+                prefab.gameObject.SetActive(false);
             this.prefab = prefab;
             this.parent = parent;
             this.createClass = createClass;
@@ -79,7 +83,6 @@ namespace IFramework.UI
             while (pool.Count > 0)
             {
                 var t = pool.Dequeue();
-                if (t == prefab) continue;
                 GameObject.Destroy(t);
             }
         }
@@ -105,8 +108,9 @@ namespace IFramework.UI
         }
         public void Set(T t)
         {
-            classes.Enqueue(t);
+            (t as IPoolAbleWidget)?.OnSet();
             SetGameobject(t.gameObject);
+            classes.Enqueue(t);
             t.ClearFields();
         }
 
