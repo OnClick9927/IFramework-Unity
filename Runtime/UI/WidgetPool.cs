@@ -32,11 +32,16 @@ namespace IFramework.UI
 
         public int count { get { return pool.Count; } }
 
+        HideFlags _hideflag;
         public WidgetPool(GameObjectView parentView, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
         {
             this.parentView = parentView;
             if (inParent)
+            {
                 prefab.gameObject.SetActive(false);
+                _hideflag = prefab.hideFlags;
+                prefab.hideFlags = HideFlags.HideInHierarchy;
+            }
             this.prefab = prefab;
             this.parent = parent;
             this.createClass = createClass;
@@ -46,20 +51,21 @@ namespace IFramework.UI
         {
             if (parent == null)
                 parent = this.parent;
-            GameObject t;
+            GameObject result;
             if (pool.Count > 0)
             {
-                t = pool.Dequeue();
-                if (t.transform.parent != parent)
-                    t.transform.SetParent(parent);
+                result = pool.Dequeue();
+                if (result.transform.parent != parent)
+                    result.transform.SetParent(parent);
             }
             else
             {
-                t = GameObject.Instantiate(prefab, parent);
+                result = GameObject.Instantiate(prefab, parent);
+                result.hideFlags = _hideflag;
             }
-            t.gameObject.SetActive(true);
+            result.SetActive(true);
 
-            return t;
+            return result;
         }
 
 
