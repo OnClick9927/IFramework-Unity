@@ -24,13 +24,13 @@ namespace IFramework.UI
         private Queue<T> classes = new Queue<T>();
         Func<T> createClass;
         protected Queue<GameObject> pool = new Queue<GameObject>();
-        private GameObjectView owner;
+        private GameObjectView parentView;
 
         public int count { get { return pool.Count; } }
 
-        public WidgetPool(GameObjectView owner, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
+        public WidgetPool(GameObjectView parentView, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
         {
-            this.owner = owner;
+            this.parentView = parentView;
             if (inParent)
                 SetGameobject(prefab);
             this.prefab = prefab;
@@ -79,8 +79,8 @@ namespace IFramework.UI
             while (pool.Count > 0)
             {
                 var t = pool.Dequeue();
+                if (t == prefab) continue;
                 GameObject.Destroy(t);
-
             }
         }
 
@@ -93,12 +93,14 @@ namespace IFramework.UI
                 t = createClass();
             else
                 t = classes.Dequeue();
+            if (parent == null)
+                parent = this.parent;
             var go = GetGameObject(parent);
             var tran = go.transform;
             var index = tran.GetSiblingIndex();
             if (tran.parent.childCount - 1 != index)
                 tran.SetAsLastSibling();
-            owner.InitWidget(t, go);
+            parentView.InitWidget(t, go);
             return t;
         }
         public void Set(T t)

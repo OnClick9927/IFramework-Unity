@@ -20,15 +20,6 @@ namespace IFramework.UI
         public Transform transform { get; private set; }
         private IScriptCreatorContext context;
 
-        GameObject _FindPrefab(List<GameObject> Prefabs, string name)
-        {
-            for (int i = 0; i < Prefabs.Count; i++)
-            {
-                if (Prefabs[i].name == name) return Prefabs[i];
-            }
-            return null;
-        }
-
         Dictionary<string, GameObject> _prefabsName;
         public GameObject FindPrefab(string name)
         {
@@ -38,17 +29,19 @@ namespace IFramework.UI
             {
                 return prefab;
             }
-            prefab = _FindPrefab(context.GetPrefabs(), name);
+            var prefabs = context.GetPrefabs();
+            for (int i = 0; i < prefabs.Count; i++)
+            {
+                if (prefabs[i].name != name) continue;
+                prefab = prefabs[i];
+                break;
+            }
             if (prefab != null)
-            {
                 _prefabsName[name] = prefab;
-            }
             else
-            {
                 Log.FE($"Not Find Prefab with Name {name} in {context.name}");
-            }
-
             return prefab;
+
         }
         public virtual void SetActive(bool active) => gameObject.SetActive(active);
         public bool SetGameObject(GameObject gameObject)
@@ -92,16 +85,63 @@ namespace IFramework.UI
 
 
         public GameObjectView parent { get; private set; }
+        private GameObjectView _root;
         public GameObjectView root
         {
             get
             {
-                var tmp = this;
-                while (tmp.parent != null)
-                    tmp = tmp.parent;
-                return tmp;
+                if (gameObject == null) return null;
+                //var tmp = this;
+                //while (tmp.parent != null)
+                //    tmp = tmp.parent;
+                return _root;
             }
         }
+
+
+        public T FindViewInParent<T>() where T : GameObjectView
+        {
+            var tmp = this.parent;
+            while (tmp != null)
+            {
+                if (tmp is T)
+                    return tmp as T;
+                tmp = tmp.parent;
+            }
+            return null;
+        }
+        public List<T> FindViewsInChildren<T>(List<T> result) where T : GameObjectView
+        {
+            if (result == null) result = new List<T>();
+
+            for (int i = 0; i < children.Count; i++)
+            {
+                var child = children[i];
+
+                if (child is T)
+                    result.Add(child as T);
+                child.FindViewsInChildren(result);
+            }
+            return result;
+        }
+        public T FindViewInChildren<T>() where T : GameObjectView
+        {
+
+            for (int i = 0; i < children.Count; i++)
+            {
+                var child = children[i];
+
+                if (child is T)
+                    return child as T;
+                var inchild = child.FindViewInChildren<T>();
+                if (inchild != null)
+                    return inchild;
+            }
+            return null;
+        }
+
+
+
         internal void SetParent(GameObjectView parent)
         {
             var parent_last = this.parent;
@@ -112,6 +152,12 @@ namespace IFramework.UI
             {
                 parent.children.Add(this);
                 this.parent = parent;
+
+
+                var tmp = parent;
+                while (tmp.parent != null)
+                    tmp = tmp.parent;
+                _root = tmp;
             }
             else
             {
@@ -142,6 +188,7 @@ namespace IFramework.UI
             }
         }
         protected virtual void OnClearFields() { }
+
         public void ClearFields()
         {
             OnClearFields();
@@ -168,7 +215,7 @@ namespace IFramework.UI
 
 
 
-        protected IReadOnlyList<GameObjectView> GetChildren() => children;
+        //protected IReadOnlyList<GameObjectView> GetChildren() => children;
 
         private List<GameObjectView> children = new List<GameObjectView>();
 
@@ -179,16 +226,16 @@ namespace IFramework.UI
             InitWidget(t, gameObject);
             return t;
         }
-        public T InitWidget<T>(T view, GameObject gameObject) where T : GameObjectView
+        internal T InitWidget<T>(T view, GameObject gameObject) where T : GameObjectView
         {
-            view.SetGameObject(gameObject);
             view.SetParent(this);
+            view.SetGameObject(gameObject);
             return view;
         }
 
 
         private Dictionary<GameObject, IWidgetPool> widgetPools;
-        public WidgetPool<T> CreateWidgetPool<T>(GameObject prefab, Transform parent, Func<T> createClass) where T : GameObjectView
+        public WidgetPool<T> CreateWidgetPool<T>(GameObjectView parentView, GameObject prefab, Transform parent, Func<T> createClass) where T : GameObjectView
         {
             if (widgetPools == null) widgetPools = new Dictionary<GameObject, IWidgetPool>();
             if (widgetPools.TryGetValue(prefab, out IWidgetPool pool))
@@ -197,13 +244,14 @@ namespace IFramework.UI
             }
             else
             {
-                var _pool = new WidgetPool<T>(this, prefab, parent, createClass, prefab.transform.IsChildOf(transform));
+                var _pool = new WidgetPool<T>(parentView, prefab, parent, createClass, prefab.transform.IsChildOf(transform));
                 widgetPools[prefab] = _pool;
                 return _pool;
             }
         }
-
-        public WidgetPool<T> CreateWidgetPool<T>(GameObject prefab, Transform parent) where T : GameObjectView, new() => CreateWidgetPool<T>(prefab, transform, () => new T());
+        public WidgetPool<T> CreateWidgetPool<T>(GameObjectView parentView, GameObject prefab, Transform parent) where T : GameObjectView, new() => CreateWidgetPool<T>(parentView, prefab, parent, () => new T());
+        public WidgetPool<T> CreateWidgetPool<T>(GameObject prefab, Transform parent, Func<T> createClass) where T : GameObjectView => CreateWidgetPool<T>(this, prefab, parent, createClass);
+        public WidgetPool<T> CreateWidgetPool<T>(GameObject prefab, Transform parent) where T : GameObjectView, new() => CreateWidgetPool<T>(this, prefab, parent);
 
 
         public WidgetPool<T> FindWidgetPool<T>(GameObject prefab) where T : GameObjectView
