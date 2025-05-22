@@ -94,6 +94,7 @@ namespace IFramework.UI
                 //var tmp = this;
                 //while (tmp.parent != null)
                 //    tmp = tmp.parent;
+                if (parent == null) return this;
                 return _root;
             }
         }
