@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace IFramework
 {
-    public abstract class Singleton<T>  where T : Singleton<T>, new()
+    public abstract class Singleton<T> where T : Singleton<T>, new()
     {
         private volatile static T _instance;
         static object lockObj = new object();
@@ -41,7 +41,7 @@ namespace IFramework
 
         public string PathInHierarchy
         {
-            get;private set;
+            get; private set;
         }
     }
     public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
@@ -56,6 +56,7 @@ namespace IFramework
                 return instance;
             }
         }
+        protected virtual bool DestroyOnLoad { get { return false; } }
 
         protected virtual void Awake()
         {
@@ -96,14 +97,17 @@ namespace IFramework
                         client = new GameObject(subPath[i]);
                     if (obj != null)
                         client.transform.SetParent(obj.transform);
-                    if (i == 0)
-                        GameObject.DontDestroyOnLoad(client);
                     obj = client;
                 }
             }
             var instance = obj.AddComponent<T>();
-            if (instance.transform.parent == null)
-                DontDestroyOnLoad(instance.gameObject);
+            if (!instance.DestroyOnLoad)
+            {
+                if (instance.transform.parent == null)
+                    DontDestroyOnLoad(instance.gameObject);
+                else
+                    DontDestroyOnLoad(instance.transform.root.gameObject);
+            }
             return instance;
         }
 

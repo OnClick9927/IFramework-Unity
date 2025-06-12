@@ -168,10 +168,8 @@ namespace IFramework
         private static string key = "Perfs";
         public static string GetKey() => key;
         private static bool compress = false;
-        public static void SetPrefsRecorder(IPrefsRecorder _recorder)
-        {
-            recorder = _recorder;
-        }
+        public static void SetCompress(bool _com) => compress = _com;
+        public static void SetPrefsRecorder(IPrefsRecorder _recorder) => recorder = _recorder;
         private static IPrefsRecorder GetRecorder()
         {
 #if UNITY_EDITOR
@@ -180,19 +178,19 @@ namespace IFramework
             return recorder;
 #endif
         }
-        public static void SetCompress(bool _com)
-        {
-            compress = _com;
-        }
         public static void SetKey(string key)
         {
             Prefs.key = key;
             LoadPref(key);
         }
         public static bool HasPref(string key) => GetRecorder().HasKey(key);
-        public static void DeletePref(string key) => GetRecorder().DeleteKey(key);
+        public static void DeletePref(string key)
+        {
+            pairMap.Remove(key);
+            GetRecorder().DeleteKey(key);
+        }
 
-        public static void LoadPref(string key)
+        private static string LoadPref(string key)
         {
             string value = GetRecorder().Read(key);
             Pairs pairs = PairFromString(value);
@@ -200,13 +198,9 @@ namespace IFramework
                 pairMap[key] = pairs;
             else
                 pairMap.Add(key, pairs);
+            return value;
         }
-        public static string GetPrefString(string key)
-        {
-            if (pairMap.TryGetValue(key, out var pairs))
-                return PairToString(pairs);
-            return string.Empty;
-        }
+
         public static void SetPref(string key, string value)
         {
             var pairs = PairFromString(value);
@@ -257,11 +251,13 @@ namespace IFramework
                 str = DataCompress.GZipCompressString(str);
             return str;
         }
-
+        private static string ObjectToString<T>(T t, bool prettyPrint) => JsonUtility.ToJson(t, prettyPrint);
+        private static T StringToObject<T>(string json) => JsonUtility.FromJson<T>(json);
 
         public static T Read<T>(string key) => Read<T>(Prefs.key, key);
         public static T Read<T>(string key_1, string key_2)
         {
+            Again:
             if (pairMap.TryGetValue(key_1, out var pairs))
             {
                 var str = pairs.Get(key_2);
@@ -269,10 +265,15 @@ namespace IFramework
                     return default;
                 return StringToObject<T>(str);
             }
+            else
+            {
+                string value = LoadPref(key_1);
+                if (!string.IsNullOrEmpty(value))
+                    goto Again;
+            }
             return default;
         }
-        private static string ObjectToString<T>(T t, bool prettyPrint) => JsonUtility.ToJson(t, prettyPrint);
-        private static T StringToObject<T>(string json) => JsonUtility.FromJson<T>(json);
+
     }
 
 }
