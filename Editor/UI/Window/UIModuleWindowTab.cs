@@ -7,10 +7,13 @@
  *History:        2018.11--
 *********************************************************************************/
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using UnityEngine.Analytics;
 
 namespace IFramework.UI
 {
@@ -28,7 +31,12 @@ namespace IFramework.UI
         public override string name => "Runtime";
 
         int ui_name_index;
-
+        public enum Mode
+        {
+            Hierarchy,
+            Param
+        }
+        public Mode mode;
         class ShowParams
         {
             public Canvas canvas;
@@ -43,9 +51,75 @@ namespace IFramework.UI
             public List<LayerData> layers = new List<LayerData>();
         }
         private ShowParams show = new ShowParams();
+
+        private class Tree : TreeView
+        {
+            private Canvas canvas;
+
+            public Tree(TreeViewState state) : base(state)
+            {
+
+            }
+
+            protected override TreeViewItem BuildRoot()
+            {
+                return new TreeViewItem()
+                {
+                    depth = -1,
+                    id = -1,
+                };
+            }
+            protected override bool CanMultiSelect(TreeViewItem item) => false;
+
+            private void Build(GameObject go, TreeViewItem parent, IList<TreeViewItem> result)
+            {
+                var item = new TreeViewItem()
+                {
+                    depth = parent.depth + 1,
+                    id = go.GetInstanceID(),
+                    parent = parent,
+                    displayName = go.name,
+                };
+
+                result.Add(item);
+                if (!go.GetComponent<UIPanel>())
+                    for (int i = 0; i < go.transform.childCount; i++)
+                    {
+
+                        Build(go.transform.GetChild(i).gameObject, item, result);
+
+                    }
+            }
+            protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
+            {
+                var rows = GetRows() ?? new List<TreeViewItem>();
+                rows.Clear();
+                if (canvas != null)
+                {
+                    Build(canvas.gameObject, root, rows);
+                }
+                SetupParentsAndChildrenFromDepths(root, rows);
+
+                return rows;
+            }
+            public void Reload(Canvas canvas)
+            {
+                this.canvas = canvas;
+                Reload();
+            }
+            protected override void DoubleClickedItem(int id) => EditorGUIUtility.PingObject(id);
+        }
+        private Tree tree;
+        public override void OnHierarchyChanged()
+        {
+            if (tree == null)
+                tree = new Tree(new TreeViewState());
+            tree.Reload(show?.canvas);
+        }
         public override void OnGUI()
         {
             if (!EditorApplication.isPlaying) return;
+            mode = (Mode)GUILayout.Toolbar((int)mode, Enum.GetNames(typeof(Mode)));
             var moudules = Game.Current.modules.FindModules(typeof(UIModule));
             if (moudules == null) return;
             var names = moudules.Select(m => m.name).ToArray();
@@ -67,9 +141,16 @@ namespace IFramework.UI
 
 
             scroll = GUILayout.BeginScrollView(scroll);
-            GUI.enabled = false;
-            EditorTools.DrawDefaultInspector(show);
-            GUI.enabled = true;
+            if (mode == Mode.Param)
+            {
+                GUI.enabled = false;
+                EditorTools.DrawDefaultInspector(show);
+                GUI.enabled = true;
+            }
+            else if (mode == Mode.Hierarchy)
+            {
+                tree?.OnGUI(EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true)));
+            }
             GUILayout.EndScrollView();
 
         }
