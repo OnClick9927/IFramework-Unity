@@ -75,6 +75,7 @@ namespace IFramework
             if (!Application.isPlaying) return default;
             System.Type type = typeof(T);
             var attributes = type.GetCustomAttribute<MonoSingletonPath>(true);
+            if (attributes == null) return null;
             GameObject obj = null;
             if (attributes == null || string.IsNullOrEmpty(attributes.PathInHierarchy))
                 obj = new GameObject(type.Name);
