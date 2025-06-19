@@ -12,6 +12,7 @@ using UnityEngine;
 namespace IFramework
 {
     [AddComponentMenu("")]
+    [MonoSingletonPath(nameof(Launcher))]
     class Launcher : MonoSingleton<Launcher>
     {
         private Game _game;
