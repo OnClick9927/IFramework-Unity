@@ -11,6 +11,9 @@ namespace IFramework.AudioEx
     {
         [UnityEngine.SerializeField]
         private SerializableDictionary<int, float> pairs = new SerializableDictionary<int, float>();
+        [UnityEngine.SerializeField]
+
+        private float MainVolume = 1;
         internal float GetVolume(int channel)
         {
             float vol = -1;
@@ -20,7 +23,11 @@ namespace IFramework.AudioEx
             }
             return vol;
         }
-
+        internal float GetMainVolume() => MainVolume;
+        internal void SetMainVolume(float volume)
+        {
+            MainVolume = volume;
+        }
         internal void SetVolume(int channel, float volume)
         {
             pairs[channel] = volume;

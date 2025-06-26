@@ -95,9 +95,20 @@ namespace IFramework.AudioEx
             Instance.recorder.Write(Instance.pref);
 
             AudioChannel chan = GetChannel(channel);
-            chan.SetVolume(volume);
+            chan.SetVolume(GetVolume(channel));
         }
-        public static float GetVolume(int channel) => Instance.pref.GetVolume(channel);
+        public static void SetMainVolume(float volume)
+        {
+            Instance.pref.SetMainVolume(volume);
+            Instance.recorder.Write(Instance.pref);
+            foreach (var item in Instance.channels)
+            {
+                item.Value.SetVolume(GetVolume(item.Key));
+            }
+        }
+
+        public static float GetMainVolume() => Instance.pref.GetMainVolume();
+        public static float GetVolume(int channel) => Instance.pref.GetVolume(channel) * Instance.pref.GetMainVolume();
         public static void Play(int sound_id)
         {
             AudioChannel chan = GetChannel(Instance.config.GetSoundChannel(sound_id));
