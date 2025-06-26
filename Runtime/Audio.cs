@@ -95,7 +95,7 @@ namespace IFramework.AudioEx
             Instance.recorder.Write(Instance.pref);
 
             AudioChannel chan = GetChannel(channel);
-            chan.SetVolume(GetVolume(channel));
+            chan.SetVolume(GetPlayVolume(channel));
         }
         public static void SetMainVolume(float volume)
         {
@@ -103,12 +103,14 @@ namespace IFramework.AudioEx
             Instance.recorder.Write(Instance.pref);
             foreach (var item in Instance.channels)
             {
-                item.Value.SetVolume(GetVolume(item.Key));
+                item.Value.SetVolume(GetPlayVolume(item.Key));
             }
         }
 
         public static float GetMainVolume() => Instance.pref.GetMainVolume();
-        public static float GetVolume(int channel) => Instance.pref.GetVolume(channel) * Instance.pref.GetMainVolume();
+        public static float GetPlayVolume(int channel) => Instance.pref.GetVolume(channel) * Instance.pref.GetMainVolume();
+
+        public static float GetVolume(int channel) => Instance.pref.GetVolume(channel);
         public static void Play(int sound_id)
         {
             AudioChannel chan = GetChannel(Instance.config.GetSoundChannel(sound_id));
@@ -140,7 +142,7 @@ namespace IFramework.AudioEx
             if (!Instance.channels.TryGetValue(channel, out chan))
             {
                 chan = new AudioChannel(channel);
-                chan.SetVolume(GetVolume(channel));
+                chan.SetVolume(GetPlayVolume(channel));
                 Instance.channels.Add(channel, chan);
             }
             return chan;
