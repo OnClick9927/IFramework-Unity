@@ -138,10 +138,10 @@ namespace IFramework.UI
             }
             sb.AppendLine("\t};");
             sb.AppendLine("}");
-            File.WriteAllText(scriptGenPath.CombinePath($"{scriptName}.cs"), sb.ToString().ToUnixLineEndings());
+            File.WriteAllText(GetScriptFilePath(scriptGenPath, scriptName), sb.ToString().ToUnixLineEndings());
             AssetDatabase.Refresh();
         }
-
+  
         private void Fix()
         {
             string path = old_version_widget_file_path;

@@ -20,6 +20,10 @@ namespace IFramework.UI
 {
     public abstract class UIGenCode : UIModuleWindowTab
     {
+        public string GetScriptFilePath(string scriptGenPath, string scriptName)
+        {
+            return Path.Combine(scriptGenPath, GetScriptFileName(scriptName));
+        }
         public abstract void GenPanelNames(PanelCollection collect, string scriptGenPath, string scriptName);
         public abstract string GetScriptFitter();
         protected abstract string GetScriptFileName(string viewName);

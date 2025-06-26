@@ -13,11 +13,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Remoting.Contexts;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -414,6 +412,16 @@ namespace IFramework
 
                 return EditorGUILayout.CurveField(name, curve);
             }
+            else if (fieldType == typeof(Gradient))
+            {
+                Gradient curve = value as Gradient;
+                if (curve == null)
+                {
+                    curve = new Gradient();
+                }
+
+                return EditorGUILayout.GradientField(name, curve);
+            }
             return value;
         }
 
@@ -706,6 +714,16 @@ namespace IFramework
 
 
 
+        [MenuItem("GameObject/Copy Path", true, 1001)]
+        public static bool ValidateLog2()
+        {
+            return Selection.activeTransform != null && Selection.transforms.Length == 1;
+        }
+        [MenuItem("GameObject/Copy Path", priority = -10000, validate = false)]
+        static void CopyPath()
+        {
+            GUIUtility.systemCopyBuffer = Selection.activeTransform.GetPath();
+        }
 
 
         public static void DrawStackTrace(string stackTrack)

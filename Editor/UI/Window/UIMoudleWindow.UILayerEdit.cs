@@ -371,6 +371,24 @@ namespace IFramework.UI
                             SetExpanded(layerNames.ToList().IndexOf(name), true);
                         });
                     }
+                    menu.AddItem(new GUIContent($"FullScreen_On"), false, () =>
+                    {
+                        foreach (var id in select)
+                        {
+                            var data = datas[id];
+                            data.fullScreen = true;
+                        }
+                        Reload();
+                    });
+                    menu.AddItem(new GUIContent($"FullScreen_Off"), false, () =>
+                    {
+                        foreach (var id in select)
+                        {
+                            var data = datas[id];
+                            data.fullScreen = false;
+                        }
+                        Reload();
+                    });
                     if (select.Count == 1)
                     {
                         var data = datas[select[0]];
@@ -565,9 +583,21 @@ namespace IFramework.UI
 
                 string scriptName = EditorGUILayout.TextField(nameof(plan.ScriptName), plan.ScriptName);
                 var typeIndex = EditorGUILayout.Popup(plan.typeIndex, EditorPanelCollectionPlan.shortTypes, GUILayout.Width(150));
-                GUILayout.EndHorizontal();
-                string configName = EditorGUILayout.TextField(nameof(plan.ConfigName), plan.ConfigName);
+                if (GUILayout.Button("ping", GUILayout.Width(60)))
+                {
+                    EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>((window.GetTab(plan.GetSelectType()) as UIGenCode)
+                        .GetScriptFilePath(plan.ScriptGenPath,plan.ScriptName)));
 
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                string configName = EditorGUILayout.TextField(nameof(plan.ConfigName), plan.ConfigName);
+                if (GUILayout.Button("ping", GUILayout.Width(60)))
+                {
+                    EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(plan.collectionJsonPath));
+                }
+
+                GUILayout.EndHorizontal();
 
                 EditorPanelCollectionPlans.SaveCurrentPlan(_name, GenF.path, CollectF.path, ScriptGenF.path, scriptName, configName, typeIndex);
 
