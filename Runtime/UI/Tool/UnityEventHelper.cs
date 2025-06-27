@@ -19,6 +19,7 @@ namespace IFramework.UI
             public IUIEventOwner owner;
             public abstract void Dispose();
         }
+   
         private class UIEventEntity_Void : UIEventEntity
         {
             public UnityEvent _event;
@@ -49,47 +50,35 @@ namespace IFramework.UI
         }
 
 
-        public static UIEventEntity BindInputField(this IUIEventOwner obj, InputField input, UnityAction<string> callback)
+        public static void Bind(this IUIEventOwner obj, UnityEvent eve, UnityAction callback)
         {
-            input.onValueChanged.AddListener(callback);
-            var entity = Allocate<UIEventEntity<string>>();
-            entity._action = callback;
-            entity._event = input.onValueChanged;
-            return entity.AddTo(obj);
-        }
-        public static UIEventEntity BindToggle(this IUIEventOwner obj, Toggle toggle, UnityAction<bool> callback)
-        {
-            toggle.onValueChanged.AddListener(callback);
-            var entity = Allocate<UIEventEntity<bool>>();
-            entity._action = callback;
-            entity._event = toggle.onValueChanged;
-            return entity.AddTo(obj);
-        }
-        public static UIEventEntity BindSlider(this IUIEventOwner obj, Slider slider, UnityAction<float> callback)
-        {
-            slider.onValueChanged.AddListener(callback);
-            var entity = Allocate<UIEventEntity<float>>();
-            entity._action = callback;
-            entity._event = slider.onValueChanged;
-            return entity.AddTo(obj);
-        }
-        public static UIEventEntity BindOnEndEdit(this IUIEventOwner obj, InputField input, UnityAction<string> callback)
-        {
-            input.onEndEdit.AddListener(callback);
-            var entity = Allocate<UIEventEntity<string>>();
-            entity._action = callback;
-            entity._event = input.onEndEdit;
-            return entity.AddTo(obj);
-        }
-
-        public static UIEventEntity BindButton(this IUIEventOwner obj, Button button, UnityAction callback)
-        {
-            button.onClick.AddListener(callback);
+            eve.AddListener(callback);
             var entity = Allocate<UIEventEntity_Void>();
             entity._action = callback;
-            entity._event = button.onClick;
-            return entity.AddTo(obj);
+            entity._event = eve;
+            entity.AddTo(obj);
         }
+        public static void Bind<T>(this IUIEventOwner obj, UnityEvent<T> eve, UnityAction<T> callback)
+        {
+            eve.AddListener(callback);
+            var entity = Allocate<UIEventEntity<T>>();
+            entity._action = callback;
+            entity._event = eve;
+            entity.AddTo(obj);
+        }
+        public static void BindInputField(this IUIEventOwner obj, InputField input, UnityAction<string> callback)
+            => Bind(obj, input.onValueChanged, callback);
+        public static void BindToggle(this IUIEventOwner obj, Toggle toggle, UnityAction<bool> callback)
+            => Bind(obj, toggle.onValueChanged, callback);
+
+        public static void BindSlider(this IUIEventOwner obj, Slider slider, UnityAction<float> callback)
+       => Bind(obj, slider.onValueChanged, callback);
+        public static void BindOnEndEdit(this IUIEventOwner obj, InputField input, UnityAction<string> callback)
+            => Bind(obj, input.onEndEdit, callback);
+
+
+        public static void BindButton(this IUIEventOwner obj, Button button, UnityAction callback)
+       => Bind(obj, button.onClick, callback);
 
 
         private static Dictionary<Type, ISimpleObjectPool> pools = new Dictionary<Type, ISimpleObjectPool>();
