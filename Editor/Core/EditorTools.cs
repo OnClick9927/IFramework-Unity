@@ -19,6 +19,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 namespace IFramework
 {
@@ -724,6 +725,32 @@ namespace IFramework
         {
             GUIUtility.systemCopyBuffer = Selection.activeTransform.GetPath();
         }
+
+
+
+        [MenuItem("Tools/IFramework/Open Path/Persistent")]
+        public static void OpenPath_Persistent() => EditorTools.OpenFolder(Application.persistentDataPath);
+
+        [MenuItem("Tools/IFramework/Open Path/Streaming")]
+        public static void OpenPath_Streaming() => EditorTools.OpenFolder(Application.streamingAssetsPath); 
+
+        [MenuItem("Tools/IFramework/Open Path/Assets")]
+        public static void OpenPath_Assets() => EditorTools.OpenFolder(Application.dataPath); 
+
+        [MenuItem("Tools/IFramework/Open Path/Temporary")]
+        public static void OpenPath_Temporary() => EditorTools.OpenFolder(Application.temporaryCachePath);
+#if UNITY_2018_1_OR_NEWER
+
+        [MenuItem("Tools/IFramework/Open Path/Console")]
+        public static void OpenPath_Console() => EditorTools.OpenFolder(Path.GetDirectoryName(Application.consoleLogPath));
+
+#endif
+        [MenuItem("Tools/IFramework/Github")]
+         static void Github() => Application.OpenURL("https://github.com/OnClick9927/IFramework-Unity");
+        [MenuItem("Tools/IFramework/Join us")]
+         static void Join() => Application.OpenURL("https://jq.qq.com/?_wv=1027&k=TTSfAM1P");
+
+
 
 
         public static void DrawStackTrace(string stackTrack)

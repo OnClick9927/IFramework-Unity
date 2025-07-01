@@ -14,12 +14,19 @@ namespace IFramework.UI
 {
     public static class UnityEventHelper
     {
-        public abstract class UIEventEntity : IDisposable
+        private abstract class UIEventEntity : IDisposable
         {
             public IUIEventOwner owner;
             public abstract void Dispose();
         }
-   
+        private class CustomEntity : UIEventEntity
+        {
+            public Action remove;
+            public override void Dispose()
+            {
+                remove?.Invoke();
+            }
+        }
         private class UIEventEntity_Void : UIEventEntity
         {
             public UnityEvent _event;
@@ -49,6 +56,13 @@ namespace IFramework.UI
 
         }
 
+        public static void Bind(this IUIEventOwner obj, Action add, Action remove)
+        {
+            add?.Invoke();
+            var entity = Allocate<CustomEntity>();
+            entity.remove = remove;
+            entity.AddTo(obj);
+        }
 
         public static void Bind(this IUIEventOwner obj, UnityEvent eve, UnityAction callback)
         {
@@ -83,7 +97,7 @@ namespace IFramework.UI
 
         private static Dictionary<Type, ISimpleObjectPool> pools = new Dictionary<Type, ISimpleObjectPool>();
         static SimpleObjectPool<List<UIEventEntity>> listPool = new SimpleObjectPool<List<UIEventEntity>>();
-        public static T Allocate<T>() where T : UIEventEntity, new()
+        static T Allocate<T>() where T : UIEventEntity, new()
         {
             var type = typeof(T);
             ISimpleObjectPool pool;
@@ -95,7 +109,6 @@ namespace IFramework.UI
             return (pool as SimpleObjectPool<T>).Get();
         }
 
-        //private static List<UIEventEntity> pairs = new List<UIEventEntity>();
 
         private static Dictionary<IUIEventOwner, List<UIEventEntity>> help = new Dictionary<IUIEventOwner, List<UIEventEntity>>();
 

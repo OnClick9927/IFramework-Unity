@@ -95,27 +95,11 @@ namespace IFramework
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
             Rect r = EditorGUILayout.GetControlRect(GUILayout.Width(100));
+
+
             if (GUI.Button(r, "Tools", "ToolbarDropDown"))
             {
-                GenericMenu menu = new GenericMenu();
-                Dictionary<string, string> dic = new Dictionary<string, string>();
-                dic.Add("Doc", Application.persistentDataPath);
-                dic.Add("Streaming", Application.streamingAssetsPath);
-                dic.Add("DataPath", Application.dataPath);
-                dic.Add("Temporary", Application.temporaryCachePath);
-#if UNITY_2018_1_OR_NEWER
-                dic.Add("Console", Application.consoleLogPath);
-#endif
-                foreach (var item in dic)
-                {
-                    menu.AddItem(new GUIContent($"Open Folder/{item.Key}"), false, () =>
-                    {
-                        EditorTools.OpenFolder(item.Value);
-                    });
-                }
-                menu.AddItem(new GUIContent("Github"), false, () => { Application.OpenURL("https://github.com/OnClick9927/IFramework-Unity"); });
-                menu.AddItem(new GUIContent("Join us"), false, () => { Application.OpenURL("https://jq.qq.com/?_wv=1027&k=TTSfAM1P"); });
-                menu.DropDown(r);
+                EditorUtility.DisplayPopupMenu(r, "Tools/IFramework", null);
             }
             GUILayout.FlexibleSpace();
 
