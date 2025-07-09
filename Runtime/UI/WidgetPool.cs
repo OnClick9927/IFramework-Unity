@@ -33,19 +33,34 @@ namespace IFramework.UI
         public int count { get { return pool.Count; } }
 
         HideFlags _hideflag;
-        public WidgetPool(GameObjectView parentView, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
+        public static WidgetPool<T> Allocate(GameObjectView parentView, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
         {
-            this.parentView = parentView;
+            var pool = StaticPool<WidgetPool<T>>.Get();
+            pool.parentView = parentView;
             if (inParent)
             {
                 prefab.gameObject.SetActive(false);
-                _hideflag = prefab.hideFlags;
+                pool._hideflag = prefab.hideFlags;
                 prefab.hideFlags = HideFlags.HideInHierarchy;
             }
-            this.prefab = prefab;
-            this.parent = parent;
-            this.createClass = createClass;
+            pool.prefab = prefab;
+            pool.parent = parent;
+            pool.createClass = createClass;
+            return pool;
         }
+        //public WidgetPool(GameObjectView parentView, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
+        //{
+        //    this.parentView = parentView;
+        //    if (inParent)
+        //    {
+        //        prefab.gameObject.SetActive(false);
+        //        _hideflag = prefab.hideFlags;
+        //        prefab.hideFlags = HideFlags.HideInHierarchy;
+        //    }
+        //    this.prefab = prefab;
+        //    this.parent = parent;
+        //    this.createClass = createClass;
+        //}
 
         private GameObject GetGameObject(Transform parent)
         {
@@ -91,6 +106,7 @@ namespace IFramework.UI
                 var t = pool.Dequeue();
                 GameObject.Destroy(t);
             }
+            StaticPool<WidgetPool<T>>.Set(this);
         }
 
 

@@ -190,7 +190,7 @@ namespace IFramework.UI
         }
         protected virtual void OnClearFields() { }
 
-        public void ClearFields()
+        internal void ClearFields()
         {
             OnClearFields();
             DisposeChildren();
@@ -221,7 +221,7 @@ namespace IFramework.UI
         private List<GameObjectView> children = new List<GameObjectView>();
 
 
-        public T CreateWidget<T>(GameObject gameObject) where T : GameObjectView, new()
+        protected T CreateWidget<T>(GameObject gameObject) where T : GameObjectView, new()
         {
             T t = new T();
             InitWidget(t, gameObject);
@@ -245,7 +245,7 @@ namespace IFramework.UI
             }
             else
             {
-                var _pool = new WidgetPool<T>(parentView, prefab, parent, createClass, prefab.transform.IsChildOf(transform));
+                var _pool = WidgetPool<T>.Allocate(parentView, prefab, parent, createClass, prefab.transform.IsChildOf(transform));
                 widgetPools[prefab] = _pool;
                 return _pool;
             }
