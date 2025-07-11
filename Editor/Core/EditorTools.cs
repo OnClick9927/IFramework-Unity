@@ -19,7 +19,6 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using static UnityEditor.Progress;
 
 namespace IFramework
 {
@@ -39,6 +38,7 @@ namespace IFramework
             {
                 del.DynamicInvoke(obj);
             }
+            
         }
 
         static EditorTools()
