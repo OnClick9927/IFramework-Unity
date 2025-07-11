@@ -43,7 +43,19 @@ namespace IFramework.UI
             return prefab;
 
         }
-        public virtual void SetActive(bool active) => gameObject.SetActive(active);
+        public virtual void SetActive(bool active)
+        {
+            if (!_canvasGroup)
+                gameObject.SetActive(active);
+            else
+            {
+                _canvasGroup.interactable = active;
+                _canvasGroup.blocksRaycasts = active;
+                _canvasGroup.alpha = active ? 1 : 0;
+            }
+        }
+
+        private CanvasGroup _canvasGroup;
         public bool SetGameObject(GameObject gameObject)
         {
             if (gameObject == null)
@@ -57,6 +69,7 @@ namespace IFramework.UI
                 this.gameObject = gameObject;
                 transform = gameObject.transform;
                 context = GetComponent<IScriptCreatorContext>(string.Empty);
+                _canvasGroup = GetComponent<CanvasGroup>(string.Empty);
                 InitComponents();
                 return true;
             }

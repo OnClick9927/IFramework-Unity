@@ -106,11 +106,20 @@ namespace IFramework.UI
 
                 if (rect.viewport)
                 {
+                    var mask = rect.viewport.GetComponent<Mask>();
+                    if (mask)
+                        GameObject.DestroyImmediate(mask);
+                    rect.viewport.gameObject.AddComponent<RectMask2D>();
+
                     var graphic = rect.viewport.GetComponent<Graphic>();
                     if (graphic)
-                    {
+                        RemnoveImage(new MenuCommand(graphic));
+
+
+                    graphic = rect.GetComponent<Graphic>();
+                    if (graphic)
                         graphic.raycastTarget = true;
-                    }
+
                 }
             });
         }
