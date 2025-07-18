@@ -18,6 +18,8 @@ namespace IFramework.UI
 
         void OnBecameVisible();
         void OnBecameInvisible();
+        void OnHideAsync(PanelAsyncOperation operation);
+        void OnCloseAsync(PanelAsyncOperation operation);
     }
     public abstract class UIView : GameObjectView, IUIView
     {
@@ -32,46 +34,33 @@ namespace IFramework.UI
         protected abstract void OnShow();
         protected abstract void OnHide();
         protected abstract void OnClose();
-       
-        protected abstract void OnBecameVisible();
-        protected abstract void OnBecameInvisible();
 
+        protected virtual void OnBecameVisible() { }
+        protected virtual void OnBecameInvisible() { }
+
+        protected virtual void OnHideAsync(PanelAsyncOperation operation) { }
+        protected virtual void OnCloseAsync(PanelAsyncOperation operation) { }
         protected virtual void AfterOnClose() { }
 
-        void IUIView.OnLoad()
-        {
-            OnLoad();
-        }
+        void IUIView.OnLoad() => OnLoad();
 
-        void IUIView.OnShow()
-        {
+        void IUIView.OnShow() => OnShow();
 
-            OnShow();
-        }
-
-        void IUIView.OnHide()
-        {
-            OnHide();
-        }
-
+        void IUIView.OnHide() => OnHide();
+        void IUIView.OnHideAsync(PanelAsyncOperation operation) => OnHideAsync(operation);
+        void IUIView.OnCloseAsync(PanelAsyncOperation operation) => OnCloseAsync(operation);
         void IUIView.OnClose()
         {
-
             OnClose();
             ClearFields();
             AfterOnClose();
         }
 
-        void IUIView.OnBecameVisible()
-        {
+        void IUIView.OnBecameVisible() => OnBecameVisible();
 
-            OnBecameVisible();
-        }
+        void IUIView.OnBecameInvisible() => OnBecameInvisible();
 
-        void IUIView.OnBecameInvisible()
-        {
-            OnBecameInvisible();
-        }
+
     }
 
 }

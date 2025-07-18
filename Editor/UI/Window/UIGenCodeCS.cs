@@ -295,9 +295,9 @@ namespace IFramework.UI
                 return "\t\tprotected override void OnLoad(){}\n" +
                         "\t\tprotected override void OnShow(){}\n" +
                         "\t\tprotected override void OnHide(){}\n" +
-                        "\t\tprotected override void OnClose(){}\n" +
-                        "\t\tprotected override void OnBecameInvisible(){}\n" +
-                        "\t\tprotected override void OnBecameVisible(){}\n";
+                        "\t\tprotected override void OnClose(){}\n";
+                        //"\t\tprotected override void OnBecameInvisible(){}\n" +
+                        //"\t\tprotected override void OnBecameVisible(){}\n";
             ;
             return string.Empty;
         }

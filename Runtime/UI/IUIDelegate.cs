@@ -19,5 +19,8 @@ namespace IFramework.UI
         void OnPanelHide(string path);
         void OnPanelLoad(string path);
         void OnPanelShow(string path);
+        void OnClosePanelAsync(string path);
+        void OnHidePanelAsync(string path);
+        void OnShowPanelRequest(string path);
     }
 }

@@ -50,7 +50,8 @@ namespace IFramework.UI
 
         void OnBecameVisible(string path);
         void OnBecameInvisible(string path);
-
+        void OnHideAsync(string path, PanelAsyncOperation operation);
+        void OnCloseAsync(string path, PanelAsyncOperation operation);
     }
 
     public class ViewBridge : IViewBridge
@@ -127,6 +128,10 @@ namespace IFramework.UI
             }
             return false;
         }
+
+        void IViewBridge.OnHideAsync(string path, PanelAsyncOperation operation) => FindView(path).OnHideAsync(operation);
+
+        void IViewBridge.OnCloseAsync(string path, PanelAsyncOperation operation) => FindView(path).OnCloseAsync(operation);
     }
     public class MixedViewBridge : IViewBridge
     {
@@ -248,6 +253,30 @@ namespace IFramework.UI
             if (_nameMap.ContainsKey(path))
             {
                 _nameMap[path].OnBecameInvisible(path);
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
+            }
+        }
+
+        void IViewBridge.OnHideAsync(string path, PanelAsyncOperation operation)
+        {
+            if (_nameMap.ContainsKey(path))
+            {
+                _nameMap[path].OnHideAsync(path, operation);
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
+            }
+        }
+
+        void IViewBridge.OnCloseAsync(string path, PanelAsyncOperation operation)
+        {
+            if (_nameMap.ContainsKey(path))
+            {
+                _nameMap[path].OnCloseAsync(path, operation);
             }
             else
             {

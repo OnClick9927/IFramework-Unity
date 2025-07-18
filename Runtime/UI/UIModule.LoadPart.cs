@@ -49,22 +49,23 @@ namespace IFramework.UI
                 return ui;
             }
 
-            public void LoadPanel(string path, int layer, ShowPanelAsyncOperation show_op)
+            public void LoadPanel(int layer, ShowPanelAsyncOperation show_op)
             {
+                string path = show_op.path;
                 var panel = Find(path);
 
                 if (panel != null)
-                    OnShowCallBack(true, path, panel, show_op);
+                    OnShowCallBack(true, panel, show_op);
                 else
                 {
                     RectTransform parent = module.GetLayerTransform(module.GetLayerName(layer));
                     var result = module.assetPart.LoadPanel(parent, path);
                     if (result != null)
-                        UILoadComplete(result, path, show_op);
+                        UILoadComplete(result, show_op);
                     else
                     {
                         LoadPanelAsyncOperation op = load_op.Get();
-                        op.path = path;
+                        //op.path = path;
                         op.parent = parent;
                         op.show = show_op;
                         if (module.assetPart.LoadPanelAsync(op))
@@ -77,14 +78,16 @@ namespace IFramework.UI
                     }
                 }
             }
-            private void UILoadComplete(UIPanel ui, string path, ShowPanelAsyncOperation op)
+            private void UILoadComplete(UIPanel ui, ShowPanelAsyncOperation op)
             {
+                string path = op.path;
+
                 if (ui != null) panels.Add(path, ui);
-                module.UILoadComplete(ui, path, op);
+                module.UILoadComplete(ui, op);
             }
-            private void OnShowCallBack(bool exist, string path, UIPanel panel, ShowPanelAsyncOperation op)
+            private void OnShowCallBack(bool exist, UIPanel panel, ShowPanelAsyncOperation op)
             {
-                module.OnShowCallBack(exist, path, panel, op);
+                module.OnShowCallBack(exist, panel, op);
             }
             public void Update()
             {
@@ -103,7 +106,7 @@ namespace IFramework.UI
                     {
                         LoadPanelAsyncOperation op = asyncLoadQueue.Dequeue();
                         load_op.Set(op);
-                        UILoadComplete(op.value, op.path, op.show);
+                        UILoadComplete(op.value, op.show);
                     }
                 }
 
@@ -133,7 +136,7 @@ namespace IFramework.UI
             }
 
 
-      
+
         }
     }
 }

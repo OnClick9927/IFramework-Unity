@@ -13,11 +13,51 @@ using UnityEngine;
 
 namespace IFramework.UI
 {
-    struct UIAsyncOperationAwaitor : IAwaiter<ShowPanelAsyncOperation>
+    public class PanelAsyncOperation : IPoolObject, IAwaitable<UIAsyncOperationAwaitor>
     {
-        private ShowPanelAsyncOperation op;
+
+        public static PanelAsyncOperation Done = new PanelAsyncOperation()
+        {
+            _isDone = true,
+        };
+
+
+        public string path;
+
+        public Action completed;
+        public bool _isDone = false;
+        public bool isDone { get { return _isDone; } }
+        public void SetComplete()
+        {
+            _isDone = true;
+            completed?.Invoke();
+            completed = null;
+        }
+        bool IPoolObject.valid { get; set; }
+
+        void IPoolObject.OnGet()
+        {
+            Reset();
+        }
+
+        void IPoolObject.OnSet()
+        {
+        }
+        protected virtual void Reset()
+        {
+            _isDone = false;
+            completed = null;
+            path = string.Empty;
+        }
+
+        public IAwaiter GetAwaiter() => new UIAsyncOperationAwaitor(this);
+    }
+
+    struct UIAsyncOperationAwaitor : IAwaiter
+    {
+        private PanelAsyncOperation op;
         private Queue<Action> actions;
-        public UIAsyncOperationAwaitor(ShowPanelAsyncOperation op)
+        public UIAsyncOperationAwaitor(PanelAsyncOperation op)
         {
             this.op = op;
             actions = StaticPool<Queue<Action>>.Get();
@@ -35,7 +75,6 @@ namespace IFramework.UI
 
         public bool IsCompleted => op.isDone;
 
-        public ShowPanelAsyncOperation GetResult() => op;
         public void OnCompleted(Action continuation)
         {
             actions?.Enqueue(continuation);
@@ -46,44 +85,20 @@ namespace IFramework.UI
             OnCompleted(continuation);
         }
 
-
+        public void GetResult() { }
     }
-    public class ShowPanelAsyncOperation : IAwaitable<UIAsyncOperationAwaitor, ShowPanelAsyncOperation>, IPoolObject
+
+    class ShowPanelAsyncOperation : PanelAsyncOperation { }
+    class HidePanelAsyncOperation : PanelAsyncOperation
     {
-        public Action completed;
-        public bool _isDone = false;
 
-        public bool isDone { get { return _isDone; } }
-
-        bool IPoolObject.valid { get; set; }
-
-        internal void Reset()
-        {
-            _isDone = false;
-            completed = null;
-
-        }
-        public void SetComplete()
-        {
-            _isDone = true;
-            completed?.Invoke();
-            completed = null;
-        }
-
-        public IAwaiter<ShowPanelAsyncOperation> GetAwaiter()
-        {
-            return new UIAsyncOperationAwaitor(this);
-        }
-
-        void IPoolObject.OnGet()
-        {
-            Reset();
-        }
-
-        void IPoolObject.OnSet()
-        {
-        }
     }
+    class ClosePanelAsyncOperation : PanelAsyncOperation
+    {
+
+        //public string path;
+    }
+
 
     public class LoadPanelAsyncOperation : IPoolObject
     {
@@ -113,11 +128,15 @@ namespace IFramework.UI
         {
             _isDone = false;
             value = null;
-            path = string.Empty;
+            //path = string.Empty;
             parent = null;
         }
-        public string path;
+        public string path => show?.path;
         public RectTransform parent;
         internal ShowPanelAsyncOperation show;
     }
+
+
+
+
 }
