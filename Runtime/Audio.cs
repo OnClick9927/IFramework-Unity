@@ -171,5 +171,17 @@ namespace IFramework.AudioEx
             return asset;
         }
         internal static void ReleaseAsset(AudioAsset asset) => asset.Release();
+        public delegate void AudioEvent(int id);
+
+        public static event AudioEvent onSoundEnd, onSoundBeginPlay;
+        internal static void OnSoundEnd(int id)
+        {
+            onSoundEnd?.Invoke(id);
+        }
+
+        internal static void OnSoundBeginPlay(int id)
+        {
+            onSoundBeginPlay?.Invoke(id);
+        }
     }
 }

@@ -31,6 +31,8 @@ namespace IFramework.AudioEx
         private void PlayAudio()
         {
             if (lifeEnd) return;
+            Audio.OnSoundBeginPlay(this.sound_id);
+
             AudioClip clip = asset.GetClip();
             _source.clip = clip;
             _source.volume = GetTargetVolume(Audio.Instance.config.GetSoundVolume(sound_id));
@@ -82,6 +84,7 @@ namespace IFramework.AudioEx
             _loading = false;
             _source.Stop();
             _source.clip = null;
+            Audio.OnSoundEnd(this.sound_id);
             Audio.ReleaseAsset(asset);
             asset = null;
             this.sound_id = 0;
