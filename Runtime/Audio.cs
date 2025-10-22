@@ -59,13 +59,19 @@ namespace IFramework.AudioEx
             Instance.config = config;
         }
 
-
+        private Queue<AudioChannel> _channels = new Queue<AudioChannel>();
         private void Update()
         {
+
             foreach (var channel in channels.Values)
             {
-                channel.Update();
+                _channels.Enqueue(channel);
             }
+            while (_channels.Count > 0)
+            {
+                _channels.Dequeue().Update();
+            }
+            //channel.Update();
             float delta = Time.deltaTime;
             foreach (var item in assets.Values)
             {
