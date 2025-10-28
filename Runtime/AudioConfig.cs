@@ -20,7 +20,7 @@ namespace IFramework.AudioEx
             public int id;
             public int channel;
             public bool loop;
-            public bool cover;
+            public SoundCoverType cover;
             public int existTime;
             public string clip;
             public float volume;
@@ -35,7 +35,7 @@ namespace IFramework.AudioEx
         }
         public SoundData Get(int id)
         {
-            if (_map==null)
+            if (_map == null)
             {
                 _map = _sounds.ToDictionary(x => x.id);
             }
@@ -43,8 +43,8 @@ namespace IFramework.AudioEx
             _map.TryGetValue(id, out data);
             return data;
         }
-        public int GetSoundChannel(int sound_id)=> Get(sound_id).channel;
-        public bool GetSoundCover(int sound_id) => Get(sound_id).cover;
+        public int GetSoundChannel(int sound_id) => Get(sound_id).channel;
+        public SoundCoverType GetSoundCover(int sound_id) => Get(sound_id).cover;
 
         public int GetSoundExistTime(int sound_id) => Get(sound_id).existTime;
 
@@ -54,7 +54,6 @@ namespace IFramework.AudioEx
 
         public float GetSoundVolume(int sound_id) => Get(sound_id).volume;
 
-  
     }
 
 }

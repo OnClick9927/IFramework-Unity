@@ -110,7 +110,7 @@ namespace IFramework.AudioEx
                     data.clip = AssetDatabase.GetAssetPath(tmp);
                 }
                 data.loop = EditorGUI.Toggle(args.GetCellRect(4), data.loop);
-                data.cover = EditorGUI.Toggle(args.GetCellRect(5), data.cover);
+                data.cover = (SoundCoverType)EditorGUI.EnumPopup(args.GetCellRect(5), data.cover);
                 data.existTime = EditorGUI.IntField(args.GetCellRect(6), data.existTime);
 
                 data.volume = EditorGUI.Slider(args.GetCellRect(7), data.volume, -1, 1);

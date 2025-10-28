@@ -6,11 +6,18 @@
 *********************************************************************************/
 namespace IFramework.AudioEx
 {
+
+    public enum SoundCoverType
+    {
+        None = 0,
+        All,
+        Other
+    }
     public interface IAudioConfig
     {
         float GetSoundVolume(int sound_id);
         bool GetSoundLoop(int sound_id);
-        bool GetSoundCover(int sound_id);
+        SoundCoverType GetSoundCover(int sound_id);
         int GetSoundExistTime(int sound_id);
         string GetSoundPath(int sound_id);
         int GetSoundChannel(int sound_id);

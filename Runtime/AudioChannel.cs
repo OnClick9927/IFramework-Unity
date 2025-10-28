@@ -39,9 +39,27 @@ namespace IFramework.AudioEx
         }
         public void Play(int sound_id)
         {
-            if (Audio.Instance.config.GetSoundCover(sound_id))
-                StopChannel();
-            Get().Play(sound_id);
+            var cover = Audio.Instance.config.GetSoundCover(sound_id);
+            switch (cover)
+            {
+                case SoundCoverType.None:
+                    Get().Play(sound_id);
+
+                    break;
+                case SoundCoverType.All:
+                    StopChannel();
+                    Get().Play(sound_id);
+                    break;
+                case SoundCoverType.Other:
+                    bool play = IsPlaying(sound_id);
+                    StopChannelWithout(sound_id);
+                    if (!play)
+                        Get().Play(sound_id);
+                    break;
+                default:
+                    break;
+            }
+
         }
 
         public void SetVolume(float volume)
@@ -65,12 +83,30 @@ namespace IFramework.AudioEx
                     BackToPool(players[i]);
             }
         }
+
+        public bool IsPlaying(int sound_id)
+        {
+            for (int i = players.Count - 1; i >= 0; i--)
+            {
+                if (players[i].sound_id == sound_id)
+                    return true;
+            }
+            return false;
+        }
+        public void StopChannelWithout(int sound_id)
+        {
+            for (int i = players.Count - 1; i >= 0; i--)
+            {
+                if (players[i].sound_id != sound_id)
+                    players[i].EndLife();
+            }
+        }
         public void StopChannel()
         {
             for (int i = players.Count - 1; i >= 0; i--)
                 players[i].EndLife();
         }
- 
+
         public void Stop(int sound_id, bool all)
         {
             if (all)
@@ -79,7 +115,7 @@ namespace IFramework.AudioEx
                 if (_players != null)
                     foreach (var player in _players)
                         player.EndLife();
-                        //ShutDown(player);
+                //ShutDown(player);
             }
             else
             {

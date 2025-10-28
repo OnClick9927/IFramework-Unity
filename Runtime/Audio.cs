@@ -122,6 +122,16 @@ namespace IFramework.AudioEx
             AudioChannel chan = GetChannel(Instance.config.GetSoundChannel(sound_id));
             chan.Play(sound_id);
         }
+        public static bool IsSoundPlaying(int sound_id)
+        {
+            AudioChannel chan = GetChannel(Instance.config.GetSoundChannel(sound_id));
+            return chan.IsPlaying(sound_id);
+        }
+        public static void StopChannelWithout(int sound_id)
+        {
+            AudioChannel chan = GetChannel(Instance.config.GetSoundChannel(sound_id));
+            chan.StopChannelWithout(sound_id);
+        }
         public static void Stop(int sound_id, bool all = false)
         {
             AudioChannel chan = GetChannel(Instance.config.GetSoundChannel(sound_id));
