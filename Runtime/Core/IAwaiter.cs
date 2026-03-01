@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Security;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace IFramework
@@ -134,7 +135,7 @@ namespace IFramework
             Log.Exception(exception);
             CallComplete();
         }
-        public void SetResult()
+        public virtual void SetResult()
         {
             CallComplete();
         }
@@ -153,16 +154,20 @@ namespace IFramework
         public static AsyncTask Delay(float second)
         {
             AsyncTask task = new AsyncTask();
+            float end = Time.time + second;
+            void Update()
+            {
+                if (end <= Time.time)
+                {
+                    Launcher.UnBindUpdate(Update);
+                    task.SetResult();
+                }
+            }
             if (Application.isPlaying)
             {
-                Launcher.Instance.StartCoroutine(DelayIE(task, second));
+                Launcher.BindUpdate(Update);
             }
             return task;
-        }
-        private static IEnumerator DelayIE(AsyncTask task, float second)
-        {
-            yield return new WaitForSeconds(second);
-            task.SetResult();
         }
 
     }
@@ -174,6 +179,10 @@ namespace IFramework
         {
             this.result = result;
             CallComplete();
+        }
+        public override void SetResult()
+        {
+            this.SetResult(default);
         }
     }
 
