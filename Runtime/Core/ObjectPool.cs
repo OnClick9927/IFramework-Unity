@@ -120,14 +120,111 @@ namespace IFramework
     public class StaticPool<T> where T : class, new()
     {
         internal static readonly SimpleObjectPool<T> s_Pool = new SimpleObjectPool<T>();
+        internal static readonly ArrayPool<T> s_array_Pool = new ArrayPool<T>();
 
+        public static T[] GetArray(int length)
+        {
+            s_array_Pool.SetLength(length);
+            return s_array_Pool.Get();
+        }
         public static T Get()
         {
             return s_Pool.Get();
         }
+        public static void Set(T[] toRelease)
+        {
+            s_array_Pool.Set(toRelease);
+        }
+
         public static void Set(T toRelease)
         {
             s_Pool.Set(toRelease);
+        }
+    }
+    public class StaticPoolValue<T> : IDisposable where T : class, new()
+    {
+        public T value { get; private set; }
+        public StaticPoolValue()
+        {
+            value = StaticPool<T>.Get();
+        }
+
+        public void Dispose()
+        {
+            StaticPool<T>.Set(value);
+        }
+    }
+    public class StaticPoolArray<T> : IDisposable where T : class, new()
+    {
+        public T[] value { get; private set; }
+        public StaticPoolArray(int length)
+        {
+            value = StaticPool<T>.GetArray(length);
+        }
+
+        public void Dispose()
+        {
+            StaticPool<T>.Set(value);
+        }
+    }
+    public class ArrayPool<T> : ObjectPool<T[]>
+    {
+        private Queue<int> _lengthqueue = new Queue<int>();
+        private int length;
+
+        protected override T[] CreateNew() => new T[length];
+        Queue<T[]> queue = new Queue<T[]>();
+
+        public void SetLength(int length)
+        {
+            this.length = length;
+        }
+        public override T[] Get()
+        {
+            T[] t;
+            if (pool.Count > 0 && _lengthqueue.Contains(length))
+            {
+                while (_lengthqueue.Peek() != length)
+                {
+                    _lengthqueue.Dequeue();
+                    queue.Enqueue(pool.Dequeue());
+                }
+                t = pool.Dequeue();
+                while (pool.Count != 0) queue.Enqueue(pool.Dequeue());
+                int _count = queue.Count;
+                for (int i = 0; i < _count; i++)
+                {
+                    var tmp = queue.Dequeue();
+                    int _len = tmp.Length;
+                    _lengthqueue.Enqueue(_len);
+                    pool.Enqueue(tmp);
+                }
+            }
+            else
+            {
+                t = CreateNew();
+                OnCreate(t);
+            }
+            OnGet(t);
+            return t;
+        }
+
+        public override bool Set(T[] t)
+        {
+            if (!pool.Contains(t))
+            {
+                if (OnSet(t))
+                {
+                    int _len = t.Length;
+                    _lengthqueue.Enqueue(_len);
+                    pool.Enqueue(t);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 

@@ -19,9 +19,73 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 namespace IFramework
 {
+    partial class EditorTools
+    {
+        class DrawerObject : UnityEngine.ScriptableObject
+        {
+            public static Editor CreateEditor(object target)
+            {
+                sto = sto ?? DrawerObject.CreateInstance<DrawerObject>();
+                sto.hideFlags = HideFlags.DontSave;
+                sto.obj = target;
+                if (editor == null) editor = Editor.CreateEditor(sto);
+                return editor;
+            }
+            [SerializeReference]
+            public object obj;
+            private static DrawerObject sto;
+            private static Editor editor;
+        }
+        [CustomEditor(typeof(DrawerObject))]
+        class DrawerObjectEditor : Editor
+        {
+
+            public static List<SerializedProperty> GetDirectChildProperties(SerializedProperty parentProp)
+            {
+                List<SerializedProperty> childProps = new List<SerializedProperty>();
+                if (parentProp == null || !parentProp.hasChildren) return childProps;
+
+                // 重置到第一个子属性
+                SerializedProperty childProp = parentProp.Copy();
+                bool hasNext = childProp.Next(true);
+
+                while (hasNext)
+
+                {
+                    // 终止条件：遍历到当前父属性的同级属性时，停止遍历
+                    if (childProp.propertyPath == parentProp.propertyPath)
+                    {
+                        break;
+                    }
+
+                    childProps.Add(childProp.Copy()); // 必须Copy！否则后续Next会改变当前引用
+                    hasNext = childProp.Next(false);
+                }
+                return childProps;
+            }
+            private Vector2 scroll;
+            public override void OnInspectorGUI()
+            {
+                this.serializedObject.Update();
+                var p = this.serializedObject.FindProperty(nameof(DrawerObject.obj));
+                var children = GetDirectChildProperties(p);
+                scroll = GUILayout.BeginScrollView(scroll);
+                GUILayout.BeginVertical();
+                foreach (var item in children)
+                {
+                    EditorGUILayout.PropertyField(item);
+                    //GUILayout.Space(2);
+                }
+                GUILayout.EndVertical();
+                GUILayout.EndScrollView();
+                this.serializedObject.ApplyModifiedProperties();
+            }
+        }
+    }
 
     [InitializeOnLoad]
 
@@ -38,7 +102,7 @@ namespace IFramework
             {
                 del.DynamicInvoke(obj);
             }
-            
+
         }
 
         static EditorTools()
@@ -326,392 +390,12 @@ namespace IFramework
 
         public static object DrawDefaultInspector(object obj)
         {
-            var type = obj.GetType();
-
-            if (typeof(Delegate).IsAssignableFrom(type))
-            {
-                DrawDelegate(type, obj as Delegate);
-                return obj;
-            }
-
-            //得到字段的值,只能得到public类型的字典的值
-            FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-            //排序一下，子类的字段在后，父类的在前
-            //Array.Sort(fieldInfos, FieldsSprtBy);
-
-            //判断需要过滤不显示的字段
-            List<FieldInfo> needShowField = new List<FieldInfo>();
-            foreach (var field in fieldInfos)
-            {
-                var need = true;
-                var attributes = field.GetCustomAttributes();
-                foreach (var attribute in attributes)
-                {
-                    if (attribute is HideInInspector hide)
-                    {
-                        need = false;
-                        break;
-                    }
-
-
-                }
-
-                if (need)
-                {
-                    needShowField.Add(field);
-                }
-            }
-            GUILayout.BeginVertical();
-            foreach (var field in needShowField)
-            {
-                FieldDefaultInspector(field, obj);
-            }
-            GUILayout.EndVertical();
+            var editor = DrawerObject.CreateEditor(obj);
+            editor.OnInspectorGUI();
             return obj;
         }
 
-        static List<Type> _base = new List<Type>()
-            {
-                typeof(int),typeof(float),typeof(double),typeof(bool),typeof(long),typeof(string),
-                typeof(Color),typeof(Vector2),typeof(Vector3),typeof(Vector4),typeof(Vector2Int),typeof(Vector3Int),
-                typeof(Rect),typeof(RectInt),typeof(Bounds),typeof(UnityEngine.Object),typeof(AnimationCurve),
-            };
-        private static bool IsBaseType(Type type)
-        {
-            if (type.IsSubclassOf(typeof(UnityEngine.Object)))
-                return true;
-            if (type.IsEnum || _base.Contains(type)) return true;
-            return false;
-        }
-        private static object DrawBase(object value, string name, Type fieldType)
-        {
 
-            if (fieldType == typeof(int)) return EditorGUILayout.IntField(name, (int)value);
-            else if (fieldType == typeof(float)) return EditorGUILayout.FloatField(name, (float)value);
-            else if (fieldType == typeof(bool)) return EditorGUILayout.Toggle(name, (bool)value);
-            else if (fieldType == typeof(string)) return EditorGUILayout.TextField(name, (string)value);
-            else if (fieldType == typeof(long)) return EditorGUILayout.LongField(name, (long)value);
-            else if (fieldType == typeof(double)) return EditorGUILayout.DoubleField(name, (double)value);
-            else if (fieldType.IsEnum) return EditorGUILayout.EnumPopup(name, (Enum)value);
-            else if (fieldType == typeof(Color)) return EditorGUILayout.ColorField(name, (Color)value);
-            else if (fieldType == typeof(Vector2)) return EditorGUILayout.Vector2Field(name, (Vector2)value);
-            else if (fieldType == typeof(Vector3)) return EditorGUILayout.Vector3Field(name, (Vector3)value);
-            else if (fieldType == typeof(Vector4)) return EditorGUILayout.Vector4Field(name, (Vector4)value);
-            else if (fieldType == typeof(Vector2Int)) return EditorGUILayout.Vector2IntField(name, (Vector2Int)value);
-            else if (fieldType == typeof(Vector3Int)) return EditorGUILayout.Vector3IntField(name, (Vector3Int)value);
-            else if (fieldType == typeof(Rect)) return EditorGUILayout.RectField(name, (Rect)value);
-            else if (fieldType == typeof(RectInt)) return EditorGUILayout.RectIntField(name, (RectInt)value);
-            else if (fieldType == typeof(Bounds)) return EditorGUILayout.BoundsField(name, (Bounds)value);
-            else if (fieldType.IsSubclassOf(typeof(UnityEngine.Object))) return EditorGUILayout.ObjectField(name, (UnityEngine.Object)value, fieldType, true);
-            else if (fieldType == typeof(AnimationCurve))
-            {
-                AnimationCurve curve = value as AnimationCurve;
-                if (curve == null)
-                {
-                    curve = new AnimationCurve();
-                }
-
-                return EditorGUILayout.CurveField(name, curve);
-            }
-            else if (fieldType == typeof(Gradient))
-            {
-                Gradient curve = value as Gradient;
-                if (curve == null)
-                {
-                    curve = new Gradient();
-                }
-
-                return EditorGUILayout.GradientField(name, curve);
-            }
-            return value;
-        }
-
-
-
-        private static object DrawObj(object value, string name, Type fieldType)
-        {
-            bool fold = false;
-
-            if (value == null)
-            {
-                EditorGUILayout.LabelField(name, "Null");
-            }
-
-            else
-            {
-                fold = GetFoldout(value);
-                fold = EditorGUILayout.Foldout(fold, $"{name}", true);
-                EditorGUI.LabelField(GUILayoutUtility.GetLastRect(), "   ", value.GetType().FullName);
-                SetFoldout(value, fold);
-            }
-            if (fold)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Space(20);
-                var Newvalue = DrawDefaultInspector(value);
-                GUILayout.EndHorizontal();
-                return Newvalue;
-            }
-            return value;
-        }
-
-        private static float DrawRange(string name, float value, float min, float max)
-        {
-            return EditorGUILayout.Slider(name, (float)value, min, max);
-        }
-        private static string DrawMutiLine(string name, string value, int lines)
-        {
-            GUILayout.Label(name);
-            return EditorGUILayout.TextArea(value, GUILayout.MinHeight(lines * 18));
-        }
-
-
-        private static Dictionary<int, bool> _unfoldDictionary = new Dictionary<int, bool>();
-
-        private static IList DrawArr(ref bool fold, string name, IEnumerable arr, Type ele)
-        {
-            GUILayout.BeginVertical();
-            IList array = Activator.CreateInstance(typeof(List<>).MakeGenericType(ele)) as IList;
-            var ie = arr.GetEnumerator();
-            while (ie.MoveNext())
-            {
-                array.Add(ie.Current);
-            }
-            //for (int i = 0; i < arr.Count; i++)
-            //    array.Add(arr[i]);
-            var cout = array.Count;
-            //GUILayout.Label("", EditorStyles.toolbar);
-            var rect = EditorGUILayout.GetControlRect(GUILayout.Height(20));
-            GUI.Label(rect, "", EditorStyles.toolbarPopup);
-
-            var rs_second = RectEx.VerticalSplit(rect, rect.width - 20);
-
-            fold = EditorGUI.Foldout(rs_second[0], fold, $"{name}({ele.Name}): {cout}", true);
-            if (GUI.Button(rs_second[1], EditorGUIUtility.TrIconContent("d_Toolbar Plus"), EditorStyles.toolbarButton))
-            {
-                Array newArray = Array.CreateInstance(ele, array != null ? array.Count + 1 : 1);
-                if (array != null)
-                {
-                    array.CopyTo(newArray, 0);
-                }
-
-                newArray.SetValue(Activator.CreateInstance(ele), newArray.Length - 1);
-                array = newArray;
-                SetFoldout(newArray, true);
-            }
-
-            if (fold)
-            {
-                //GUILayout.Space(6);
-                GUILayout.BeginVertical();
-                for (int i = 0; i < array.Count; i++)
-                {
-                    object listItem = array[i];
-                    EditorGUILayout.BeginHorizontal();
-                    {
-                        GUILayout.Space(20);
-
-                        if (IsBaseType(ele))
-                            array[i] = DrawBase(listItem, $"Element {i}", ele);
-                        else
-                            array[i] = DrawDefaultInspector(listItem);
-
-                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Minus"), GUILayout.Width(20)))
-                        {
-                            array.Remove(listItem);
-                            break;
-                        }
-
-                        using (new EditorGUI.DisabledGroupScope(i == 0))
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_scrollup"), GUILayout.Width(20)))
-                            {
-                                var temp = array[i];
-                                array[i] = array[i - 1];
-                                array[i - 1] = temp;
-
-                            }
-                        using (new EditorGUI.DisabledGroupScope(i == array.Count - 1))
-
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_scrolldown"), GUILayout.Width(20)))
-                            {
-                                var temp = array[i];
-                                array[i] = array[i + 1];
-                                array[i + 1] = temp;
-                            }
-                    }
-
-                    EditorGUILayout.EndHorizontal();
-                    GUILayout.Space(2);
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.EndVertical();
-            return array;
-        }
-
-        private static void DrawDelegate(MemberInfo field, Delegate value)
-        {
-            EditorGUILayout.LabelField($"{value.Target} <--> {value.Method.Name}");
-        }
-        public static void FieldDefaultInspector(MemberInfo field, object obj)
-        {
-
-            if (!(field is FieldInfo) && !(field is PropertyInfo)) return;
-
-            Type fieldType = null;
-            //Type showType = null;
-            object value = null;
-            if (field is FieldInfo)
-            {
-                fieldType = (field as FieldInfo).FieldType;
-                //showType = (field as FieldInfo).FieldType;
-                value = (field as FieldInfo).GetValue(obj);
-            }
-            else if (field is PropertyInfo)
-            {
-
-                fieldType = (field as PropertyInfo).PropertyType;
-                //showType = (field as PropertyInfo).PropertyType;
-                value = (field as PropertyInfo).GetValue(obj);
-            }
-            else if (typeof(Delegate).IsAssignableFrom(fieldType))
-            {
-                DrawDelegate(fieldType, value as Delegate);
-                return;
-            }
-
-        Again:
-            var newValue = value;
-            var name = field.Name;
-            var attributes = field.GetCustomAttributes();
-            SpaceAttribute space = attributes.FirstOrDefault(x => x is SpaceAttribute) as SpaceAttribute;
-            if (space != null)
-            {
-                GUILayout.Space(space.height);
-            }
-            HeaderAttribute header = attributes.FirstOrDefault(x => x is HeaderAttribute) as HeaderAttribute;
-            if (header != null)
-                GUILayout.Label(header.header, EditorStyles.boldLabel);
-            RangeAttribute range = attributes.FirstOrDefault(x => x is RangeAttribute) as RangeAttribute;
-            MultilineAttribute mutiline = attributes.FirstOrDefault(x => x is MultilineAttribute) as MultilineAttribute;
-
-            if (range != null && fieldType == typeof(float))
-                newValue = DrawRange(name, (float)value, range.min, range.max);
-            else if (mutiline != null && fieldType == typeof(string))
-                newValue = DrawMutiLine(name, (string)value, mutiline.lines);
-            else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                Type elementType = fieldType.GetGenericArguments()[0];
-                IList array = (IList)value;
-                if (array == null)
-                    array = Activator.CreateInstance(typeof(List<>).MakeGenericType(elementType)) as IList;
-                var fold = GetFoldout(value);
-                var result = DrawArr(ref fold, name, array, elementType);
-                array.Clear();
-                SetFoldout(array, fold);
-                for (int i = 0; i < result.Count; i++)
-                    array.Add(result[i]);
-
-                newValue = array;
-            }
-            else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Queue<>))
-            {
-                Type elementType = fieldType.GetGenericArguments()[0];
-                ICollection array = (ICollection)value;
-
-                if (array == null)
-                    array = Activator.CreateInstance(typeof(Queue<>).MakeGenericType(elementType)) as ICollection;
-                var fold = GetFoldout(value);
-                var result = DrawArr(ref fold, name, array, elementType);
-
-                fieldType.GetMethod(nameof(Queue.Clear)).Invoke(value, null);
-                //array.Clear();
-                SetFoldout(array, fold);
-                for (int i = 0; i < result.Count; i++)
-                    fieldType.GetMethod(nameof(Queue.Enqueue)).Invoke(value, new object[] { result[i] });
-                newValue = array;
-            }
-            // 处理数组类型
-            else if (fieldType.IsArray)
-            {
-
-                Type elementType = fieldType.GetElementType();
-                Array array = (Array)value;
-
-                if (array == null)
-                    array = Array.CreateInstance(elementType, 0);
-                var fold = GetFoldout(value);
-                var result = DrawArr(ref fold, name, array, elementType);
-                Array.Clear(array, 0, array.Length);
-
-
-                if (array.Length != result.Count)
-                    array = Array.CreateInstance(elementType, result.Count);
-                SetFoldout(array, fold);
-
-
-                for (int i = 0; i < result.Count; i++)
-                    array.SetValue(result[i], i);
-                newValue = array;
-            }
-
-
-
-            else if (IsBaseType(fieldType))
-            {
-                newValue = DrawBase(value, name, fieldType);
-            }
-            else
-            {
-                if (fieldType != typeof(System.Object))
-                {
-                    newValue = DrawObj(value, name, fieldType);
-                }
-                else
-                {
-                    if (value != null)
-                    {
-                        fieldType = value.GetType();
-                        //DrawTypeObj(value, name);
-                        if (fieldType != typeof(System.Object))
-                            goto Again;
-                        else
-                            return;
-
-                    }
-                    else
-                    {
-                        newValue = DrawObj(value, name, fieldType);
-
-                    }
-                }
-            }
-
-            if (value != newValue)
-            {
-                if (field is FieldInfo)
-                    (field as FieldInfo).SetValue(obj, newValue);
-                else if ((field as PropertyInfo).CanWrite)
-                    (field as PropertyInfo).SetValue(obj, newValue);
-            }
-        }
-
-        public static bool GetFoldout(object obj)
-        {
-            if (obj == null) return false;
-            if (!_unfoldDictionary.TryGetValue(obj.GetHashCode(), out var value))
-            {
-                _unfoldDictionary[obj.GetHashCode()] = false;
-            }
-
-            return value;
-        }
-
-        public static void SetFoldout(object obj, bool unfold)
-        {
-            if (obj == null) return;
-            _unfoldDictionary[obj.GetHashCode()] = unfold;
-        }
 
 
 
@@ -732,10 +416,10 @@ namespace IFramework
         public static void OpenPath_Persistent() => EditorTools.OpenFolder(Application.persistentDataPath);
 
         [MenuItem("Tools/IFramework/Open Path/Streaming")]
-        public static void OpenPath_Streaming() => EditorTools.OpenFolder(Application.streamingAssetsPath); 
+        public static void OpenPath_Streaming() => EditorTools.OpenFolder(Application.streamingAssetsPath);
 
         [MenuItem("Tools/IFramework/Open Path/Assets")]
-        public static void OpenPath_Assets() => EditorTools.OpenFolder(Application.dataPath); 
+        public static void OpenPath_Assets() => EditorTools.OpenFolder(Application.dataPath);
 
         [MenuItem("Tools/IFramework/Open Path/Temporary")]
         public static void OpenPath_Temporary() => EditorTools.OpenFolder(Application.temporaryCachePath);
@@ -746,9 +430,9 @@ namespace IFramework
 
 #endif
         [MenuItem("Tools/IFramework/Github")]
-         static void Github() => Application.OpenURL("https://github.com/OnClick9927/IFramework-Unity");
+        static void Github() => Application.OpenURL("https://github.com/OnClick9927/IFramework-Unity");
         [MenuItem("Tools/IFramework/Join us")]
-         static void Join() => Application.OpenURL("https://jq.qq.com/?_wv=1027&k=TTSfAM1P");
+        static void Join() => Application.OpenURL("https://jq.qq.com/?_wv=1027&k=TTSfAM1P");
 
 
 
@@ -819,5 +503,54 @@ namespace IFramework
             }
         }
 
+        private static Dictionary<Type, UnityEngine.Object> scriptObjs = new Dictionary<Type, UnityEngine.Object>();
+
+        public static void DrawPingScript(string label,Type type)
+        {
+            if (!scriptObjs.TryGetValue(type, out var obj))
+            {
+                var path = LocateScript(type);
+                obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
+                scriptObjs[type] = obj;
+            }
+            if (obj != null)
+            {
+                GUILayout.Space(10);
+                GUI.enabled = false;
+                EditorGUILayout.ObjectField(label, obj, obj.GetType(), false);
+                GUI.enabled = true;
+                GUILayout.Space(10);
+            }
+        }
+        public static string LocateScript(Type targetType)
+        {
+
+            if (targetType == null)
+                return string.Empty;
+
+            string fullTypeName = targetType.FullName;
+            string className = targetType.Name;
+
+            string[] csGuids = AssetDatabase.FindAssets("t:Script");
+
+            foreach (string guid in csGuids)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+
+                if (!assetPath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                string fileName = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+                if (fileName.Equals(className, StringComparison.OrdinalIgnoreCase))
+                    return assetPath;
+
+                string fileContent = System.IO.File.ReadAllText(assetPath);
+                string pattern = $@"\b(class|struct|enum)\s+{Regex.Escape(className)}\b";
+                if (Regex.IsMatch(fileContent, pattern, RegexOptions.IgnoreCase))
+                    return assetPath;
+
+            }
+
+            return string.Empty;
+        }
     }
 }
