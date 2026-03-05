@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace IFramework
@@ -111,6 +110,9 @@ namespace IFramework
     [AsyncMethodBuilder(typeof(AsyncTaskMethodBuilder))]
     public class AsyncTask
     {
+        private static AsyncTask _compeledTask = new AsyncTask() { IsCompleted = true };
+
+        public static AsyncTask CompletedTask => _compeledTask;
         public event Action completed;
         public Exception exception { get; private set; }
         public bool IsCompleted { get; private set; }
@@ -139,13 +141,64 @@ namespace IFramework
         {
             CallComplete();
         }
-        public static async AsyncTask WaitAll(params AsyncTask[] tasks)
+        public static AsyncTask WhenAny(params AsyncTask[] tasks)
+        {
+            AsyncTask wait = new AsyncTask();
+            if (tasks != null && tasks.Length != 0)
+            {
+                for (int i = 0; i < tasks.Length; i++)
+                {
+                    var task = tasks[i];
+                    if (task.IsCompleted)
+                        wait.SetResult();
+                    else
+                        task.ContinueWith(_ => { wait.SetResult(); });
+                }
+            }
+            else
+            {
+                wait.SetResult();
+            }
+            return wait;
+        }
+        public static AsyncTask WhenAny(IEnumerable<AsyncTask> tasks)
+        {
+            AsyncTask wait = new AsyncTask();
+            if (tasks != null && tasks.Count() != 0)
+            {
+                foreach (var task in tasks)
+                {
+                    if (task.IsCompleted)
+                        wait.SetResult();
+                    else
+                        task.ContinueWith(_ => { wait.SetResult(); });
+                }
+            }
+            else
+            {
+                wait.SetResult();
+            }
+            return wait;
+        }
+
+        public static async AsyncTask WhenAll(params AsyncTask[] tasks)
         {
             if (tasks != null)
             {
                 for (int i = 0; i < tasks.Length; i++)
                 {
                     var task = tasks[i];
+                    if (!task.IsCompleted)
+                        await task;
+                }
+            }
+        }
+        public static async AsyncTask WhenAll(IEnumerable<AsyncTask> tasks)
+        {
+            if (tasks != null)
+            {
+                foreach (var task in tasks)
+                {
                     if (!task.IsCompleted)
                         await task;
                 }
@@ -168,6 +221,15 @@ namespace IFramework
                 Launcher.BindUpdate(Update);
             }
             return task;
+        }
+
+
+        [DebuggerHidden]
+        public void Coroutine() { }
+        public AsyncTask ContinueWith(Action<AsyncTask> continuationAction)
+        {
+            completed += () => continuationAction?.Invoke(this);
+            return this;
         }
 
     }
@@ -285,6 +347,4 @@ namespace IFramework
 
 
     }
-
-
 }

@@ -1,26 +1,33 @@
 ﻿
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 namespace IFramework
 {
     public interface IEventsOwner { }
     public interface IEventArgs { }
-    public interface IEventEntity : IDisposable { }
-    public interface IEventHandler<T> where T : IEventArgs
+    public interface IEventEntity : IDisposable
+    {
+        bool SetAsInvoke();
+    }
+    public interface IEventHandler { }
+    public interface IEventHandler<T> : IEventHandler where T : IEventArgs
     {
         void OnEvent(T message);
+    }
+    public interface IAsyncEventHandler<T> : IEventHandler where T : IEventArgs
+    {
+        AsyncTask OnEvent(T message);
     }
 
     abstract class EventEntityBase : IEventEntity, IPoolObject
     {
         public IEventsOwner owner;
         public string msg;
+        public bool valid { get; set; }
 
-        bool IPoolObject.valid { get; set; }
-
-        public abstract void Invoke(IEventArgs args);
+        public abstract AsyncTask Invoke(IEventArgs args);
         public abstract void Dispose();
-        //public abstract bool Equals(string msg, Action<IEventArgs> args);
 
         protected virtual void Reset()
         {
@@ -31,17 +38,67 @@ namespace IFramework
 
         void IPoolObject.OnGet() => Reset();
         void IPoolObject.OnSet() => Reset();
+
+        bool IEventEntity.SetAsInvoke()
+        {
+            if (!valid) return false;
+            return Events.SetAsInvoke(this);
+        }
     }
+
+    abstract class EventHandlerEntityBase<T> : EventEntityBase where T : IEventArgs
+    {
+        public IEventHandler action;
+        protected override void Reset()
+        {
+            action = null;
+        }
+    }
+    class EventHandlerEntity<T> : EventHandlerEntityBase<T> where T : IEventArgs
+    {
+        public override void Dispose() => Events.UnSubscribe(this);
+
+        public override async AsyncTask Invoke(IEventArgs args)
+        {
+            await AsyncTask.CompletedTask;
+            (action as IEventHandler<T>)?.OnEvent((T)args);
+        }
+
+
+    }
+    class AsyncEventHandlerEntity<T> : EventHandlerEntityBase<T> where T : IEventArgs
+    {
+        public override void Dispose() => Events.UnSubscribe(this);
+
+        public override async AsyncTask Invoke(IEventArgs args) => await (action as IAsyncEventHandler<T>)?.OnEvent((T)args);
+    }
+
+
+
+
+
 
     class EventEntity : EventEntityBase
     {
         public Action<IEventArgs> action;
-        //public override bool Equals(string msg, Action<IEventArgs> args)
-        //{
-        //    return this.msg == msg && action == args;
-        //}
 
-        public override void Invoke(IEventArgs args) => action?.Invoke(args);
+
+        public override async AsyncTask Invoke(IEventArgs args)
+        {
+            await AsyncTask.CompletedTask;
+            action?.Invoke(args);
+        }
+
+        public override void Dispose() => Events.UnSubscribe(this);
+        protected override void Reset()
+        {
+            action = null;
+        }
+    }
+    class AsyncEventEntity<T> : EventEntityBase where T : IEventArgs
+    {
+        public Func<T, AsyncTask> action;
+        public override AsyncTask Invoke(IEventArgs args) => action?.Invoke((T)args);
         public override void Dispose() => Events.UnSubscribe(this);
         protected override void Reset()
         {
@@ -49,110 +106,249 @@ namespace IFramework
         }
     }
 
-    class EventEntity<T> : EventEntityBase where T : IEventArgs
-    {
-        public IEventHandler<T> action_T;
-
-        public override void Invoke(IEventArgs args)
-        {
-            action_T?.OnEvent((T)args);
-        }
-        public override void Dispose() => Events.UnSubscribe<T>(this);
-        protected override void Reset()
-        {
-            base.Reset();
-            action_T = null;
-        }
-    }
     public static class Events
     {
-        private static SimpleObjectPool<EventEntity> pool_0 = new SimpleObjectPool<EventEntity>();
-        private static Dictionary<Type, ISimpleObjectPool> pools_1 = new Dictionary<Type, ISimpleObjectPool>();
-        private static SimpleObjectPool<List<EventEntityBase>> pool_3 = new SimpleObjectPool<List<EventEntityBase>>();
-
-
-
-        private static Dictionary<string, List<EventEntityBase>> map = new Dictionary<string, List<EventEntityBase>>();
-        private static List<EventEntityBase> GetList(string msg)
+        private static Dictionary<string, MessageContext> map = new Dictionary<string, MessageContext>();
+        class MessageContext : IPoolObject
         {
-            List<EventEntityBase> result = null;
+            public string message;
+            public EventEntityBase invoke { get; private set; }
+            private List<EventEntityBase> entities = new List<EventEntityBase>();
+            bool IPoolObject.valid { get; set; }
+
+            void IPoolObject.OnGet()
+            {
+                entities.Clear();
+                message = string.Empty;
+                invoke = null;
+            }
+
+            void IPoolObject.OnSet()
+            {
+            }
+            public int Count => entities.Count;
+            public void UnSubscribe(EventEntityBase listen)
+            {
+                entities.RemoveAll(x => x == listen);
+                if (invoke == listen)
+                    invoke = null;
+            }
+
+            public void Subscribe(EventEntityBase listen)
+            {
+                if (entities.Contains(listen)) return;
+                entities.Add(listen);
+            }
+
+            public void Publish(IEventArgs args)
+            {
+                for (int i = 0; i < entities.Count; i++)
+                {
+                    entities[i].Invoke(args);
+                }
+            }
+
+            public async AsyncTask PublishAsync(IEventArgs args)
+            {
+                using (var temp = new StaticPoolArray<AsyncTask>(entities.Count))
+                {
+                    for (int i = 0; i < entities.Count; i++)
+                    {
+                        var task = entities[i].Invoke(args);
+                        temp.value[i] = task;
+                    }
+                    await AsyncTask.WhenAll(temp.value);
+                }
+            }
+
+
+
+            public async AsyncTask<T> InvokeAsync<T>(IEventArgs args)
+            {
+                if (invoke == null)
+                {
+                    Log.E($"Msg:{message}-{typeof(T)} None Invoke Handler");
+                    return default;
+                }
+                var task = invoke.Invoke(args) as AsyncTask<T>;
+                if (task != null)
+                {
+                    await task;
+                    CallOthersSync(args);
+                    return task.result;
+                }
+                var type = invoke.GetType();
+                if (type.IsGenericType)
+                {
+                    var realT = type.GetGenericArguments().First();
+                    Log.L($"Msg:{message}-{typeof(T)} Not Fit Invoke Handler Type {realT} ");
+                }
+                else
+                    Log.L($"Msg:{message}-{typeof(T)} Not Fit Invoke Handler Type Void");
+                return default;
+            }
+            public async AsyncTask InvokeAsync(IEventArgs args)
+            {
+                if (invoke == null)
+                {
+                    Log.E($"Msg:{message} None Invoke Handler");
+                    return;
+                }
+                var task = invoke.Invoke(args);
+                if (task != null)
+                    await task;
+                CallOthersSync(args);
+            }
+
+
+            public T Invoke<T>(IEventArgs args)
+            {
+
+                if (invoke == null)
+                {
+                    Log.E($"Msg:{message}-{typeof(T)} None Invoke Handler");
+                    return default;
+                }
+                var task = invoke.Invoke(args) as AsyncTask<T>;
+                if (task != null)
+                {
+                    if (!task.IsCompleted)
+                    {
+                        Log.E($"Msg:{message}-{typeof(T)} Use InvokeAsync ");
+                        return default;
+                    }
+                    else
+                    {
+                        CallOthersSync(args);
+                        return task.result;
+                    }
+                }
+                var type = invoke.GetType();
+                if (type.IsGenericType)
+                {
+                    var realT = type.GetGenericArguments().First();
+                    Log.L($"Msg:{message}-{typeof(T)} Not Fit Invoke Handler Type {realT} ");
+                }
+                else
+                    Log.L($"Msg:{message}-{typeof(T)} Not Fit Invoke Handler Type Void");
+                return default;
+            }
+            public void Invoke(IEventArgs args)
+            {
+                if (invoke == null)
+                {
+                    Log.E($"Msg:{message} None Invoke Handler");
+                    return;
+                }
+                var task = invoke.Invoke(args);
+                if (!task.IsCompleted)
+                    Log.E($"Msg:{message}- Use InvokeAsync ");
+                else
+                    CallOthersSync(args);
+            }
+            private void CallOthersSync(IEventArgs args)
+            {
+                if (entities.Count > 1)
+                {
+                    for (int i = 0; i < entities.Count; i++)
+                    {
+                        var entity = entities[i];
+                        if (entity != invoke)
+                            entity.Invoke(args);
+
+                    }
+                }
+            }
+
+
+
+            public bool SetAsInvoke(EventEntityBase entity)
+            {
+                if (invoke != null && invoke != entity) return false;
+                invoke = entity;
+                return true;
+            }
+        }
+
+
+
+
+
+        private static MessageContext GetContext(string msg)
+        {
+            MessageContext result = null;
             if (!map.TryGetValue(msg, out result))
             {
-                result = pool_3.Get();
+                result = StaticPool<MessageContext>.Get();
+                result.message = msg;
                 map.Add(msg, result);
             }
             return result;
         }
-        private static List<EventEntityBase> FindList(string msg)
+        private static MessageContext FindContext(string msg)
         {
-            List<EventEntityBase> result = null;
-            map.TryGetValue(msg, out result);
-
+            map.TryGetValue(msg, out var result);
+            if (result == null) Log.E($"Msg:{msg} None Handler");
             return result;
         }
 
-
-
-        private static void TryRecycleList(string key, List<EventEntityBase> list)
+        private static void TryRecycleList(string key, MessageContext list)
         {
             if (list.Count != 0) return;
-            pool_3.Set(list);
+            StaticPool<MessageContext>.Set(list);
             map.Remove(key);
         }
 
-        internal static void UnSubscribe<T>(EventEntity<T> listen) where T : IEventArgs
+
+        internal static void UnSubscribe<T>(T listen) where T : EventEntityBase, new()
         {
-            var list = FindList(listen.msg);
+            var list = FindContext(listen.msg);
             if (list == null) return;
-            list.RemoveAll(x => x == listen);
+            list.UnSubscribe(listen);
             TryRecycleList(listen.msg, list);
-            ISimpleObjectPool pool;
-            if (!pools_1.TryGetValue(typeof(T), out pool)) return;
-            var __pool = pool as SimpleObjectPool<EventEntity<T>>;
-            __pool.Set(listen);
-        }
-        internal static void UnSubscribe(EventEntity listen)
-        {
-            var list = FindList(listen.msg);
-            if (list == null) return;
-            list.RemoveAll(x => x == listen);
-            TryRecycleList(listen.msg, list);
-            pool_0.Set(listen);
+            StaticPool<T>.Set(listen);
+
         }
 
 
 
-
-
-
-        internal static IEventEntity Subscribe<T>(IEventHandler<T> handler) where T : IEventArgs
+        internal static IEventEntity Subscribe<T>(IEventHandler handler) where T : IEventArgs
         {
             var type = typeof(T);
             string msg = type.Name;
-            var list = GetList(msg);
-            ISimpleObjectPool pool;
-            if (!pools_1.TryGetValue(type, out pool))
-            {
-                pool = new SimpleObjectPool<EventEntity<T>>();
-                pools_1.Add(type, pool);
-            }
-            var __pool = pool as SimpleObjectPool<EventEntity<T>>;
-            var l = __pool.Get();
-            l.msg = msg;
-            l.action_T = handler;
+            var list = GetContext(msg);
+            bool async = handler is IAsyncEventHandler<T>;
+            EventHandlerEntityBase<T> listen = null;
+
+            if (async)
+                listen = StaticPool<AsyncEventHandlerEntity<T>>.Get();
+            else
+                listen = StaticPool<EventHandlerEntity<T>>.Get();
+
+            listen.msg = msg;
+            listen.action = handler;
+            list.Subscribe(listen);
+            return listen;
+        }
 
 
-            list.Add(l);
-            return l;
+        internal static IEventEntity Subscribe<T>(string msg, Func<T, AsyncTask> action) where T : IEventArgs
+        {
+            var list = GetContext(msg);
+            var listen = StaticPool<AsyncEventEntity<T>>.Get();
+            listen.msg = msg;
+            listen.action = action;
+            list.Subscribe(listen);
+            return listen;
         }
         internal static IEventEntity Subscribe(string msg, Action<IEventArgs> action)
         {
-            var list = GetList(msg);
-            var l = pool_0.Get();
-            l.msg = msg;
-            l.action = action;
-            list.Add(l);
-            return l;
+            var list = GetContext(msg);
+            var listen = StaticPool<EventEntity>.Get();
+            listen.msg = msg;
+            listen.action = action;
+            list.Subscribe(listen);
+            return listen;
         }
 
 
@@ -160,21 +356,30 @@ namespace IFramework
 
 
 
+        public static async AsyncTask InvokeAsync(string message, IEventArgs args) => await FindContext(message)?.InvokeAsync(args);
 
-
-        public static void Publish(string message, IEventArgs args)
+        public static void Invoke(string message, IEventArgs args) => FindContext(message)?.Invoke(args);
+        public static T Invoke<T>(string message, IEventArgs args)
         {
-            var list = FindList(message);
-            if (list == null) return;
-            for (int i = 0; i < list.Count; i++)
-            {
-                list[i].Invoke(args);
-            }
+            var find = FindContext(message);
+            if (find != null) return find.Invoke<T>(args);
+            return default;
         }
+
+        public static async AsyncTask<T> InvokeAsync<T>(string message, IEventArgs args) => await FindContext(message)?.InvokeAsync<T>(args);
+
+        public static T Invoke<T, Arg>(Arg args) where Arg : IEventArgs => Invoke<T>(typeof(Arg).Name, args);
+        public static async AsyncTask<T> InvokeAsync<T, Arg>(Arg args) where Arg : IEventArgs => await InvokeAsync<T>(typeof(Arg).Name, args);
+
+
+
+        public static async AsyncTask PublishAsync(string message, IEventArgs args) => await FindContext(message)?.PublishAsync(args);
+        public static async AsyncTask PublishAsync<T>(T args) where T : IEventArgs => await PublishAsync(typeof(T).Name, args);
+        public static void Publish(string message, IEventArgs args) => FindContext(message)?.Publish(args);
         public static void Publish<T>(T args) where T : IEventArgs => Publish(typeof(T).Name, args);
 
 
-        //private static List<EventEntityBase> pairs = new List<EventEntityBase>();
+
 
         private static Dictionary<IEventsOwner, List<EventEntityBase>> help = new Dictionary<IEventsOwner, List<EventEntityBase>>();
 
@@ -183,7 +388,7 @@ namespace IFramework
             List<EventEntityBase> result = null;
             if (!help.TryGetValue(msg, out result))
             {
-                result = pool_3.Get();
+                result = StaticPool<List<EventEntityBase>>.Get();
                 help.Add(msg, result);
             }
             return result;
@@ -192,19 +397,15 @@ namespace IFramework
         {
             List<EventEntityBase> result = null;
             help.TryGetValue(msg, out result);
-
             return result;
         }
-
-
 
         private static void TryRecycleList(IEventsOwner key, List<EventEntityBase> list)
         {
             if (list.Count != 0) return;
-            pool_3.Set(list);
+            StaticPool<List<EventEntityBase>>.Set(list);
             help.Remove(key);
         }
-
 
 
         public static IEventEntity SubscribeEvent(this IEventsOwner self, string msg, Action<IEventArgs> action)
@@ -215,7 +416,15 @@ namespace IFramework
             list.Add(entity);
             return entity;
         }
-        public static IEventEntity SubscribeEvent<T>(this IEventsOwner self, IEventHandler<T> handler) where T : IEventArgs
+        public static IEventEntity SubscribeEvent(this IEventsOwner self, string msg, Func<IEventArgs, AsyncTask> action)
+        {
+            EventEntityBase entity = Subscribe(msg, action) as EventEntityBase;
+            entity.owner = self;
+            var list = GetList(self);
+            list.Add(entity);
+            return entity;
+        }
+        public static IEventEntity SubscribeEvent<T>(this IEventsOwner self, IEventHandler handler) where T : IEventArgs
         {
             EventEntityBase entity = Subscribe<T>(handler) as EventEntityBase;
             entity.owner = self;
@@ -246,65 +455,16 @@ namespace IFramework
 
 
 
-        public static void DisposeEvent(this IEventsOwner self, IEventEntity listen)
-        {
-            var list = FindList(self);
+    
 
-            if (list == null) return;
-            for (int i = list.Count - 1; i >= 0; i--)
-            {
-                var e = list[i];
-                if (e == listen && e.owner == self)
-                {
-                    e.Dispose();
-                    list.RemoveAt(i);
-                    break;
-                }
-            }
-            TryRecycleList(self, list);
+        internal static bool SetAsInvoke(EventEntityBase entity)
+        {
+            var list = FindContext(entity.msg);
+            if (list == null) return false;
+            return list.SetAsInvoke(entity);
 
         }
-        public static void DisposeEvent(this IEventsOwner self, string msg, Action<IEventArgs> action)
-        {
-            var list = FindList(self);
-
-            if (list == null) return;
-
-            for (int i = list.Count - 1; i >= 0; i--)
-            {
-                var e = list[i];
-                if (e is EventEntity && e.msg == msg && e.owner == self)
-                {
-                    var eventEntity = e as EventEntity;
-                    if (eventEntity.action != action) continue;
-                    e.Dispose();
-                    list.RemoveAt(i);
-                    break;
-                }
-            }
-            TryRecycleList(self, list);
-
-        }
-        public static void DisposeEvent<T>(this IEventsOwner self, IEventHandler<T> handler) where T : IEventArgs
-        {
-            var list = FindList(self);
-
-            if (list == null) return;
-            for (int i = list.Count - 1; i >= 0; i--)
-            {
-                var e = list[i];
-                if (e is EventEntity<T> && e.owner == self)
-                {
-                    var eventEntity = e as EventEntity<T>;
-                    if (eventEntity.action_T != handler) continue;
-                    e.Dispose();
-                    list.RemoveAt(i);
-                    break;
-                }
-            }
-            TryRecycleList(self, list);
-
-        }
-
     }
+
+
 }
