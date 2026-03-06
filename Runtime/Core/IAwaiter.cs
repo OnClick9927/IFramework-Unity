@@ -31,7 +31,7 @@ namespace IFramework
         [DebuggerHidden]
         public static AsyncTaskMethodBuilder Create() => new AsyncTaskMethodBuilder()
         {
-            task = new AsyncTask()
+            task = AsyncTask.AllocatePoolTask<AsyncTask>()
         };
 
         [DebuggerHidden]
@@ -72,7 +72,7 @@ namespace IFramework
         [DebuggerHidden]
         public static AsyncTaskMethodBuilder<T> Create() => new AsyncTaskMethodBuilder<T>()
         {
-            tcs = new AsyncTask<T>()
+            tcs = AsyncTask.AllocatePoolTask<AsyncTask<T>>()
         };
 
         // 2. TaskLike Task property.
@@ -113,6 +113,10 @@ namespace IFramework
         private static AsyncTask _compeledTask = new AsyncTask() { IsCompleted = true };
 
         public static AsyncTask CompletedTask => _compeledTask;
+
+
+        private bool fromPool = false;
+
         public event Action completed;
         public Exception exception { get; private set; }
         public bool IsCompleted { get; private set; }
@@ -130,40 +134,104 @@ namespace IFramework
             IsCompleted = true;
             completed?.Invoke();
             completed = null;
+            if (!fromPool) return;
+            //ResetToPool();
+            BackToPool();
         }
+
         internal void SetException(Exception exception)
         {
             this.exception = exception;
             Log.Exception(exception);
             CallComplete();
         }
-        public virtual void SetResult()
+        public virtual void SetResult() => CallComplete();
+        [DebuggerHidden]
+        public void Coroutine() { }
+        public AsyncTask ContinueWith(Action<AsyncTask> continuationAction)
         {
-            CallComplete();
+            completed += () => continuationAction?.Invoke(this);
+            return this;
         }
-        public static AsyncTask WhenAny(params AsyncTask[] tasks)
+
+
+
+
+
+
+        internal static T AllocatePoolTask<T>() where T : AsyncTask, new()
         {
-            AsyncTask wait = new AsyncTask();
-            if (tasks != null && tasks.Length != 0)
+            var task = StaticPool<T>.Get();
+            task.ResetFromPool();
+            task.fromPool = true;
+            return task;
+        }
+        internal virtual void BackToPool() => StaticPool<AsyncTask>.Set(this);
+        internal virtual void ResetFromPool()
+        {
+            completed = null;
+            exception = null;
+            IsCompleted = false;
+            IsCanceled = false;
+        }
+
+
+
+
+
+
+        public static AsyncTask WhenAny(params AsyncTask[] tasks) => _WhenAny(tasks);
+        public static AsyncTask WhenAny(IEnumerable<AsyncTask> tasks) => _WhenAny(tasks);
+        public static AsyncTask WhenAll(params AsyncTask[] tasks) => _WhenAll(tasks);
+        public static AsyncTask WhenAll(IEnumerable<AsyncTask> tasks) => _WhenAll(tasks);
+        public static AsyncTask<T> WhenAny<T>(IEnumerable<AsyncTask<T>> tasks)
+        {
+            AsyncTask<T> wait = AllocatePoolTask<AsyncTask<T>>();
+            if (tasks != null && tasks.Count() != 0)
             {
-                for (int i = 0; i < tasks.Length; i++)
+                foreach (var task in tasks)
                 {
-                    var task = tasks[i];
                     if (task.IsCompleted)
-                        wait.SetResult();
+                        wait.SetResult(task.result);
                     else
-                        task.ContinueWith(_ => { wait.SetResult(); });
+                        task.ContinueWith(_ => { wait.SetResult((_ as AsyncTask<T>).result); });
                 }
             }
             else
             {
-                wait.SetResult();
+                wait.SetResult(default);
             }
             return wait;
         }
-        public static AsyncTask WhenAny(IEnumerable<AsyncTask> tasks)
+
+        private static AsyncTask _WhenAll(IEnumerable<AsyncTask> tasks)
         {
-            AsyncTask wait = new AsyncTask();
+            int count = tasks != null ? tasks.Count() : 0;
+            AsyncTask result = AsyncTask.AllocatePoolTask<AsyncTask>();
+            if (count == 0)
+                result.SetResult();
+            else
+            {
+                int index = 0;
+                void CallAdd(AsyncTask prev)
+                {
+                    index++;
+                    if (index >= count)
+                        result.SetResult();
+                }
+                foreach (var task in tasks)
+                {
+                    if (!task.IsCompleted)
+                        task.ContinueWith(CallAdd);
+                    else
+                        CallAdd(task);
+                }
+            }
+            return result;
+        }
+        private static AsyncTask _WhenAny(IEnumerable<AsyncTask> tasks)
+        {
+            AsyncTask wait = AllocatePoolTask<AsyncTask>();
             if (tasks != null && tasks.Count() != 0)
             {
                 foreach (var task in tasks)
@@ -181,61 +249,57 @@ namespace IFramework
             return wait;
         }
 
-        public static async AsyncTask WhenAll(params AsyncTask[] tasks)
+        public static AsyncTask Delay(float second, bool editor = false)
         {
-            if (tasks != null)
+            AsyncTask task = AllocatePoolTask<AsyncTask>();
+
+            editor |= !Application.isPlaying;
+
+
+
+            if (!editor)
             {
-                for (int i = 0; i < tasks.Length; i++)
+                float end = Time.time + second;
+                void Update()
                 {
-                    var task = tasks[i];
-                    if (!task.IsCompleted)
-                        await task;
+                    if (end <= Time.time)
+                    {
+                        Launcher.UnBindUpdate(Update);
+                        task.SetResult();
+                    }
                 }
+                if (Application.isPlaying)
+                    Launcher.BindUpdate(Update);
             }
-        }
-        public static async AsyncTask WhenAll(IEnumerable<AsyncTask> tasks)
-        {
-            if (tasks != null)
+            else
             {
-                foreach (var task in tasks)
+#if UNITY_EDITOR
+                async void EditorWait()
                 {
-                    if (!task.IsCompleted)
-                        await task;
-                }
-            }
-        }
-        public static AsyncTask Delay(float second)
-        {
-            AsyncTask task = new AsyncTask();
-            float end = Time.time + second;
-            void Update()
-            {
-                if (end <= Time.time)
-                {
-                    Launcher.UnBindUpdate(Update);
+                    await System.Threading.Tasks.Task.Delay((int)(second * 1000));
                     task.SetResult();
                 }
+                EditorWait();
+#endif
             }
-            if (Application.isPlaying)
-            {
-                Launcher.BindUpdate(Update);
-            }
+
+
             return task;
         }
 
 
-        [DebuggerHidden]
-        public void Coroutine() { }
-        public AsyncTask ContinueWith(Action<AsyncTask> continuationAction)
-        {
-            completed += () => continuationAction?.Invoke(this);
-            return this;
-        }
+
 
     }
     [AsyncMethodBuilder(typeof(AsyncTaskMethodBuilder<>))]
     public class AsyncTask<T> : AsyncTask
     {
+        internal override void ResetFromPool()
+        {
+            base.ResetFromPool();
+            result = default;
+        }
+        internal override void BackToPool() => StaticPool<AsyncTask<T>>.Set(this);
         public T result { get; private set; }
         public void SetResult(T result)
         {

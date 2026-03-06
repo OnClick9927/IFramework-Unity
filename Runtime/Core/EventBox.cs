@@ -148,7 +148,7 @@ namespace IFramework
                 }
             }
 
-            public async AsyncTask PublishAsync(IEventArgs args)
+            public AsyncTask PublishAsync(IEventArgs args)
             {
                 using (var temp = new StaticPoolArray<AsyncTask>(entities.Count))
                 {
@@ -157,7 +157,7 @@ namespace IFramework
                         var task = entities[i].Invoke(args);
                         temp.value[i] = task;
                     }
-                    await AsyncTask.WhenAll(temp.value);
+                    return AsyncTask.WhenAll(temp.value);
                 }
             }
 
@@ -285,10 +285,10 @@ namespace IFramework
             }
             return result;
         }
-        private static MessageContext FindContext(string msg)
+        private static MessageContext FindContext(string msg, bool err)
         {
             map.TryGetValue(msg, out var result);
-            if (result == null) Log.E($"Msg:{msg} None Handler");
+            if (err && result == null) Log.E($"Msg:{msg} None Handler");
             return result;
         }
 
@@ -302,7 +302,7 @@ namespace IFramework
 
         internal static void UnSubscribe<T>(T listen) where T : EventEntityBase, new()
         {
-            var list = FindContext(listen.msg);
+            var list = FindContext(listen.msg, false);
             if (list == null) return;
             list.UnSubscribe(listen);
             TryRecycleList(listen.msg, list);
@@ -356,26 +356,26 @@ namespace IFramework
 
 
 
-        public static async AsyncTask InvokeAsync(string message, IEventArgs args) => await FindContext(message)?.InvokeAsync(args);
+        public static AsyncTask InvokeAsync(string message, IEventArgs args) => FindContext(message, true)?.InvokeAsync(args);
 
-        public static void Invoke(string message, IEventArgs args) => FindContext(message)?.Invoke(args);
+        public static void Invoke(string message, IEventArgs args) => FindContext(message, true)?.Invoke(args);
         public static T Invoke<T>(string message, IEventArgs args)
         {
-            var find = FindContext(message);
+            var find = FindContext(message, true);
             if (find != null) return find.Invoke<T>(args);
             return default;
         }
 
-        public static async AsyncTask<T> InvokeAsync<T>(string message, IEventArgs args) => await FindContext(message)?.InvokeAsync<T>(args);
+        public static AsyncTask<T> InvokeAsync<T>(string message, IEventArgs args) => FindContext(message, true)?.InvokeAsync<T>(args);
 
         public static T Invoke<T, Arg>(Arg args) where Arg : IEventArgs => Invoke<T>(typeof(Arg).Name, args);
-        public static async AsyncTask<T> InvokeAsync<T, Arg>(Arg args) where Arg : IEventArgs => await InvokeAsync<T>(typeof(Arg).Name, args);
+        public static AsyncTask<T> InvokeAsync<T, Arg>(Arg args) where Arg : IEventArgs => InvokeAsync<T>(typeof(Arg).Name, args);
 
 
 
-        public static async AsyncTask PublishAsync(string message, IEventArgs args) => await FindContext(message)?.PublishAsync(args);
-        public static async AsyncTask PublishAsync<T>(T args) where T : IEventArgs => await PublishAsync(typeof(T).Name, args);
-        public static void Publish(string message, IEventArgs args) => FindContext(message)?.Publish(args);
+        public static AsyncTask PublishAsync(string message, IEventArgs args) => FindContext(message, false)?.PublishAsync(args);
+        public static AsyncTask PublishAsync<T>(T args) where T : IEventArgs => PublishAsync(typeof(T).Name, args);
+        public static void Publish(string message, IEventArgs args) => FindContext(message, false)?.Publish(args);
         public static void Publish<T>(T args) where T : IEventArgs => Publish(typeof(T).Name, args);
 
 
@@ -455,11 +455,11 @@ namespace IFramework
 
 
 
-    
+
 
         internal static bool SetAsInvoke(EventEntityBase entity)
         {
-            var list = FindContext(entity.msg);
+            var list = FindContext(entity.msg, false);
             if (list == null) return false;
             return list.SetAsInvoke(entity);
 
