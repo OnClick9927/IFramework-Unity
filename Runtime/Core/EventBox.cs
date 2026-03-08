@@ -23,10 +23,10 @@ namespace IFramework
     abstract class EventEntityBase : IEventEntity, IPoolObject
     {
         public IEventsOwner owner;
-        public string msg;
+        public string msg { get; protected set; }
         public bool valid { get; set; }
 
-        public abstract AsyncTask Invoke(IEventArgs args);
+        public abstract AsyncTask Call(IEventArgs args);
         public abstract void Dispose();
 
         protected virtual void Reset()
@@ -53,15 +53,20 @@ namespace IFramework
         {
             action = null;
         }
+        public void SetData(string message, IEventHandler action)
+        {
+            this.action = action;
+            this.msg = message;
+        }
     }
     class EventHandlerEntity<T> : EventHandlerEntityBase<T> where T : IEventArgs
     {
         public override void Dispose() => Events.UnSubscribe(this);
 
-        public override async AsyncTask Invoke(IEventArgs args)
+        public override AsyncTask Call(IEventArgs args)
         {
-            await AsyncTask.CompletedTask;
             (action as IEventHandler<T>)?.OnEvent((T)args);
+            return AsyncTask.CompletedTask;
         }
 
 
@@ -70,40 +75,40 @@ namespace IFramework
     {
         public override void Dispose() => Events.UnSubscribe(this);
 
-        public override async AsyncTask Invoke(IEventArgs args) => await (action as IAsyncEventHandler<T>)?.OnEvent((T)args);
+        public override AsyncTask Call(IEventArgs args) => (action as IAsyncEventHandler<T>)?.OnEvent((T)args);
+    }
+
+    abstract class DelegateEventEntityBase<T> : EventEntityBase where T : Delegate
+    {
+        public T action { get; private set; }
+        protected sealed override void Reset() => action = null;
+
+        public void SetData(string message, T action)
+        {
+            this.action = action;
+            this.msg = message;
+        }
     }
 
 
 
 
-
-
-    class EventEntity : EventEntityBase
+    class DelegateEventEntity : DelegateEventEntityBase<Action<IEventArgs>>
     {
-        public Action<IEventArgs> action;
 
 
-        public override async AsyncTask Invoke(IEventArgs args)
+        public override AsyncTask Call(IEventArgs args)
         {
-            await AsyncTask.CompletedTask;
             action?.Invoke(args);
+            return AsyncTask.CompletedTask;
         }
 
         public override void Dispose() => Events.UnSubscribe(this);
-        protected override void Reset()
-        {
-            action = null;
-        }
     }
-    class AsyncEventEntity<T> : EventEntityBase where T : IEventArgs
+    class DelegateAsyncEventEntity<T> : DelegateEventEntityBase<Func<T, AsyncTask>> where T : IEventArgs
     {
-        public Func<T, AsyncTask> action;
-        public override AsyncTask Invoke(IEventArgs args) => action?.Invoke((T)args);
+        public override AsyncTask Call(IEventArgs args) => action?.Invoke((T)args);
         public override void Dispose() => Events.UnSubscribe(this);
-        protected override void Reset()
-        {
-            action = null;
-        }
     }
 
     public static class Events
@@ -144,21 +149,23 @@ namespace IFramework
             {
                 for (int i = 0; i < entities.Count; i++)
                 {
-                    entities[i].Invoke(args);
+                    entities[i].Call(args);
                 }
             }
 
             public AsyncTask PublishAsync(IEventArgs args)
             {
-                using (var temp = new StaticPoolArray<AsyncTask>(entities.Count))
+                var array = StaticPool<AsyncTask>.GetArray(entities.Count);
+                for (int i = 0; i < entities.Count; i++)
                 {
-                    for (int i = 0; i < entities.Count; i++)
-                    {
-                        var task = entities[i].Invoke(args);
-                        temp.value[i] = task;
-                    }
-                    return AsyncTask.WhenAll(temp.value);
+                    var task = entities[i].Call(args);
+                    array[i] = task;
                 }
+                return AsyncTask.WhenAll(array).ContinueWith(_ =>
+                {
+                    StaticPool<AsyncTask>.Set(array);
+                });
+
             }
 
 
@@ -170,7 +177,7 @@ namespace IFramework
                     Log.E($"Msg:{message}-{typeof(T)} None Invoke Handler");
                     return default;
                 }
-                var task = invoke.Invoke(args) as AsyncTask<T>;
+                var task = invoke.Call(args) as AsyncTask<T>;
                 if (task != null)
                 {
                     await task;
@@ -194,7 +201,7 @@ namespace IFramework
                     Log.E($"Msg:{message} None Invoke Handler");
                     return;
                 }
-                var task = invoke.Invoke(args);
+                var task = invoke.Call(args);
                 if (task != null)
                     await task;
                 CallOthersSync(args);
@@ -209,7 +216,7 @@ namespace IFramework
                     Log.E($"Msg:{message}-{typeof(T)} None Invoke Handler");
                     return default;
                 }
-                var task = invoke.Invoke(args) as AsyncTask<T>;
+                var task = invoke.Call(args) as AsyncTask<T>;
                 if (task != null)
                 {
                     if (!task.IsCompleted)
@@ -240,7 +247,7 @@ namespace IFramework
                     Log.E($"Msg:{message} None Invoke Handler");
                     return;
                 }
-                var task = invoke.Invoke(args);
+                var task = invoke.Call(args);
                 if (!task.IsCompleted)
                     Log.E($"Msg:{message}- Use InvokeAsync ");
                 else
@@ -254,7 +261,7 @@ namespace IFramework
                     {
                         var entity = entities[i];
                         if (entity != invoke)
-                            entity.Invoke(args);
+                            entity.Call(args);
 
                     }
                 }
@@ -324,9 +331,7 @@ namespace IFramework
                 listen = StaticPool<AsyncEventHandlerEntity<T>>.Get();
             else
                 listen = StaticPool<EventHandlerEntity<T>>.Get();
-
-            listen.msg = msg;
-            listen.action = handler;
+            listen.SetData(msg, handler);
             list.Subscribe(listen);
             return listen;
         }
@@ -335,18 +340,16 @@ namespace IFramework
         internal static IEventEntity Subscribe<T>(string msg, Func<T, AsyncTask> action) where T : IEventArgs
         {
             var list = GetContext(msg);
-            var listen = StaticPool<AsyncEventEntity<T>>.Get();
-            listen.msg = msg;
-            listen.action = action;
+            var listen = StaticPool<DelegateAsyncEventEntity<T>>.Get();
+            listen.SetData(msg, action);
             list.Subscribe(listen);
             return listen;
         }
         internal static IEventEntity Subscribe(string msg, Action<IEventArgs> action)
         {
             var list = GetContext(msg);
-            var listen = StaticPool<EventEntity>.Get();
-            listen.msg = msg;
-            listen.action = action;
+            var listen = StaticPool<DelegateEventEntity>.Get();
+            listen.SetData(msg, action);
             list.Subscribe(listen);
             return listen;
         }
