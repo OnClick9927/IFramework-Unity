@@ -167,7 +167,12 @@ namespace IFramework
                 }
                 var task = invoke.Call(args) as AsyncTask<T>;
                 if (task != null)
-                    return task.ContinueWith<AsyncTask<T>>(_ => { CallOthersSync(args); });
+                {
+                    if (!task.IsCompleted)
+                        return task.ContinueWith<AsyncTask<T>>(_ => { CallOthersSync(args); });
+                    else
+                        Log.E($"Msg:{message}-{typeof(T)} Call Invoke Please,The Handler is Sync ");
+                }
                 var type = invoke.GetType();
                 if (type.IsGenericType)
                 {
@@ -186,8 +191,13 @@ namespace IFramework
                     return AsyncTask.CompletedTask;
                 }
                 var task = invoke.Call(args);
+
                 if (task != null)
-                    return task.ContinueWith(_ => { CallOthersSync(args); });
+                    if (!task.IsCompleted)
+                        return task.ContinueWith(_ => { CallOthersSync(args); });
+                    else
+                        Log.E($"Msg:{message} Call Invoke Please,The Handler is Sync ");
+
                 return AsyncTask.CompletedTask;
             }
 

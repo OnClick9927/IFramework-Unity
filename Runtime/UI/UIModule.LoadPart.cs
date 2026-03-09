@@ -83,14 +83,14 @@ namespace IFramework.UI
                         //op.path = path;
                         op.parent = parent;
                         op.show = show_op;
+                        op.ContinueWith<LoadPanelAsyncOperation>(_ =>
+                        {
+                            UILoadComplete(_.result, _.show);
+                            _loading--;
+                        });
                         if (module.assetPart.LoadPanelAsync(op))
                         {
                             _loading++;
-                            op.ContinueWith<LoadPanelAsyncOperation>(_ =>
-                            {
-                                UILoadComplete(_.result, _.show);
-                                _loading--;
-                            });
                             //asyncLoadQueue.Enqueue(op);
                         }
                         else
@@ -111,7 +111,7 @@ namespace IFramework.UI
             }
             //public void Update()
             //{
-        
+
 
             //}
 

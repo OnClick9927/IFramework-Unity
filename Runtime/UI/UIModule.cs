@@ -255,29 +255,31 @@ namespace IFramework.UI
 
             var operation = PanelAsyncOperation.CreateFromPool();
             operation.path = path;
+            operation.ContinueWith<PanelAsyncOperation>(_ =>
+            {
+                Close(_.path);
+            });
             this.bridgePart.OnCloseAsync(path, operation);
             this.delPart?.OnClosePanelAsync(path);
        ;
             //colse_hide_list.Add(operation);
-            return operation.ContinueWith<PanelAsyncOperation>(_ =>
-            {
-                Close(_.path);
-            });
+            return operation;
         }
         public AsyncTask HideAsync(string path)
         {
             if (loadPart.Find(path) == null) return PanelAsyncOperation.CompletedTask;
             var operation = PanelAsyncOperation.CreateFromPool();
             operation.path = path;
+            operation.ContinueWith<PanelAsyncOperation>(_ =>
+            {
+                Hide(_.path);
+            });
             this.bridgePart.OnHideAsync(path, operation);
             this.delPart?.OnHidePanelAsync(path);
             //colse_hide_list.Add(operation);
 
 
-            return operation.ContinueWith<PanelAsyncOperation>(_ =>
-            {
-                Hide(_.path);
-            });
+            return operation;
         }
 
 
