@@ -144,16 +144,25 @@ namespace IFramework
             public AsyncTask PublishAsync(IEventArgs args)
             {
                 var array = StaticPool<AsyncTask>.GetArray(entities.Count);
+                bool whenAll = false;
                 for (int i = 0; i < entities.Count; i++)
                 {
                     var task = entities[i].Call(args);
                     array[i] = task;
+                    if (!whenAll && !task.IsCompleted)
+                        whenAll = true;
+
                 }
-                return AsyncTask.WhenAll(array).ContinueWith(_ =>
+                if (whenAll)
+                    return AsyncTask.WhenAll(array).ContinueWith(_ =>
+                           {
+                               StaticPool<AsyncTask>.Set(array);
+                           });
+                else
                 {
                     StaticPool<AsyncTask>.Set(array);
-                });
-
+                    return AsyncTask.CompletedTask;
+                }
             }
 
 
