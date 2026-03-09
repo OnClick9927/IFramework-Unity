@@ -10,12 +10,11 @@ using UnityEditor;
 using UnityEngine;
 using System.Linq;
 using System;
-using static IFramework.UI.UIModuleWindow;
 
 namespace IFramework.UI
 {
     [System.Serializable]
-    class EditorPanelCollectionPlan
+    public class EditorPanelCollectionPlan
     {
         public string ConfigGenPath;
         public string PanelCollectPath;

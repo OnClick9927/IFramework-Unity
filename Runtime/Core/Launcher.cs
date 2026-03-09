@@ -52,32 +52,5 @@ namespace IFramework
         public static void UnBindOnApplicationPause(Action<bool> action) => onApplicationPause -= action;
         public static void BindDisable(Action action) => ondisable += action;
         public static void UnBindDisable(Action action) => ondisable -= action;
-
-
-
-
-#if UNITY_EDITOR
-        private static DateTime last;
-        static float delta_editor;
-        [UnityEditor.InitializeOnLoadMethod]
-        static void Dosth()
-        {
-            UnityEditor.EditorApplication.update += () =>
-            {
-                var now = DateTime.Now;
-                var result = (now - last).TotalSeconds;
-                last = now;
-                delta_editor = Mathf.Min((float)result, 0.02f);
-            };
-        }
-#endif
-        public static float GetDeltaTime()
-        {
-#if UNITY_EDITOR
-            if (!Application.isPlaying) return delta_editor;
-
-#endif
-            return Time.deltaTime;
-        }
     }
 }

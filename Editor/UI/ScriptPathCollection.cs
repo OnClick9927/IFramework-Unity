@@ -9,54 +9,31 @@
 using System.Collections.Generic;
 using UnityEditor;
 using System.Linq;
-using static IFramework.UI.UIModuleWindow;
+using static IFramework.UI.UIEditorPrefs;
 
 namespace IFramework.UI
 {
     [System.Serializable]
     public class ScriptPathCollection
     {
-        [System.Serializable]
-        public class Seg
+        private static ScrpitSeg Get(string prefab)
         {
-            public string prefab;
-            public string ScriptPath;
-            public List<string> Paths;
-        }
-
-        [UnityEngine.SerializeField] private List<Seg> segs = new List<Seg>();
-        private static ScriptPathCollection __context;
-        private Seg Get(string prefab)
-        {
-            var find = segs.Find(x => x.prefab == prefab);
+            var find = context.segs.Find(x => x.prefab == prefab);
             if (find == null)
             {
-                find = new Seg() { prefab = prefab };
-                segs.Add(find);
+                find = new ScrpitSeg() { prefab = prefab };
+                context.segs.Add(find);
             }
             return find;
         }
-        private static ScriptPathCollection context_scripts
-        {
-            get
-            {
-                if (__context == null)
-                {
+        public static ScrpitSeg GetSeg(PanelCollection.Data data) => GetSeg(data.path);
 
-                    __context = EditorTools.GetFromPrefs<ScriptPathCollection>(nameof(ScriptPathCollection), false);
-                    if (__context == null)
-                        __context = new ScriptPathCollection();
-                }
-                return __context;
-            }
-        }
         internal static void SaveScriptsData()
         {
-            EditorTools.SaveToPrefs(context_scripts, nameof(ScriptPathCollection), false);
+            UIEditorPrefs.Save();
         }
 
-        private static Seg GetSeg(string prefab) => context_scripts.Get(prefab);
-        public static Seg GetSeg(PanelCollection.Data data) => GetSeg(data.path);
+        private static ScrpitSeg GetSeg(string prefab) => Get(prefab);
 
         internal static bool CollectScripPaths(PanelCollection collect, UIGenCode tab)
         {

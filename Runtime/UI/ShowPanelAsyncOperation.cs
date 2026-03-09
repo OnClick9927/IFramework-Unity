@@ -7,133 +7,39 @@
  *History:        2018.11--
 *********************************************************************************/
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace IFramework.UI
 {
-    public class PanelAsyncOperation : IPoolObject, IAwaitable<UIAsyncOperationAwaitor>
+    public class PanelAsyncOperation : AsyncTask
     {
-
-        public static PanelAsyncOperation Done = new PanelAsyncOperation()
-        {
-            _isDone = true,
-        };
-
-
         public string path;
-
-        public Action completed;
-        public bool _isDone = false;
-        public bool isDone { get { return _isDone; } }
-        public void SetComplete()
+        protected override void ResetFromPool()
         {
-            _isDone = true;
-            completed?.Invoke();
-            completed = null;
-        }
-        bool IPoolObject.valid { get; set; }
-
-        void IPoolObject.OnGet()
-        {
-            Reset();
-        }
-
-        void IPoolObject.OnSet()
-        {
-        }
-        protected virtual void Reset()
-        {
-            _isDone = false;
-            completed = null;
+            base.ResetFromPool();
             path = string.Empty;
         }
+        protected override void BackToPool() => SetToPool(this);
+        internal new static PanelAsyncOperation CreateFromPool() => AllocatePoolTask<PanelAsyncOperation>();
 
-        public IAwaiter GetAwaiter() => new UIAsyncOperationAwaitor(this);
-    }
 
-    struct UIAsyncOperationAwaitor : IAwaiter
-    {
-        private PanelAsyncOperation op;
-        private Queue<Action> actions;
-        public UIAsyncOperationAwaitor(PanelAsyncOperation op)
-        {
-            this.op = op;
-            actions = StaticPool<Queue<Action>>.Get();
-            op.completed += OnCompleted;
-        }
-
-        private void OnCompleted()
-        {
-            while (actions.Count > 0)
-            {
-                actions.Dequeue()?.Invoke();
-            }
-            StaticPool<Queue<Action>>.Set(actions);
-        }
-
-        public bool IsCompleted => op.isDone;
-
-        public void OnCompleted(Action continuation)
-        {
-            actions?.Enqueue(continuation);
-        }
-
-        public void UnsafeOnCompleted(Action continuation)
-        {
-            OnCompleted(continuation);
-        }
-
-        public void GetResult() { }
-    }
-
-    class ShowPanelAsyncOperation : PanelAsyncOperation { }
-    class HidePanelAsyncOperation : PanelAsyncOperation
-    {
-
-    }
-    class ClosePanelAsyncOperation : PanelAsyncOperation
-    {
-
-        //public string path;
     }
 
 
-    public class LoadPanelAsyncOperation : IPoolObject
+    public class LoadPanelAsyncOperation : AsyncTask<UIPanel>
     {
-        internal UIPanel value;
-        private bool _isDone;
+        internal new static LoadPanelAsyncOperation CreateFromPool() => AllocatePoolTask<LoadPanelAsyncOperation>();
 
-        public bool isDone { get { return _isDone; } }
-
-        bool IPoolObject.valid { get; set; }
-
-        public void SetValue(UIPanel value)
+        protected override void ResetFromPool()
         {
-            this.value = value;
-            _isDone = true;
-        }
-
-        void IPoolObject.OnGet()
-        {
-            Reset();
-        }
-
-        void IPoolObject.OnSet()
-        {
-        }
-
-        internal void Reset()
-        {
-            _isDone = false;
-            value = null;
-            //path = string.Empty;
+            base.ResetFromPool();
             parent = null;
+            show = null;
         }
+        protected override void BackToPool() => SetToPool(this);
         public string path => show?.path;
         public RectTransform parent;
-        internal ShowPanelAsyncOperation show;
+        internal PanelAsyncOperation show;
     }
 
 

@@ -14,21 +14,16 @@ using UnityEngine;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using static IFramework.UI.UIEditorPrefs;
 
 namespace IFramework.UI
 {
     class UIGenCodeCS : UIGenCode
     {
-        [System.Serializable]
-        class UIGenCodeCS_PUB
-        {
-            public string NameSpace;
-            public int viewBaseIndex;
-            public int widgetBaseIndex;
-        }
+    
 
 
-        private UIGenCodeCS_PUB pubsave = new UIGenCodeCS_PUB();
+        private UIGenCodeCS_PUB pubsave => UIEditorPrefs.context.pubsave;
 
 
         public override string name => "CS";
@@ -95,14 +90,15 @@ namespace IFramework.UI
         {
             var last = _last as UIGenCodeCS;
             this._type = last._type;
-            pubsave = EditorTools.GetFromPrefs(typeof(UIGenCodeCS_PUB), name, false) as UIGenCodeCS_PUB;
+            //pubsave = EditorTools.GetFromPrefs(typeof(UIGenCodeCS_PUB), name, false) as UIGenCodeCS_PUB;
             //if (pubsave == null) pubsave = new UIGenCodeCS_PUB();
         }
         public override void OnDisable()
         {
             base.OnDisable();
             //if (pubsave == null) return;
-            EditorTools.SaveToPrefs(pubsave, name, false);
+            UIEditorPrefs.Save();
+            //EditorTools.SaveToPrefs(pubsave, name, false);
         }
 
 

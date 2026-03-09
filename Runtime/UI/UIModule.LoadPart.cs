@@ -8,7 +8,6 @@
 *********************************************************************************/
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,9 +17,25 @@ namespace IFramework.UI
     {
         private class LoadPart
         {
-            private bool _loading = false;
+
+            private int __Loading;
+            private int _loading
+            {
+                get { return __Loading; }
+                set
+                {
+                    if (__Loading == value) return;
+                    __Loading = value;
+                    if (value == 0)
+                        module.AcceptRayCast();
+
+                    else
+                        module.RefuseRayCast();
+                }
+            }
+
             private UIModule module;
-            private Queue<LoadPanelAsyncOperation> asyncLoadQueue;
+            //private Queue<LoadPanelAsyncOperation> asyncLoadQueue;
             private Dictionary<string, UIPanel> panels = new Dictionary<string, UIPanel>();
             public Canvas canvas { get; private set; }
 
@@ -34,12 +49,12 @@ namespace IFramework.UI
                     panels.Remove(path);
                 }
             }
-            private SimpleObjectPool<LoadPanelAsyncOperation> load_op = new SimpleObjectPool<LoadPanelAsyncOperation>();
+            //private SimpleObjectPool<LoadPanelAsyncOperation> load_op = new SimpleObjectPool<LoadPanelAsyncOperation>();
 
             public LoadPart(UIModule module)
             {
                 this.module = module;
-                asyncLoadQueue = new Queue<LoadPanelAsyncOperation>();
+                //asyncLoadQueue = new Queue<LoadPanelAsyncOperation>();
                 panels = new Dictionary<string, UIPanel>();
             }
             public UIPanel Find(string path)
@@ -49,7 +64,7 @@ namespace IFramework.UI
                 return ui;
             }
 
-            public void LoadPanel(int layer, ShowPanelAsyncOperation show_op)
+            public void LoadPanel(int layer, PanelAsyncOperation show_op)
             {
                 string path = show_op.path;
                 var panel = Find(path);
@@ -64,53 +79,41 @@ namespace IFramework.UI
                         UILoadComplete(result, show_op);
                     else
                     {
-                        LoadPanelAsyncOperation op = load_op.Get();
+                        var op = LoadPanelAsyncOperation.CreateFromPool();
                         //op.path = path;
                         op.parent = parent;
                         op.show = show_op;
                         if (module.assetPart.LoadPanelAsync(op))
                         {
-                            _loading = true;
-                            asyncLoadQueue.Enqueue(op);
+                            _loading++;
+                            op.ContinueWith<LoadPanelAsyncOperation>(_ =>
+                            {
+                                UILoadComplete(_.result, _.show);
+                                _loading--;
+                            });
+                            //asyncLoadQueue.Enqueue(op);
                         }
                         else
                             throw new Exception($"Can't load ui with Name: {path}");
                     }
                 }
             }
-            private void UILoadComplete(UIPanel ui, ShowPanelAsyncOperation op)
+            private void UILoadComplete(UIPanel ui, PanelAsyncOperation op)
             {
                 string path = op.path;
 
                 if (ui != null) panels.Add(path, ui);
                 module.UILoadComplete(ui, op);
             }
-            private void OnShowCallBack(bool exist, UIPanel panel, ShowPanelAsyncOperation op)
+            private void OnShowCallBack(bool exist, UIPanel panel, PanelAsyncOperation op)
             {
                 module.OnShowCallBack(exist, panel, op);
             }
-            public void Update()
-            {
-                if (asyncLoadQueue.Count == 0)
-                {
-                    if (_loading)
-                    {
-                        module.AcceptRayCast();
-                        _loading = false;
-                    }
-                }
-                else
-                {
-                    module.RefuseRayCast();
-                    while (asyncLoadQueue.Count > 0 && asyncLoadQueue.Peek().isDone)
-                    {
-                        LoadPanelAsyncOperation op = asyncLoadQueue.Dequeue();
-                        load_op.Set(op);
-                        UILoadComplete(op.value, op.show);
-                    }
-                }
+            //public void Update()
+            //{
+        
 
-            }
+            //}
 
             public Canvas CreateCanvas()
             {

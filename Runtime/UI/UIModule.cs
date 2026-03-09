@@ -15,7 +15,7 @@ using static IFramework.UI.UIPanel;
 
 namespace IFramework.UI
 {
-    public partial class UIModule : UpdateModule
+    public partial class UIModule : Module
     {
 
         private LoadPart loadPart;
@@ -25,7 +25,7 @@ namespace IFramework.UI
         private IUIDelegate delPart;
         public Canvas canvas { get; private set; }
 
-        private SimpleObjectPool<ShowPanelAsyncOperation> show_op = new SimpleObjectPool<ShowPanelAsyncOperation>();
+        //private SimpleObjectPool<ShowPanelAsyncOperation> show_op = new SimpleObjectPool<ShowPanelAsyncOperation>();
 
         class LayerChangeCheckData
         {
@@ -54,33 +54,33 @@ namespace IFramework.UI
             layerPart.Clear();
             loadPart.DeleteCanvas();
         }
-        protected override void OnUpdate()
-        {
-            loadPart.Update();
-            if (colse_hide_list.Count > 0)
-            {
-                for (int i = colse_hide_list.Count - 1; i >= 0; i--)
-                {
-                    var op = colse_hide_list[i];
-                    if (op.isDone)
-                    {
-                        if (op is HidePanelAsyncOperation)
-                        {
-                            var _op = op as HidePanelAsyncOperation;
-                            Hide(_op.path);
-                            hide_op.Set(_op);
-                        }
-                        else if (op is ClosePanelAsyncOperation)
-                        {
-                            var _op = op as ClosePanelAsyncOperation;
-                            Close(_op.path);
-                            close_op.Set(_op);
-                        }
-                        colse_hide_list.RemoveAt(i);
-                    }
-                }
-            }
-        }
+        //protected override void OnUpdate()
+        //{
+        //    //loadPart.Update();
+        //    //if (colse_hide_list.Count > 0)
+        //    //{
+        //    //    for (int i = colse_hide_list.Count - 1; i >= 0; i--)
+        //    //    {
+        //    //        var op = colse_hide_list[i];
+        //    //        if (op.IsCompleted)
+        //    //        {
+        //    //            if (op is HidePanelAsyncOperation)
+        //    //            {
+        //    //                var _op = op as HidePanelAsyncOperation;
+        //    //                Hide(_op.path);
+        //    //                hide_op.Set(_op);
+        //    //            }
+        //    //            else if (op is ClosePanelAsyncOperation)
+        //    //            {
+        //    //                var _op = op as ClosePanelAsyncOperation;
+        //    //                Close(_op.path);
+        //    //                close_op.Set(_op);
+        //    //            }
+        //    //            colse_hide_list.RemoveAt(i);
+        //    //        }
+        //    //    }
+        //    //}
+        //}
 
         public void CreateCanvas()
         {
@@ -155,7 +155,7 @@ namespace IFramework.UI
 
 
 
-        private void UILoadComplete(UIPanel ui, ShowPanelAsyncOperation op)
+        private void UILoadComplete(UIPanel ui, PanelAsyncOperation op)
         {
             string path = op.path;
 
@@ -174,7 +174,7 @@ namespace IFramework.UI
             OnShowCallBack(false, ui, op);
         }
 
-        private void OnShowCallBack(bool exist, UIPanel panel, ShowPanelAsyncOperation op)
+        private void OnShowCallBack(bool exist, UIPanel panel, PanelAsyncOperation op)
         {
             string path = op.path;
             if (panel != null)
@@ -189,8 +189,8 @@ namespace IFramework.UI
             var layer = GetPanelLayer(path);
             EndChangeLayerTopChangeCheck(layer, path, true, check_show);
             if (op != null)
-                op.SetComplete();
-            show_op.Set(op);
+                op.SetResult();
+            //show_op.Set(op);
         }
 
         public PanelAsyncOperation Show(string path)
@@ -202,7 +202,7 @@ namespace IFramework.UI
                 throw new Exception("Please Set UILoader First");
 
             this.delPart?.OnShowPanelRequest(path);
-            ShowPanelAsyncOperation show_op = this.show_op.Get();
+            var show_op = StaticPool<PanelAsyncOperation>.Get();
             show_op.path = path;
             var layer = GetPanelLayer(path);
             BeginChangeLayerTopChangeCheck(layer, check_show);
@@ -246,32 +246,38 @@ namespace IFramework.UI
             }
         }
 
-        private SimpleObjectPool<ClosePanelAsyncOperation> close_op = new SimpleObjectPool<ClosePanelAsyncOperation>();
-        private SimpleObjectPool<HidePanelAsyncOperation> hide_op = new SimpleObjectPool<HidePanelAsyncOperation>();
-        private List<PanelAsyncOperation> colse_hide_list = new List<PanelAsyncOperation>();
-        public PanelAsyncOperation CloseAsync(string path)
+        //private SimpleObjectPool<ClosePanelAsyncOperation> close_op = new SimpleObjectPool<ClosePanelAsyncOperation>();
+        //private SimpleObjectPool<HidePanelAsyncOperation> hide_op = new SimpleObjectPool<HidePanelAsyncOperation>();
+        //private List<PanelAsyncOperation> colse_hide_list = new List<PanelAsyncOperation>();
+        public AsyncTask CloseAsync(string path)
         {
-            if (loadPart.Find(path) == null) return PanelAsyncOperation.Done;
+            if (loadPart.Find(path) == null) return PanelAsyncOperation.CompletedTask;
 
-            var operation = close_op.Get();
+            var operation = PanelAsyncOperation.CreateFromPool();
             operation.path = path;
             this.bridgePart.OnCloseAsync(path, operation);
             this.delPart?.OnClosePanelAsync(path);
-
-            colse_hide_list.Add(operation);
-            return operation;
+       ;
+            //colse_hide_list.Add(operation);
+            return operation.ContinueWith<PanelAsyncOperation>(_ =>
+            {
+                Close(_.path);
+            });
         }
-        public PanelAsyncOperation HideAsync(string path)
+        public AsyncTask HideAsync(string path)
         {
-            if (loadPart.Find(path) == null) return PanelAsyncOperation.Done;
-            var operation = hide_op.Get();
+            if (loadPart.Find(path) == null) return PanelAsyncOperation.CompletedTask;
+            var operation = PanelAsyncOperation.CreateFromPool();
             operation.path = path;
             this.bridgePart.OnHideAsync(path, operation);
             this.delPart?.OnHidePanelAsync(path);
-            colse_hide_list.Add(operation);
+            //colse_hide_list.Add(operation);
 
 
-            return operation;
+            return operation.ContinueWith<PanelAsyncOperation>(_ =>
+            {
+                Hide(_.path);
+            });
         }
 
 

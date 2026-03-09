@@ -8,59 +8,40 @@
 *********************************************************************************/
 using System;
 using System.Collections.Generic;
-using static IFramework.UI.UIModuleWindow;
-using UnityEngine;
-using UnityEditor;
 using System.IO;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace IFramework.UI
 {
+
+
     [System.Serializable]
     class EditorPanelCollectionPlans
     {
-        [SerializeField] private int _index = 0;
-
-        [SerializeField] private List<EditorPanelCollectionPlan> _plans = new List<EditorPanelCollectionPlan>();
         const string res = "Resources";
-        private static EditorPanelCollectionPlans _context;
-        private static EditorPanelCollectionPlans context
+        public static void OnLoad(UIEditorPrefs context)
         {
-            get
-            {
-
-                if (_context == null)
-                {
-                    _context = EditorTools.GetFromPrefs<EditorPanelCollectionPlans>(nameof(EditorPanelCollectionPlans), false);
-                    if (_context == null)
-                        _context = new EditorPanelCollectionPlans();
-                    if (_context._plans.Count == 0)
-                        NewPlan();
-                    Save();
-                }
-                return _context;
-            }
+            if (context._plans.Count == 0)
+                _NewPlan(context);
         }
-
-
-        private static void Save() => EditorTools.SaveToPrefs(_context, nameof(EditorPanelCollectionPlans), false);
-
+        public static UIEditorPrefs context => UIEditorPrefs.context;
 
         public static List<EditorPanelCollectionPlan> plans => context._plans;
         public static EditorPanelCollectionPlan plan_current => plans[planIndex];
         public static int planIndex
         {
-            get => context._index;
+            get => context.plan_index;
             set
             {
-                if (context._index != value)
+                if (context.plan_index != value)
                 {
-                    context._index = value;
-                    Save();
+                    context.plan_index = value;
+                    UIEditorPrefs.Save();
                 }
             }
         }
-
         public static void SaveCurrentPlan(string name, string GenPath, string CollectPath, string ScriptGenPath,
         string scriptName, string configName, int typeIndex)
         {
@@ -76,9 +57,11 @@ namespace IFramework.UI
                 _plan.ScriptName = scriptName;
                 _plan.typeIndex = typeIndex;
                 _plan.ConfigName = configName;
-                Save();
+                UIEditorPrefs.Save();
             }
         }
+
+
 
         public static void DeletePlan()
         {
@@ -90,9 +73,11 @@ namespace IFramework.UI
             plans.RemoveAt(planIndex);
             planIndex = 0;
         }
-        public static void NewPlan()
+        public static void NewPlan() => _NewPlan(context);
+
+        public static void _NewPlan(UIEditorPrefs context)
         {
-            plans.Add(new EditorPanelCollectionPlan()
+            context._plans.Add(new EditorPanelCollectionPlan()
             {
                 name = DateTime.Now.ToString("yy_MM_dd_hh_mm_ss"),
                 PanelCollectPath = "Assets",

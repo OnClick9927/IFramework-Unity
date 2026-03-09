@@ -42,7 +42,6 @@ namespace IFramework
             _modules = new Modules();
             transform.SetParent(Launcher.Instance.transform);
             Launcher.Instance.game = this;
-            Init();
             Startup();
             BindUpdate(_modules.Update);
         }
@@ -53,8 +52,6 @@ namespace IFramework
             values.Clear();
             _modules = null;
         }
-
-        protected abstract void Init();
         protected abstract void Startup();
 
         public void RegisterValue(Type type, object instance) => values.RegisterInstance(type, instance);

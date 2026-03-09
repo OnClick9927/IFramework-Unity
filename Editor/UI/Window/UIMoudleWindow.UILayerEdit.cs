@@ -477,13 +477,13 @@ namespace IFramework.UI
 
             public override void OnEnable()
             {
-                var last = EditorTools.GetFromPrefs<UILayerEdit>(name, false);
+                var last = UIEditorPrefs.context.layerEdit;
                 if (last != null)
                 {
-                    mode = last.mode;
-                    layer_state = EditorTools.GetFromPrefs<TreeViewState>(name, true);
+                    mode = (Mode)last.mode;
                     layerObjectPath = last.layerObjectPath;
                     layerObject = AssetDatabase.LoadAssetAtPath<UILayerData>(layerObjectPath);
+                    layer_state = EditorTools.GetFromPrefs<TreeViewState>(name, true);
                 }
                 if (layer_state == null) layer_state = new TreeViewState();
                 Fresh();
@@ -494,7 +494,16 @@ namespace IFramework.UI
                 if (layerObject != null)
                     layerObjectPath = AssetDatabase.GetAssetPath(layerObject);
                 EditorTools.SaveToPrefs<TreeViewState>(layer_state, name, true);
-                EditorTools.SaveToPrefs<UILayerEdit>(this, name, false);
+
+                UIEditorPrefs.context.layerEdit = new UIEditorPrefs.UiLayerEdit()
+                {
+                    mode = (int)this.mode,
+                    layerObjectPath = layerObjectPath
+                };
+                UIEditorPrefs.Save();
+                //EditorTools.SaveToPrefs<UILayerEdit>(this, name, true);
+
+
             }
             public override void OnGUI()
             {
@@ -586,7 +595,7 @@ namespace IFramework.UI
                 if (GUILayout.Button("ping", GUILayout.Width(60)))
                 {
                     EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<UnityEngine.Object>((window.GetTab(plan.GetSelectType()) as UIGenCode)
-                        .GetScriptFilePath(plan.ScriptGenPath,plan.ScriptName)));
+                        .GetScriptFilePath(plan.ScriptGenPath, plan.ScriptName)));
 
                 }
                 GUILayout.EndHorizontal();
