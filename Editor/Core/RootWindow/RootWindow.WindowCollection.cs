@@ -85,7 +85,7 @@ namespace IFramework
             public static Texture tx = EditorGUIUtility.IconContent("BuildSettings.Editor.Small").image;
             private SelectTree _tree;
 
-            public override string Name => "WindowCollection";
+            public override string Name => "2、WindowCollection";
 
             public WindowCollection()
             {

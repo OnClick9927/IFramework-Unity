@@ -15,12 +15,13 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using static IFramework.UI.UIEditorPrefs;
+using static IFramework.EditorTools.ScriptCreator;
 
 namespace IFramework.UI
 {
     class UIGenCodeCS : UIGenCode
     {
-    
+
 
 
         private UIGenCodeCS_PUB pubsave => UIEditorPrefs.context.pubsave;
@@ -35,14 +36,14 @@ namespace IFramework.UI
         [SerializeField] private ViewType _type;
 
 
-        string old_version_widget_file_path;
+        //string old_version_widget_file_path;
 
         List<Type> viewTypes, widgetTypes;
         List<string> viewTypes_str, widgetTypes_str;
 
         protected override void BeforeSetViewData()
         {
-            old_version_widget_file_path = string.Empty;
+            //old_version_widget_file_path = string.Empty;
             if (panel == null)
             {
 
@@ -58,29 +59,64 @@ namespace IFramework.UI
 
             }
         }
+        protected override void OnFindDirSuccess()
+        {
+            var lines = File.ReadAllLines(scriptPath);
+            var flag_1 = $"namespace {EditorTools.ProjectConfig.NameSpace}";
+            var flag_2 = $"public class {viewName}";
+            foreach (var line in lines)
+            {
+                if (line.StartsWith(flag_1))
+                {
+                    var temp = line.Replace(flag_1, "");
+                    if (temp.StartsWith("."))
+                        temp = temp.Substring(1);
+                    pubsave.NameSpace = temp;
+                }
+                if (line.Trim().StartsWith(flag_2))
+                {
+                    if (_type == ViewType.View)
+                    {
+                        for (int i = 0; i < viewTypes_str.Count; i++)
+                            if (line.Contains(viewTypes[i].Name))
+                                pubsave.viewBaseIndex = i;
+
+                    }
+                    else
+                    {
+                        for (int i = 0; i < widgetTypes_str.Count; i++)
+                            if (line.Contains(widgetTypes[i].Name))
+                                pubsave.widgetBaseIndex = i;
+                    }
+                    break;
+                }
+
+            }
+
+
+        }
         protected override void OnFindDirFail()
         {
-            UIPanel find = panel.GetComponent<UIPanel>();
-            if (_type == ViewType.Widget)
-            {
-                old_version_widget_file_path = AssetDatabase.GetAllAssetPaths().ToList().Find(x => x.EndsWith(GetScriptFileName(base.viewName)));
-            }
+            //if (_type == ViewType.Widget)
+            //{
+            //    old_version_widget_file_path = AssetDatabase.GetAllAssetPaths().ToList().Find(x => x.EndsWith(GetScriptFileName(base.viewName)));
+            //}
         }
         public override void OnEnable()
         {
-            base.OnEnable();
             FindBase();
+            base.OnEnable();
         }
         private void FindBase()
         {
             viewTypes = typeof(UIView).GetSubTypesInAssemblies().Where(x => x.IsAbstract).ToList();
-            widgetTypes = typeof(GameObjectView).GetSubTypesInAssemblies().Where(x => x.IsAbstract && !x.IsSubclassOf(typeof(UIView)) && x != typeof(UIView)).ToList();
+            widgetTypes = typeof(WidgetView).GetSubTypesInAssemblies().Where(x => x.IsAbstract && !x.IsSubclassOf(typeof(UIView)) && x != typeof(UIView)).ToList();
 
             viewTypes.Sort((x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.FullName, y.FullName));
             widgetTypes.Sort((x, y) => StringComparer.OrdinalIgnoreCase.Compare(x.FullName, y.FullName));
 
             viewTypes.Insert(0, typeof(UIView));
-            widgetTypes.Insert(0, typeof(GameObjectView));
+            widgetTypes.Insert(0, typeof(WidgetView));
             viewTypes_str = viewTypes.ConvertAll(x => x.FullName);
             widgetTypes_str = widgetTypes.ConvertAll(x => x.FullName);
 
@@ -137,17 +173,17 @@ namespace IFramework.UI
             File.WriteAllText(GetScriptFilePath(scriptGenPath, scriptName), sb.ToString().ToUnixLineEndings());
             AssetDatabase.Refresh();
         }
-  
-        private void Fix()
-        {
-            string path = old_version_widget_file_path;
-            var old_name = Path.GetFileNameWithoutExtension(path);
-            var txt = File.ReadAllText(path);
-            txt = txt.Replace(old_name, viewName);
-            File.WriteAllText(path.Replace(old_name, viewName), txt);
-            File.Delete(path);
-            AssetDatabase.Refresh();
-        }
+
+        //private void Fix()
+        //{
+        //    string path = old_version_widget_file_path;
+        //    var old_name = Path.GetFileNameWithoutExtension(path);
+        //    var txt = File.ReadAllText(path);
+        //    txt = txt.Replace(old_name, viewName);
+        //    File.WriteAllText(path.Replace(old_name, viewName), txt);
+        //    File.Delete(path);
+        //    AssetDatabase.Refresh();
+        //}
 
 
 
@@ -168,12 +204,12 @@ namespace IFramework.UI
             GUILayout.BeginHorizontal();
 
             _type = (ViewType)EditorGUILayout.EnumPopup("Type", _type);
-            GUI.enabled = !string.IsNullOrEmpty(old_version_widget_file_path);
-            if (GUILayout.Button("Fix Widget", GUILayout.Width(80)))
-            {
-                Fix();
-            }
-            GUI.enabled = true;
+            //GUI.enabled = !string.IsNullOrEmpty(old_version_widget_file_path);
+            //if (GUILayout.Button("Fix Widget", GUILayout.Width(80)))
+            //{
+            //    Fix();
+            //}
+            //GUI.enabled = true;
 
             GUILayout.EndHorizontal();
 
@@ -187,52 +223,10 @@ namespace IFramework.UI
         }
         protected override string GetScriptTemplate()
         {
-            string MoreMethod = "#MoreMethod#";
-            Type pa = null;
-            switch (_type)
-            {
-                case ViewType.Widget:
-                    pa = widgetTypes[pubsave.widgetBaseIndex];
-                    break;
-                case ViewType.View:
-                    pa = viewTypes[pubsave.viewBaseIndex];
-                    break;
-                default:
-                    break;
-            }
-            string target = "/*********************************************************************************\n" +
-        $" *Author:         {Author}\n" +
-        $" *Date:           {Date}\n" +
-        "*********************************************************************************/\n" +
-            "using static IFramework.UI.UnityEventHelper;\r\n" +
-        $"namespace {ScriptNameSpace}\n" +
-        "{\n" +
-        $"\tpublic class {ScriptName} : {pa.FullName} \n" +
-        "\t{\n" +
+            if (_type == ViewType.Widget)
+                return Resources.Load<TextAsset>("Widget").text.Replace(ParentClass, widgetTypes[pubsave.widgetBaseIndex].FullName);
+            return Resources.Load<TextAsset>("View").text.Replace(ParentClass, viewTypes[pubsave.viewBaseIndex].FullName);
 
-        "\t\tclass View {\n" +
-         $"//{FieldsStart}\n" +
-         $"{Field}\n" +
-         $"//{FieldsEnd}\n" +
-         $"\t\tpublic View({ScriptName} context){{\n" +
-         $"//{InitComponentsStart}\n" +
-        $"{FindField}\n" +
-        $"//{InitComponentsEnd}\n" +
-         "\t\t\t}\n" +
-         "\t\t}\n" +
-
-         "\t\tprivate View view;\n" +
-
-        "\t\tprotected override void InitComponents()\n" +
-        "\t\t{\n" +
-        "\t\t\tview = new View(this);\n" +
-        "\t\t}\n" +
-
-
-        MoreMethod +
-        "\t}\n" +
-        "}";
-            return target.Replace(MoreMethod, ViewTxt());
         }
 
         protected override string GetFieldCode(string source, string fieldType, string fieldName)
@@ -279,24 +273,6 @@ namespace IFramework.UI
             }
         }
 
-
-
-
-
-
-
-        private string ViewTxt()
-        {
-            if (_type == ViewType.View)
-                return "\t\tprotected override void OnLoad(){}\n" +
-                        "\t\tprotected override void OnShow(){}\n" +
-                        "\t\tprotected override void OnHide(){}\n" +
-                        "\t\tprotected override void OnClose(){}\n";
-                        //"\t\tprotected override void OnBecameInvisible(){}\n" +
-                        //"\t\tprotected override void OnBecameVisible(){}\n";
-            ;
-            return string.Empty;
-        }
 
         public override string GetScriptFitter() => "t:Script";
     }

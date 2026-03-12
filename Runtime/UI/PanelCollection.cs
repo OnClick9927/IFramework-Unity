@@ -18,9 +18,7 @@ namespace IFramework.UI
         public class Data
         {
 #if UNITY_EDITOR
-            public string name => ValidName(System.IO.Path.GetFileNameWithoutExtension(path));
-
-            public static string ValidName(string name) => ScriptCreatorContext.ToValidFiledName(name);
+            public string name => ScriptCreatorContext.ToValidFiledName(System.IO.Path.GetFileNameWithoutExtension(path));
 #else
             public string name => string.Empty;
 #endif

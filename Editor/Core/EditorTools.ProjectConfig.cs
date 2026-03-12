@@ -7,7 +7,6 @@
  *History:        2018.11--
 *********************************************************************************/
 using UnityEditor;
-using System.Collections.Generic;
 using System;
 using System.Reflection;
 
@@ -57,6 +56,7 @@ namespace IFramework
             public static bool enable_L { get { return Info.enable_L; } }
             public static bool enable_W { get { return Info.enable_W; } }
             public static bool enable_E { get { return Info.enable_E; } }
+            public static string SMFlag {  get { return Info.SMFlag; } }
 
             public static bool dockWindow { get { return Info.dockWindow; } }
             //public static string projectPath { get { return Info.projectPath; } }
@@ -79,7 +79,7 @@ namespace IFramework
                 //};
                 //public string Version { get { return PlayerSettings.bundleVersion; } set { PlayerSettings.bundleVersion = value; } }
                 public string NameSpace;
-
+                public string SMFlag = "@sm";
                 public static ProjectConfigInfo Load()
                 {
                     var __info = EditorTools.GetFromPrefs<ProjectConfigInfo>(configName, false);

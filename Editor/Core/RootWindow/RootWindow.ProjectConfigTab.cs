@@ -37,9 +37,10 @@ namespace IFramework
                 public static string aenable = "Assert Enable";
 
                 public static string projectPath = "Project Path";
+                public static string SMFlag = "ScriptMarkFlag";
             }
 
-            public override string Name => "ProjectConfig";
+            public override string Name => "1、ProjectConfig";
 
 
 
@@ -88,6 +89,7 @@ namespace IFramework
                 EditorGUILayout.TextField(Contents.Name, EditorTools.ProjectConfig.UserName);
                 GUI.enabled = !EditorApplication.isPlaying;
                 Info.NameSpace = EditorGUILayout.TextField(Contents.Namespace, Info.NameSpace);
+                Info.SMFlag = EditorGUILayout.TextField(Contents.SMFlag, Info.SMFlag);
 
 
                 Info.dockWindow = EditorGUILayout.Toggle(Contents.dockWindow, Info.dockWindow);
@@ -195,5 +197,6 @@ namespace IFramework
         }
 
     }
+
 
 }

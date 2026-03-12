@@ -21,19 +21,19 @@ namespace IFramework.UI
     {
         void OnSet();
     }
-    public class WidgetPool<T> : IWidgetPool where T : GameObjectView
+    public class WidgetPool<T> : IWidgetPool where T : WidgetView
     {
         private GameObject prefab;
         private Transform parent;
         private Queue<T> classes = new Queue<T>();
         Func<T> createClass;
         protected Queue<GameObject> pool = new Queue<GameObject>();
-        private GameObjectView parentView;
+        private WidgetView parentView;
 
         public int count { get { return pool.Count; } }
 
         HideFlags _hideflag;
-        public static WidgetPool<T> Allocate(GameObjectView parentView, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
+        public static WidgetPool<T> Allocate(WidgetView parentView, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
         {
             var pool = StaticPool<WidgetPool<T>>.Get();
             pool.parentView = parentView;

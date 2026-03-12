@@ -6,14 +6,12 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.UI;
-namespace IFramework.UI
+namespace IFramework
 {
     [System.Serializable]
     public class MarkContext

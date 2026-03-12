@@ -21,7 +21,7 @@ namespace IFramework.UI
         void OnHideAsync(PanelAsyncOperation operation);
         void OnCloseAsync(PanelAsyncOperation operation);
     }
-    public abstract class UIView : GameObjectView, IUIView
+    public abstract class UIView : WidgetView, IUIView
     {
         public UIPanel panel { get; private set; }
 

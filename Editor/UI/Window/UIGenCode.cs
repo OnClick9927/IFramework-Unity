@@ -15,6 +15,7 @@ using System.IO;
 using System.Text;
 using System;
 using static IFramework.EditorTools;
+using static IFramework.EditorTools.ScriptCreator;
 
 namespace IFramework.UI
 {
@@ -32,7 +33,7 @@ namespace IFramework.UI
         [SerializeField] private string panelPath;
 
         protected virtual string viewName => PanelToViewName(panelName);
-        protected string panelName => PanelCollection.Data.ValidName(panel.name.Replace("@sm", ""));
+        protected string panelName => ScriptCreatorContext.ToValidFiledName(panel.name.Replace("@sm", ""));
 
         protected string scriptFileName => GetScriptFileName(viewName);
         protected virtual string scriptPath { get { return GenPath.CombinePath(scriptFileName); } }
@@ -245,22 +246,22 @@ namespace IFramework.UI
 
 
 
-        public const string ScriptName = "#ScriptName#";
-        public const string ScriptNameSpace = "#ScriptNameSpace#";
+        //public const string ScriptName = "#ScriptName#";
+        //public const string ScriptNameSpace = "#ScriptNameSpace#";
 
 
-        //public const string Version = "#UserVERSION#";
-        //public const string UnityVersion = "#UserUNITYVERSION#";
-        public const string Date = "#Date#";
+        ////public const string Version = "#UserVERSION#";
+        ////public const string UnityVersion = "#UserUNITYVERSION#";
+        //public const string Date = "#Date#";
 
 
-        public const string Author = "#Author#";
-        public const string InitComponentsStart = "InitComponentsStart";
-        public const string InitComponentsEnd = "InitComponentsEnd";
-        public const string FieldsStart = "FieldsStart";
-        public const string FieldsEnd = "FieldsEnd";
-        public const string Field = "#field#";
-        public const string FindField = "#findfield#";
+        //public const string Author = "#Author#";
+        //public const string InitComponentsStart = "InitComponentsStart";
+        //public const string InitComponentsEnd = "InitComponentsEnd";
+        //public const string FieldsStart = "FieldsStart";
+        //public const string FieldsEnd = "FieldsEnd";
+        //public const string Field = "#field#";
+        //public const string FindField = "#findfield#";
 
         protected abstract string GetFindPrefabCode(string source, string name, string fieldName);
 
