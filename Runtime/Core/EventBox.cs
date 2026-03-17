@@ -143,7 +143,7 @@ namespace IFramework
 
             public AsyncTask PublishAsync(IEventArgs args)
             {
-                var array = StaticPool<AsyncTask>.GetArray(entities.Count);
+                var array = StaticPool.GetArray<AsyncTask>(entities.Count);
                 bool whenAll = false;
                 for (int i = 0; i < entities.Count; i++)
                 {
@@ -156,11 +156,11 @@ namespace IFramework
                 if (whenAll)
                     return AsyncTask.WhenAll(array).ContinueWith(_ =>
                            {
-                               StaticPool<AsyncTask>.Set(array);
+                               StaticPool.Set<AsyncTask>(array);
                            });
                 else
                 {
-                    StaticPool<AsyncTask>.Set(array);
+                    StaticPool.Set<AsyncTask>(array);
                     return AsyncTask.CompletedTask;
                 }
             }
@@ -289,7 +289,7 @@ namespace IFramework
             MessageContext result = null;
             if (!map.TryGetValue(msg, out result))
             {
-                result = StaticPool<MessageContext>.Get();
+                result = StaticPool.Get<MessageContext>();
                 result.message = msg;
                 map.Add(msg, result);
             }
@@ -305,7 +305,7 @@ namespace IFramework
         private static void TryRecycleList(string key, MessageContext list)
         {
             if (list.Count != 0) return;
-            StaticPool<MessageContext>.Set(list);
+            StaticPool.Set(list);
             map.Remove(key);
         }
 
@@ -316,7 +316,7 @@ namespace IFramework
             if (list == null) return;
             list.UnSubscribe(listen);
             TryRecycleList(listen.msg, list);
-            StaticPool<T>.Set(listen);
+            StaticPool.Set<T>(listen);
 
         }
 
@@ -326,14 +326,14 @@ namespace IFramework
         {
             var type = typeof(T);
             string msg = type.Name;
-            return GetContext(msg).Subscribe(StaticPool<EventHandlerEntity<T>>.Get().SetData(handler is IAsyncEventHandler<T>, msg, handler));
+            return GetContext(msg).Subscribe(StaticPool.Get<EventHandlerEntity<T>>().SetData(handler is IAsyncEventHandler<T>, msg, handler));
         }
 
 
         internal static IEventEntity Subscribe<T>(string msg, Func<T, AsyncTask> action) where T : IEventArgs
-            => GetContext(msg).Subscribe(StaticPool<DelegateEventEntity<Func<T, AsyncTask>>>.Get().SetData(true, msg, action));
+            => GetContext(msg).Subscribe(StaticPool.Get<DelegateEventEntity<Func<T, AsyncTask>>>().SetData(true, msg, action));
         internal static IEventEntity Subscribe(string msg, Action<IEventArgs> action)
-            => GetContext(msg).Subscribe(StaticPool<DelegateEventEntity<Action<IEventArgs>>>.Get().SetData(false, msg, action));
+            => GetContext(msg).Subscribe(StaticPool.Get<DelegateEventEntity<Action<IEventArgs>>>().SetData(false, msg, action));
 
 
 
@@ -372,7 +372,7 @@ namespace IFramework
             List<EventEntityBase> result = null;
             if (!help.TryGetValue(msg, out result))
             {
-                result = StaticPool<List<EventEntityBase>>.Get();
+                result = StaticPool.Get<List<EventEntityBase>>();
                 help.Add(msg, result);
             }
             return result;
@@ -387,7 +387,7 @@ namespace IFramework
         private static void TryRecycleList(IEventsOwner key, List<EventEntityBase> list)
         {
             if (list.Count != 0) return;
-            StaticPool<List<EventEntityBase>>.Set(list);
+            StaticPool.Set(list);
             help.Remove(key);
         }
 

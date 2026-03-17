@@ -202,7 +202,7 @@ namespace IFramework.UI
                 throw new Exception("Please Set UILoader First");
 
             this.delPart?.OnShowPanelRequest(path);
-            var show_op = StaticPool<PanelAsyncOperation>.Get();
+            var show_op = StaticPool.Get<PanelAsyncOperation>();
             show_op.path = path;
             var layer = GetPanelLayer(path);
             BeginChangeLayerTopChangeCheck(layer, check_show);
@@ -383,7 +383,7 @@ namespace IFramework.UI
         public UIPanel GetTopShow() => layerPart.GetTopShow();
         public List<string> GetVisibleList() => layerPart.GetVisibleList();
 
-        List<string> help_under = StaticPool<List<string>>.Get();
+        List<string> help_under = StaticPool.Get<List<string>>();
         public List<string> GetVisibleListUnder(int layer)
         {
             var all = GetVisibleList();

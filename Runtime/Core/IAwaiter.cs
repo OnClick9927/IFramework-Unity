@@ -175,14 +175,14 @@ namespace IFramework
 
         protected static T AllocatePoolTask<T>() where T : AsyncTask, new()
         {
-            var task = StaticPool<T>.Get();
+            var task = StaticPool.Get<T>();
             task.ResetFromPool();
             task.fromPool = true;
             return task;
         }
         protected static void SetToPool<T>(T task) where T : AsyncTask, new()
         {
-            StaticPool<T>.Set(task);
+            StaticPool.Set<T>(task);
         }
 
         public static AsyncTask CreateFromPool() => AllocatePoolTask<AsyncTask>();

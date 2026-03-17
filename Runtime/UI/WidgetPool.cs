@@ -35,7 +35,7 @@ namespace IFramework.UI
         HideFlags _hideflag;
         public static WidgetPool<T> Allocate(WidgetView parentView, GameObject prefab, Transform parent, Func<T> createClass, bool inParent)
         {
-            var pool = StaticPool<WidgetPool<T>>.Get();
+            var pool = StaticPool.Get<WidgetPool<T>>();
             pool.parentView = parentView;
             if (inParent)
             {
@@ -106,7 +106,7 @@ namespace IFramework.UI
                 var t = pool.Dequeue();
                 GameObject.Destroy(t);
             }
-            StaticPool<WidgetPool<T>>.Set(this);
+            StaticPool.Set(this);
         }
 
 

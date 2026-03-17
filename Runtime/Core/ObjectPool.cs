@@ -117,56 +117,63 @@ namespace IFramework
             return new T();
         }
     }
-    public class StaticPool<T> where T : class, new()
+    public class StaticPool
     {
-        internal static readonly SimpleObjectPool<T> s_Pool = new SimpleObjectPool<T>();
-        internal static readonly ArrayPool<T> s_array_Pool = new ArrayPool<T>();
+        class Pool<T> where T : class, new()
+        {
+            internal static readonly SimpleObjectPool<T> s_Pool = new SimpleObjectPool<T>();
+            public static T Get() => s_Pool.Get();
 
-        public static T[] GetArray(int length)
-        {
-            s_array_Pool.SetLength(length);
-            return s_array_Pool.Get();
+            public static void Set(T toRelease) => s_Pool.Set(toRelease);
+
         }
-        public static T Get()
+        class ArrPool<T>
         {
-            return s_Pool.Get();
-        }
-        public static void Set(T[] toRelease)
-        {
-            s_array_Pool.Set(toRelease);
+            internal static readonly ArrayPool<T> s_array_Pool = new ArrayPool<T>();
+            public static T[] Get(int length)
+            {
+                s_array_Pool.SetLength(length);
+                return s_array_Pool.Get();
+            }
+            public static void Set(T[] toRelease) => s_array_Pool.Set(toRelease);
+
         }
 
-        public static void Set(T toRelease)
+        public interface IDisposableValue<T> : IDisposable
         {
-            s_Pool.Set(toRelease);
+            T value { get; }
+
         }
+
+        struct StaticPoolValue<T> : IDisposableValue<T> where T : class, new()
+        {
+            public T value { get; private set; }
+
+
+            public StaticPoolValue(bool ignore = true) => value = StaticPool.Get<T>();
+
+            public void Dispose() => StaticPool.Set(value);
+        }
+        struct StaticPoolArray<T> : IDisposableValue<T[]>
+        {
+            public T[] value { get; private set; }
+            public StaticPoolArray(int length) => value = StaticPool.GetArray<T>(length);
+
+            public void Dispose() => StaticPool.Set(value);
+        }
+        public static T[] GetArray<T>(int length) => ArrPool<T>.Get(length);
+
+        public static void Set<T>(T[] toRelease) => ArrPool<T>.Set(toRelease);
+
+        public static T Get<T>() where T : class, new() => Pool<T>.Get();
+
+        public static void Set<T>(T toRelease) where T : class, new() => Pool<T>.Set(toRelease);
+
+
+        public static IDisposableValue<T> CreateDisposable<T>() where T : class, new() => new StaticPoolValue<T>(true);
+        public static IDisposableValue<T[]> CreateDisposableArray<T>(int length) => new StaticPoolArray<T>(length);
     }
-    public class StaticPoolValue<T> : IDisposable where T : class, new()
-    {
-        public T value { get; private set; }
-        public StaticPoolValue()
-        {
-            value = StaticPool<T>.Get();
-        }
 
-        public void Dispose()
-        {
-            StaticPool<T>.Set(value);
-        }
-    }
-    public class StaticPoolArray<T> : IDisposable where T : class, new()
-    {
-        public T[] value { get; private set; }
-        public StaticPoolArray(int length)
-        {
-            value = StaticPool<T>.GetArray(length);
-        }
-
-        public void Dispose()
-        {
-            StaticPool<T>.Set(value);
-        }
-    }
     public class ArrayPool<T> : ObjectPool<T[]>
     {
         private Queue<int> _lengthqueue = new Queue<int>();
