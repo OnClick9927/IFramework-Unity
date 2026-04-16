@@ -117,14 +117,21 @@ namespace IFramework
             return new T();
         }
     }
+
+
     public class StaticPool
     {
+        private static Dictionary<Type, ISimpleObjectPool> map = new Dictionary<Type, ISimpleObjectPool>();
         class Pool<T> where T : class, new()
         {
             internal static readonly SimpleObjectPool<T> s_Pool = new SimpleObjectPool<T>();
+            static Pool()
+            {
+                map[typeof(T)] = s_Pool;
+            }
             public static T Get() => s_Pool.Get();
 
-            public static void Set(T toRelease) => s_Pool.Set(toRelease);
+            public static void Set(T toRelease) => s_Pool.SetObject(toRelease);
 
         }
         class ArrPool<T>
@@ -169,9 +176,22 @@ namespace IFramework
 
         public static void Set<T>(T toRelease) where T : class, new() => Pool<T>.Set(toRelease);
 
+        //public static T Get<T>() where T : class, new() => Pool<T>.Get();
+
+        public static void SetByRealType<T>(T toRelease)
+        {
+            var type = toRelease.GetType();
+            if (map.TryGetValue(type, out var result))
+            {
+                result.SetObject(toRelease);
+            }
+        }
 
         public static IDisposableValue<T> CreateDisposable<T>() where T : class, new() => new StaticPoolValue<T>(true);
         public static IDisposableValue<T[]> CreateDisposableArray<T>(int length) => new StaticPoolArray<T>(length);
+
+
+
     }
 
     public class ArrayPool<T> : ObjectPool<T[]>

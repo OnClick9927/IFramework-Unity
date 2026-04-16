@@ -67,13 +67,13 @@ namespace IFramework
                 }
                 return childProps;
             }
-            private Vector2 scroll;
+            //private Vector2 scroll;
             public override void OnInspectorGUI()
             {
                 this.serializedObject.Update();
                 var p = this.serializedObject.FindProperty(nameof(DrawerObject.obj));
                 var children = GetDirectChildProperties(p);
-                scroll = GUILayout.BeginScrollView(scroll);
+                //scroll = GUILayout.BeginScrollView(scroll);
                 GUILayout.BeginVertical();
                 foreach (var item in children)
                 {
@@ -81,7 +81,7 @@ namespace IFramework
                     //GUILayout.Space(2);
                 }
                 GUILayout.EndVertical();
-                GUILayout.EndScrollView();
+                //GUILayout.EndScrollView();
                 this.serializedObject.ApplyModifiedProperties();
             }
         }
