@@ -7,7 +7,6 @@
  *History:        2022-08-03--
 *********************************************************************************/
 
-using IFramework.UI;
 using System.Collections.Generic;
 using UnityEngine;
 namespace IFramework
@@ -17,6 +16,7 @@ namespace IFramework
         private IScriptCreatorContext context;
         public GameObject gameObject { get; protected set; }
         public Transform transform { get; private set; }
+
         public virtual void SetActive(bool active) => gameObject.SetActive(active);
         protected abstract void InitComponents();
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace IFramework
 {
@@ -252,6 +253,111 @@ namespace IFramework
             {
                 return false;
             }
+        }
+    }
+
+    public interface IPoolAbleGameObjectView
+    {
+        string PoolKey { get; set; }
+
+    }
+    public interface IGameObjectPoolAsset
+    {
+        AsyncTask<GameObject> LoadAsset(string key);
+        void ReleaseAsset(string key, GameObject asset);
+    }
+    [AddComponentMenu("")]
+    [MonoSingletonPath(nameof(GameObjectPool))]
+    public class GameObjectPool : MonoSingleton<GameObjectPool>
+    {
+        private class Pool : ObjectPool<GameObject>
+        {
+            public Transform parent;
+            public GameObject prefab;
+            protected override void OnGet(GameObject t)
+            {
+                base.OnGet(t);
+                t.SetActive(true);
+            }
+            protected override bool OnSet(GameObject t)
+            {
+                t.SetActive(false);
+                if (t.transform.parent != parent)
+                {
+                    t.transform.SetParent(parent);
+                }
+                return base.OnSet(t);
+            }
+            protected override GameObject CreateNew()
+            {
+                return GameObject.Instantiate(prefab, parent);
+            }
+
+            internal void DestroyAll()
+            {
+                pool.Clear();
+                GameObject.Destroy(parent.gameObject);
+                parent = null;
+                prefab = null;
+            }
+        }
+
+
+        private IGameObjectPoolAsset asset;
+        private Dictionary<string, Pool> pools = new Dictionary<string, Pool>();
+        private Pool GetPool(string key) => pools.TryGetValue(key, out var pool) ? pool : null;
+        public void SetAsset(IGameObjectPoolAsset asset)
+        {
+            this.asset = asset;
+        }
+        public async AsyncTask<bool> Prepare(string key)
+        {
+            var pool = GetPool(key);
+            if (pool != null) return true;
+            if (asset == null) return false;
+            var prefab = await asset.LoadAsset(key);
+            if (prefab == null) return false;
+            prefab.gameObject.SetActive(false);
+
+            pool = StaticPool.Get<Pool>();
+            var parent = new GameObject(key);
+            parent.transform.SetParent(this.transform);
+
+            pool.parent = parent.transform;
+            pool.prefab = prefab;
+
+            pools[key] = pool;
+            return true;
+        }
+        public void Clear(string key)
+        {
+            if (!pools.Remove(key, out var pool)) return;
+            asset.ReleaseAsset(key, pool.prefab);
+            pool.DestroyAll();
+            StaticPool.Set(pool);
+        }
+        public async AsyncTask<T> Get<T>(string key) where T : GameObjectView, IPoolAbleGameObjectView, new()
+        {
+            var pool = GetPool(key);
+            if (pool == null)
+            {
+                if (!await Prepare(key)) return null;
+                pool = GetPool(key);
+            }
+
+
+            var view = StaticPool.Get<T>();
+            view.PoolKey = key;
+            view.SetGameObject(pool.Get());
+            return view;
+        }
+        public void Set<T>(T view) where T : GameObjectView, IPoolAbleGameObjectView, new()
+        {
+            var key = view.PoolKey;
+            var objPool = GetPool(key);
+            if (objPool != null)
+                objPool.Set(view.gameObject);
+            StaticPool.Set(view);
         }
     }
 
