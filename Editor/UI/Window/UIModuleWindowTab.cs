@@ -41,6 +41,7 @@ namespace IFramework.UI
             public Canvas canvas;
             public UIPanel top;
             public List<UIPanel> Visible = new List<UIPanel>();
+            [System.Serializable]
             public class LayerData
             {
                 public string layer;
@@ -50,7 +51,6 @@ namespace IFramework.UI
             public List<LayerData> layers = new List<LayerData>();
         }
         private ShowParams show = new ShowParams();
-
         private class Tree : TreeView
         {
             private Canvas canvas;
@@ -148,6 +148,8 @@ namespace IFramework.UI
             }
             else if (mode == Mode.Hierarchy)
             {
+                if (tree == null)
+                    OnHierarchyChanged();
                 tree?.OnGUI(EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true)));
             }
             GUILayout.EndScrollView();
