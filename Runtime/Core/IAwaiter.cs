@@ -105,8 +105,20 @@ namespace IFramework
     [AsyncMethodBuilder(typeof(AsyncTaskMethodBuilder))]
     public class AsyncTask
     {
+        private bool log = true;
         internal static T CreateCompleteTask<T>() where T : AsyncTask, new() => new T() { IsCompleted = true };
+        internal static T CreateCanceledTask<T>() where T : AsyncTask, new()
+        {
+            T task = new T() { log = false };
+            task.Cancel();
+            return task;
+        }
+
+        private static AsyncTask _canceledTask = CreateCanceledTask<AsyncTask>();
+
         private static AsyncTask _compeledTask = CreateCompleteTask<AsyncTask>();
+
+        public static AsyncTask CanceledTask => _canceledTask;
 
         public static AsyncTask CompletedTask => _compeledTask;
 
@@ -117,15 +129,14 @@ namespace IFramework
         public event Action canceled;
         public Exception exception { get; private set; }
         public bool IsCompleted { get; private set; }
-        public bool IsCanceled { get; private set; }
+        public bool IsCanceled => exception is AsyncTaskCanceledException;
 
         public void Cancel()
         {
             if (IsCompleted || IsCanceled) return;
-            IsCanceled = true;
             canceled?.Invoke();
             canceled = null;
-            CallComplete();
+            SetException(new AsyncTaskCanceledException());
         }
         protected void CallComplete()
         {
@@ -141,7 +152,8 @@ namespace IFramework
         internal void SetException(Exception exception)
         {
             this.exception = exception;
-            Log.Exception(exception);
+            if (log)
+                Log.Exception(exception);
             CallComplete();
         }
         public virtual void SetResult() => CallComplete();
@@ -169,8 +181,24 @@ namespace IFramework
             return this as T;
         }
 
-
-
+        //private CancellationToken _attachedToken;
+        private CancellationTokenRegistration _tokenRegistration;
+        public void AttachCancellationToken(CancellationToken token)
+        {
+            if (IsCompleted) return;
+            //_attachedToken = token;
+            _tokenRegistration.Dispose();
+            if (token.IsCancellationRequested)
+            {
+                Cancel();
+                return;
+            }
+            _tokenRegistration = token.Register(() =>
+            {
+                if (!IsCompleted)
+                    Cancel();
+            });
+        }
 
 
         protected static T AllocatePoolTask<T>() where T : AsyncTask, new()
@@ -189,11 +217,13 @@ namespace IFramework
         protected virtual void BackToPool() => SetToPool(this);
         protected virtual void ResetFromPool()
         {
+            _tokenRegistration.Dispose();
             canceled = null;
             completed = null;
             exception = null;
             IsCompleted = false;
-            IsCanceled = false;
+            //_attachedToken = default;
+
         }
 
 
@@ -202,76 +232,156 @@ namespace IFramework
 
 
         public static AsyncTask WhenAny(params AsyncTask[] tasks) => _WhenAny(tasks);
-        public static AsyncTask WhenAny(IEnumerable<AsyncTask> tasks) => _WhenAny(tasks);
+        public static AsyncTask WhenAny(IEnumerable<AsyncTask> tasks, CancellationToken token = default) => _WhenAny(tasks, token);
         public static AsyncTask WhenAll(params AsyncTask[] tasks) => _WhenAll(tasks);
-        public static AsyncTask WhenAll(IEnumerable<AsyncTask> tasks) => _WhenAll(tasks);
-        public static AsyncTask<T> WhenAny<T>(IEnumerable<AsyncTask<T>> tasks)
+        public static AsyncTask WhenAll(IEnumerable<AsyncTask> tasks, CancellationToken token = default) => _WhenAll(tasks, token);
+        public static AsyncTask<T> WhenAny<T>(IEnumerable<AsyncTask<T>> tasks, CancellationToken token = default)
         {
-            AsyncTask<T> wait = AsyncTask<T>.CreateFromPool();
-            if (tasks != null && tasks.Count() != 0)
+            if (token.IsCancellationRequested)
+                return AsyncTask<T>.CanceledTaskT;
+            int count = tasks != null ? tasks.Count() : 0;
+            var result = AsyncTask < T > .CreateFromPool();
+            if (count == 0)
             {
-                foreach (var task in tasks)
+                result.SetResult();
+                return result;
+            }
+
+            bool completed = false;
+
+            void OnFirstComplete(AsyncTask<T> t)
+            {
+                if (completed) return;
+                completed = true;
+                if (token.IsCancellationRequested)
+                    result.Cancel();
+                else if (t.exception != null)
+                    result.SetException(t.exception);
+                else
+                    result.SetResult(t.result);
+            }
+
+            foreach (var t in tasks)
+            {
+                if (t.IsCompleted)
                 {
-                    if (task.IsCompleted)
-                        wait.SetResult(task.result);
-                    else
-                        task.ContinueWith<AsyncTask<T>>(_ => { wait.SetResult(_.result); });
+                    OnFirstComplete(t);
+                    return result;
                 }
+                t.ContinueWith<AsyncTask<T>>(OnFirstComplete);
             }
-            else
+
+            token.Register(() =>
             {
-                wait.SetResult(default);
-            }
-            return wait;
+                if (!result.IsCompleted)
+                    result.Cancel();
+            });
+
+            return result;
+
         }
 
-        private static AsyncTask _WhenAll(IEnumerable<AsyncTask> tasks)
+        private static AsyncTask _WhenAll(IEnumerable<AsyncTask> tasks, CancellationToken token = default)
         {
+            if (token.IsCancellationRequested)
+                return CanceledTask;
+
             int count = tasks != null ? tasks.Count() : 0;
             AsyncTask result = AsyncTask.CreateFromPool();
             if (count == 0)
-                result.SetResult();
-            else
             {
-                int index = 0;
-                void CallAdd(AsyncTask prev)
-                {
-                    index++;
-                    if (index >= count)
-                        result.SetResult();
-                }
-                foreach (var task in tasks)
-                {
-                    if (!task.IsCompleted)
-                        task.ContinueWith(CallAdd);
-                    else
-                        CallAdd(task);
-                }
+                result.SetResult();
+                return result;
             }
+            int remaining = count;
+            bool canceled = false;
+            void OnTaskComplete(AsyncTask t)
+            {
+                if (canceled) return;
+                if (token.IsCancellationRequested)
+                {
+                    canceled = true;
+                    result.Cancel();
+                    return;
+                }
+                if (t.exception != null && !(t.exception is AsyncTaskCanceledException))
+                {
+                    canceled = true;
+                    result.SetException(t.exception);
+                    return;
+                }
+                remaining--;
+                if (remaining == 0)
+                    result.SetResult();
+            }
+
+            foreach (var t in tasks)
+            {
+                if (t.IsCompleted)
+                    OnTaskComplete(t);
+                else
+                    t.ContinueWith(OnTaskComplete);
+            }
+
+            // 外部取消处理
+            token.Register(() =>
+            {
+                if (!result.IsCompleted)
+                    result.Cancel();
+            });
+
             return result;
         }
-        private static AsyncTask _WhenAny(IEnumerable<AsyncTask> tasks)
+        private static AsyncTask _WhenAny(IEnumerable<AsyncTask> tasks, CancellationToken token = default)
         {
-            AsyncTask wait = AsyncTask.CreateFromPool();
-            if (tasks != null && tasks.Count() != 0)
+            if (token.IsCancellationRequested)
+                return CanceledTask;
+            int count = tasks != null ? tasks.Count() : 0;
+            var result = CreateFromPool();
+            if (count == 0)
             {
-                foreach (var task in tasks)
+                result.SetResult();
+                return result;
+            }
+
+            bool completed = false;
+
+            void OnFirstComplete(AsyncTask t)
+            {
+                if (completed) return;
+                completed = true;
+                if (token.IsCancellationRequested)
+                    result.Cancel();
+                else if (t.exception != null)
+                    result.SetException(t.exception);
+                else
+                    result.SetResult();
+            }
+
+            foreach (var t in tasks)
+            {
+                if (t.IsCompleted)
                 {
-                    if (task.IsCompleted)
-                        wait.SetResult();
-                    else
-                        task.ContinueWith(_ => { wait.SetResult(); });
+                    OnFirstComplete(t);
+                    return result;
                 }
+                t.ContinueWith(OnFirstComplete);
             }
-            else
+
+            token.Register(() =>
             {
-                wait.SetResult();
-            }
-            return wait;
+                if (!result.IsCompleted)
+                    result.Cancel();
+            });
+
+            return result;
         }
 
-        public static AsyncTask Delay(float second, bool editor = false)
+        public static AsyncTask Delay(float second, CancellationToken token = default, bool editor = false)
         {
+            if (token.IsCancellationRequested)
+                return CanceledTask;
+
             AsyncTask task = AsyncTask.CreateFromPool();
 
             editor |= !Application.isPlaying;
@@ -283,6 +393,11 @@ namespace IFramework
                 float end = Time.time + second;
                 void Update()
                 {
+                    if (token.IsCancellationRequested)
+                    {
+                        Launcher.UnBindUpdate(Update);
+                        task.Cancel();
+                    }
                     if (end <= Time.time)
                     {
                         Launcher.UnBindUpdate(Update);
@@ -297,6 +412,15 @@ namespace IFramework
 #if UNITY_EDITOR
                 async void EditorWait()
                 {
+                    try
+                    {
+                        await System.Threading.Tasks.Task.Delay((int)(second * 1000));
+                        task.SetResult();
+                    }
+                    catch (AsyncTaskCanceledException)
+                    {
+                        task.Cancel();
+                    }
                     await System.Threading.Tasks.Task.Delay((int)(second * 1000));
                     task.SetResult();
                 }
@@ -307,10 +431,47 @@ namespace IFramework
 
             return task;
         }
-
+        public static AsyncTask Run(Action<CancellationToken> action, CancellationToken token = default)
+        {
+            var task = CreateFromPool();
+            token.ThrowIfCancellationRequested();
+            try
+            {
+                action(token);
+                task.SetResult();
+            }
+            catch (AsyncTaskCanceledException e)
+            {
+                task.SetException(e);
+            }
+            catch (Exception e)
+            {
+                task.SetException(e);
+            }
+            return task;
+        }
+        public static AsyncTask<T> Run<T>(Func<CancellationToken, T> func, CancellationToken cancellationToken = default)
+        {
+            var task = AsyncTask<T>.CreateFromPool();
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                var value = func(cancellationToken);
+                task.SetResult(value);
+            }
+            catch (AsyncTaskCanceledException e)
+            {
+                task.SetException(e);
+            }
+            catch (Exception e)
+            {
+                task.SetException(e);
+            }
+            return task;
+        }
         public IAwaiter GetAwaiter() => new AsyncTaskAwaiter(this);
 
-      
+
     }
     [AsyncMethodBuilder(typeof(AsyncTaskMethodBuilder<>))]
     public class AsyncTask<T> : AsyncTask
@@ -318,7 +479,10 @@ namespace IFramework
         private static AsyncTask<T> _compeledTask = CreateCompleteTask<AsyncTask<T>>();
 
         public static AsyncTask<T> CompletedTaskT => _compeledTask;
+        private static AsyncTask<T> _canceledTask = CreateCanceledTask<AsyncTask<T>>();
 
+
+        public static AsyncTask<T> CanceledTaskT => _canceledTask;
 
         protected override void ResetFromPool()
         {
@@ -429,4 +593,74 @@ namespace IFramework
 
     }
 
+
+
+
+
+    public class AsyncTaskCanceledException : Exception
+    {
+        public CancellationToken Token { get; }
+        public AsyncTaskCanceledException() : base("Operation was canceled.") { }
+        public AsyncTaskCanceledException(CancellationToken token) : base("Operation was canceled.") => Token = token;
+    }
+    public struct CancellationToken
+    {
+        private readonly CancellationTokenSource _source;
+        internal CancellationToken(CancellationTokenSource source) => _source = source;
+
+        public bool IsCancellationRequested => _source != null && _source.IsCancellationRequested;
+
+        public void ThrowIfCancellationRequested()
+        {
+            if (IsCancellationRequested)
+                throw new AsyncTaskCanceledException(this);
+        }
+
+        public CancellationTokenRegistration Register(Action callback)
+        {
+            if (_source == null) return default;
+            return _source.Register(callback);
+        }
+    }
+    public class CancellationTokenSource
+    {
+        private bool _canceled;
+        private readonly List<Action> _callbacks = new List<Action>();
+
+        public bool IsCancellationRequested => _canceled;
+        public CancellationToken Token => new CancellationToken(this);
+
+        public void Cancel()
+        {
+            if (_canceled) return;
+            _canceled = true;
+            foreach (var cb in _callbacks)
+                cb?.Invoke();
+            _callbacks.Clear();
+        }
+
+        internal CancellationTokenRegistration Register(Action callback)
+        {
+            if (_canceled)
+            {
+                callback?.Invoke();
+                return default;
+            }
+            _callbacks.Add(callback);
+            return new CancellationTokenRegistration(this, callback);
+        }
+
+        internal void Unregister(Action callback) => _callbacks.Remove(callback);
+    }
+    public struct CancellationTokenRegistration : IDisposable
+    {
+        private readonly CancellationTokenSource _source;
+        private readonly Action _callback;
+        internal CancellationTokenRegistration(CancellationTokenSource source, Action callback)
+        {
+            _source = source;
+            _callback = callback;
+        }
+        public void Dispose() => _source?.Unregister(_callback);
+    }
 }
