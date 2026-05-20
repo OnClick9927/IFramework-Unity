@@ -15,7 +15,7 @@ using static IFramework.UI.UIPanel;
 
 namespace IFramework.UI
 {
-    public partial class UIModule : Module
+    public partial class UIModule : UpdateModule
     {
 
         private LoadPart loadPart;
@@ -54,33 +54,7 @@ namespace IFramework.UI
             layerPart.Clear();
             loadPart.DeleteCanvas();
         }
-        //protected override void OnUpdate()
-        //{
-        //    //loadPart.Update();
-        //    //if (colse_hide_list.Count > 0)
-        //    //{
-        //    //    for (int i = colse_hide_list.Count - 1; i >= 0; i--)
-        //    //    {
-        //    //        var op = colse_hide_list[i];
-        //    //        if (op.IsCompleted)
-        //    //        {
-        //    //            if (op is HidePanelAsyncOperation)
-        //    //            {
-        //    //                var _op = op as HidePanelAsyncOperation;
-        //    //                Hide(_op.path);
-        //    //                hide_op.Set(_op);
-        //    //            }
-        //    //            else if (op is ClosePanelAsyncOperation)
-        //    //            {
-        //    //                var _op = op as ClosePanelAsyncOperation;
-        //    //                Close(_op.path);
-        //    //                close_op.Set(_op);
-        //    //            }
-        //    //            colse_hide_list.RemoveAt(i);
-        //    //        }
-        //    //    }
-        //    //}
-        //}
+
 
         public void CreateCanvas()
         {
@@ -163,10 +137,10 @@ namespace IFramework.UI
             {
                 ui.SetPath(path);
 
+                ui.SetState(PanelState.OnLoad);
                 layerPart.SetOrder(path, ui);
                 bridgePart.Subscribe(path, ui);
                 bridgePart.OnLoad(path);
-                ui.SetState(PanelState.OnLoad);
                 if (delPart != null)
                     delPart.OnPanelLoad(path);
             }
@@ -181,8 +155,8 @@ namespace IFramework.UI
             {
                 if (exist)
                     layerPart.SetAsLastOrder(path, panel);
-                this.bridgePart.OnShow(path);
                 panel.SetState(PanelState.OnShow);
+                this.bridgePart.OnShow(path);
                 if (delPart != null)
                     delPart.OnPanelShow(path);
             }
@@ -209,21 +183,38 @@ namespace IFramework.UI
             loadPart.LoadPanel(layer, show_op);
             return show_op;
         }
-        public void Hide(string path)
+
+        private Queue<CMD> cmds = new Queue<CMD>();
+        public struct CMD
+        {
+            public enum Type
+            {
+                Hide, Close,
+            }
+            public Type type;
+            public string path;
+
+            public CMD(Type type, string path)
+            {
+                this.type = type;
+                this.path = path;
+            }
+        }
+        public void _Hide(string path)
         {
             var panel = loadPart.Find(path);
             if (panel != null)
             {
                 var layer = GetPanelLayer(path);
                 BeginChangeLayerTopChangeCheck(layer, check_hide);
-                this.bridgePart.OnHide(path);
                 panel.SetState(PanelState.OnHide);
+                this.bridgePart.OnHide(path);
                 if (delPart != null)
                     delPart.OnPanelHide(path);
                 EndChangeLayerTopChangeCheck(layer, path, false, check_hide);
             }
         }
-        public void Close(string path)
+        public void _Close(string path)
         {
             var panel = loadPart.Find(path);
 
@@ -234,8 +225,8 @@ namespace IFramework.UI
 
                 CallPanelVisibleChange(panel, false);
 
-                this.bridgePart.OnClose(path);
                 panel.SetState(PanelState.OnClose);
+                this.bridgePart.OnClose(path);
 
                 bridgePart.UnSubscribe(path);
                 layerPart.RemovePanel(path, panel);
@@ -246,6 +237,35 @@ namespace IFramework.UI
             }
         }
 
+
+        public void Hide(string path)
+        {
+            cmds.Enqueue(new CMD(CMD.Type.Hide, path));
+        }
+        public void Close(string path)
+        {
+            cmds.Enqueue(new CMD(CMD.Type.Close, path));
+        }
+        protected override void OnUpdate()
+        {
+            var count = cmds.Count;
+            if (count == 0) return;
+            for (int i = 0; i < count; i++)
+            {
+                var cmd = cmds.Dequeue();
+                switch (cmd.type)
+                {
+                    case CMD.Type.Hide:
+                        _Hide(cmd.path);
+                        break;
+                    case CMD.Type.Close:
+                        _Close(cmd.path);
+                        break;
+
+                }
+
+            }
+        }
         //private SimpleObjectPool<ClosePanelAsyncOperation> close_op = new SimpleObjectPool<ClosePanelAsyncOperation>();
         //private SimpleObjectPool<HidePanelAsyncOperation> hide_op = new SimpleObjectPool<HidePanelAsyncOperation>();
         //private List<PanelAsyncOperation> colse_hide_list = new List<PanelAsyncOperation>();
@@ -261,7 +281,7 @@ namespace IFramework.UI
             });
             this.bridgePart.OnCloseAsync(path, operation);
             this.delPart?.OnClosePanelAsync(path);
-       ;
+            ;
             //colse_hide_list.Add(operation);
             return operation;
         }
