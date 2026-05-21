@@ -110,7 +110,7 @@ namespace IFramework
         internal static T CreateCanceledTask<T>() where T : AsyncTask, new()
         {
             T task = new T() { log = false };
-            task.Cancel();
+            task.Cancel(default);
             return task;
         }
 
@@ -131,16 +131,17 @@ namespace IFramework
         public bool IsCompleted { get; private set; }
         public bool IsCanceled => exception is AsyncTaskCanceledException;
 
-        public void Cancel()
+        public void Cancel(CancellationToken token = default)
         {
             if (IsCompleted || IsCanceled) return;
             canceled?.Invoke();
             canceled = null;
-            SetException(new AsyncTaskCanceledException());
+            SetException(new AsyncTaskCanceledException(token));
         }
         protected void CallComplete()
         {
             if (IsCompleted) return;
+            _tokenRegistration.Dispose();
             IsCompleted = true;
             completed?.Invoke();
             completed = null;
@@ -190,13 +191,13 @@ namespace IFramework
             _tokenRegistration.Dispose();
             if (token.IsCancellationRequested)
             {
-                Cancel();
+                Cancel(token);
                 return;
             }
             _tokenRegistration = token.Register(() =>
             {
                 if (!IsCompleted)
-                    Cancel();
+                    Cancel(token);
             });
         }
 
@@ -230,17 +231,18 @@ namespace IFramework
 
 
 
-
         public static AsyncTask WhenAny(params AsyncTask[] tasks) => _WhenAny(tasks);
-        public static AsyncTask WhenAny(IEnumerable<AsyncTask> tasks, CancellationToken token = default) => _WhenAny(tasks, token);
         public static AsyncTask WhenAll(params AsyncTask[] tasks) => _WhenAll(tasks);
+        public static AsyncTask WhenAny(CancellationToken token = default, params AsyncTask[] tasks) => _WhenAny(tasks, token);
+        public static AsyncTask WhenAll(CancellationToken token = default, params AsyncTask[] tasks) => _WhenAll(tasks, token);
+        public static AsyncTask WhenAny(IEnumerable<AsyncTask> tasks, CancellationToken token = default) => _WhenAny(tasks, token);
         public static AsyncTask WhenAll(IEnumerable<AsyncTask> tasks, CancellationToken token = default) => _WhenAll(tasks, token);
         public static AsyncTask<T> WhenAny<T>(IEnumerable<AsyncTask<T>> tasks, CancellationToken token = default)
         {
             if (token.IsCancellationRequested)
                 return AsyncTask<T>.CanceledTaskT;
             int count = tasks != null ? tasks.Count() : 0;
-            var result = AsyncTask < T > .CreateFromPool();
+            var result = AsyncTask<T>.CreateFromPool();
             if (count == 0)
             {
                 result.SetResult();
@@ -254,7 +256,7 @@ namespace IFramework
                 if (completed) return;
                 completed = true;
                 if (token.IsCancellationRequested)
-                    result.Cancel();
+                    result.Cancel(token);
                 else if (t.exception != null)
                     result.SetException(t.exception);
                 else
@@ -274,7 +276,7 @@ namespace IFramework
             token.Register(() =>
             {
                 if (!result.IsCompleted)
-                    result.Cancel();
+                    result.Cancel(token);
             });
 
             return result;
@@ -301,7 +303,7 @@ namespace IFramework
                 if (token.IsCancellationRequested)
                 {
                     canceled = true;
-                    result.Cancel();
+                    result.Cancel(token);
                     return;
                 }
                 if (t.exception != null && !(t.exception is AsyncTaskCanceledException))
@@ -327,7 +329,7 @@ namespace IFramework
             token.Register(() =>
             {
                 if (!result.IsCompleted)
-                    result.Cancel();
+                    result.Cancel(token);
             });
 
             return result;
@@ -351,7 +353,7 @@ namespace IFramework
                 if (completed) return;
                 completed = true;
                 if (token.IsCancellationRequested)
-                    result.Cancel();
+                    result.Cancel(token);
                 else if (t.exception != null)
                     result.SetException(t.exception);
                 else
@@ -371,7 +373,7 @@ namespace IFramework
             token.Register(() =>
             {
                 if (!result.IsCompleted)
-                    result.Cancel();
+                    result.Cancel(token);
             });
 
             return result;
@@ -396,7 +398,7 @@ namespace IFramework
                     if (token.IsCancellationRequested)
                     {
                         Launcher.UnBindUpdate(Update);
-                        task.Cancel();
+                        task.Cancel(token);
                     }
                     if (end <= Time.time)
                     {
@@ -410,21 +412,21 @@ namespace IFramework
             else
             {
 #if UNITY_EDITOR
-                async void EditorWait()
+                float end = (float)UnityEditor.EditorApplication.timeSinceStartup + second;
+                void Update()
                 {
-                    try
+                    if (token.IsCancellationRequested)
                     {
-                        await System.Threading.Tasks.Task.Delay((int)(second * 1000));
+                        UnityEditor.EditorApplication.update -= Update;
+                        task.Cancel(token);
+                    }
+                    if (end <= UnityEditor.EditorApplication.timeSinceStartup)
+                    {
+                        UnityEditor.EditorApplication.update -= Update;
                         task.SetResult();
                     }
-                    catch (AsyncTaskCanceledException)
-                    {
-                        task.Cancel();
-                    }
-                    await System.Threading.Tasks.Task.Delay((int)(second * 1000));
-                    task.SetResult();
                 }
-                EditorWait();
+                UnityEditor.EditorApplication.update += Update;
 #endif
             }
 
@@ -607,15 +609,13 @@ namespace IFramework
     {
         private readonly CancellationTokenSource _source;
         internal CancellationToken(CancellationTokenSource source) => _source = source;
-
+        public string userData => _source?.userData;
         public bool IsCancellationRequested => _source != null && _source.IsCancellationRequested;
-
         public void ThrowIfCancellationRequested()
         {
             if (IsCancellationRequested)
                 throw new AsyncTaskCanceledException(this);
         }
-
         public CancellationTokenRegistration Register(Action callback)
         {
             if (_source == null) return default;
@@ -624,6 +624,7 @@ namespace IFramework
     }
     public class CancellationTokenSource
     {
+        public string userData { get; private set; }
         private bool _canceled;
         private readonly List<Action> _callbacks = new List<Action>();
 
@@ -634,8 +635,12 @@ namespace IFramework
         {
             if (_canceled) return;
             _canceled = true;
-            foreach (var cb in _callbacks)
+            if (_callbacks.Count == 0) return;
+            for (int i = 0; i < _callbacks.Count; i++)
+            {
+                var cb = _callbacks[i];
                 cb?.Invoke();
+            }
             _callbacks.Clear();
         }
 

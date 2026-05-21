@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 namespace IFramework
 {
     public interface IEventsOwner { }
@@ -456,118 +457,46 @@ namespace IFramework
 
 
 
-        private static Dictionary<string, WaitEntity> wait_map = new Dictionary<string, WaitEntity>();
+        private static Dictionary<string, AsyncTask> wait_map = new Dictionary<string, AsyncTask>();
 
-        public class WaitEntity<T> : WaitEntity
+
+        public static AsyncTask Wait(string message, CancellationToken token = default)
         {
-            public T result { get; private set; }
-            internal override void Done(AsyncTask task, float timeout)
-            {
-                result = default;
-                base.Done(task, timeout);
-            }
-            internal void SetResult(T result)
-            {
-                this.result = result;
-                base.SetResult();
-            }
-
-        }
-        public class WaitEntity
-        {
-            public enum WaitErrCode
-            {
-                Success,
-                Timeout,
-                Cancel
-            }
-
-            public WaitErrCode code { get; private set; }
-            private AsyncTask task;
-
-            private bool completed = false;
-            private bool timeout;
-            internal virtual void Done(AsyncTask task, float timeout)
-            {
-                code = WaitErrCode.Success;
-                completed = false;
-                this.timeout = false;
-                this.task = task;
-                AsyncTask _timeout = null;
-                if (timeout > 0)
-                    _timeout = WaitTime(timeout, task);
-                task.CancelWith(_ =>
-                {
-                    code = this.timeout ? WaitErrCode.Timeout : WaitErrCode.Cancel;
-                });
-
-                task.ContinueWith(task =>
-                {
-                    completed = true;
-                    _timeout?.Cancel();
-
-                    if (_timeout == null)
-                        StaticPool.SetByRealType(this);
-
-                });
-            }
-            public void Cancel()
-            {
-                if (completed) return;
-                task.Cancel();
-            }
-            public IAwaiter GetAwaiter() => task.GetAwaiter();
-            async AsyncTask WaitTime(float time, AsyncTask task)
-            {
-                await AsyncTask.Delay(time);
-                timeout = true;
-                if (!completed)
-                {
-                    task.Cancel();
-                }
-                StaticPool.SetByRealType(this);
-            }
-            internal void SetResult()
-            {
-                code = WaitErrCode.Success;
-                task.SetResult();
-            }
-        }
-
-        public static WaitEntity Wait(string message, float timeout = -1)
-        {
+            if (token.IsCancellationRequested)
+                token.ThrowIfCancellationRequested();
             if (wait_map.TryGetValue(message, out var result))
             {
                 Log.E($"Already Exist Wait:{message}");
                 return null;
             }
-            WaitEntity seg = StaticPool.Get<WaitEntity>();
             var task = AsyncTask.CreateFromPool();
+            task.AttachCancellationToken(token);
             task.ContinueWith(task =>
             {
                 wait_map.Remove(message);
             });
-            wait_map[message] = seg;
-            seg.Done(task, timeout);
-            return seg;
+            wait_map[message] = task;
+            return task;
         }
-        public static WaitEntity<T> Wait<T>(float timeout = -1) where T : IEventArgs
+        public static AsyncTask<T> Wait<T>(CancellationToken token = default) where T : IEventArgs
         {
+            if (token.IsCancellationRequested)
+                token.ThrowIfCancellationRequested();
             string message = typeof(T).Name;
             if (wait_map.TryGetValue(message, out var result))
             {
                 Log.E($"Already Exist Wait:{message}");
                 return null;
             }
-            var seg = StaticPool.Get<WaitEntity<T>>();
-            var task = AsyncTask.CreateFromPool();
+            var task = AsyncTask<T>.CreateFromPool();
+            task.AttachCancellationToken(token);
+
             task.ContinueWith(task =>
             {
                 wait_map.Remove(message);
             });
-            wait_map[message] = seg;
-            seg.Done(task, timeout);
-            return seg;
+            wait_map[message] = task;
+            return task;
         }
 
         public static void Notify(string message)
@@ -585,12 +514,13 @@ namespace IFramework
                 Log.E($"Notify:{message} Not Exist Wait");
             else
             {
-                if (task is WaitEntity<T> task_T)
+                if (task is AsyncTask<T> task_T)
                     task_T.SetResult(arg);
                 else
                     Log.E($"Notify:{message} Not Fit Wait {task.GetType()}");
             }
         }
+
     }
 
 
