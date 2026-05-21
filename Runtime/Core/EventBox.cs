@@ -326,7 +326,7 @@ namespace IFramework
         internal static IEventEntity Subscribe<T>(IEventHandler handler) where T : IEventArgs
         {
             var type = typeof(T);
-            string msg = type.FullName;
+            string msg = type.Name;
             return GetContext(msg).Subscribe(StaticPool.Get<EventHandlerEntity<T>>().SetData(handler is IAsyncEventHandler<T>, msg, handler));
         }
 
@@ -353,15 +353,15 @@ namespace IFramework
 
         public static AsyncTask<T> InvokeAsync<T>(string message, IEventArgs args) => FindContext(message, true)?.InvokeAsync<T>(args);
 
-        public static T Invoke<T, Arg>(Arg args) where Arg : IEventArgs => Invoke<T>(typeof(Arg).FullName, args);
-        public static AsyncTask<T> InvokeAsync<T, Arg>(Arg args) where Arg : IEventArgs => InvokeAsync<T>(typeof(Arg).FullName, args);
+        public static T Invoke<T, Arg>(Arg args) where Arg : IEventArgs => Invoke<T>(typeof(Arg).Name, args);
+        public static AsyncTask<T> InvokeAsync<T, Arg>(Arg args) where Arg : IEventArgs => InvokeAsync<T>(typeof(Arg).Name, args);
 
 
 
         public static AsyncTask PublishAsync(string message, IEventArgs args) => FindContext(message, false)?.PublishAsync(args);
-        public static AsyncTask PublishAsync<T>(T args) where T : IEventArgs => PublishAsync(typeof(T).FullName, args);
+        public static AsyncTask PublishAsync<T>(T args) where T : IEventArgs => PublishAsync(typeof(T).Name, args);
         public static void Publish(string message, IEventArgs args) => FindContext(message, false)?.Publish(args);
-        public static void Publish<T>(T args) where T : IEventArgs => Publish(typeof(T).FullName, args);
+        public static void Publish<T>(T args) where T : IEventArgs => Publish(typeof(T).Name, args);
 
 
 
@@ -497,7 +497,8 @@ namespace IFramework
             wait_map[message] = task;
             return task;
         }
-        public static AsyncTask<T> Wait<T>(CancellationToken token = default) where T : IEventArgs => Wait<T>(typeof(T).FullName, token);
+        public static AsyncTask<T> Wait<T>(CancellationToken token = default) where T : IEventArgs => Wait<T>(typeof(T).Name, token);
+
         public static void Notify(string message)
         {
             if (!wait_map.Remove(message, out var task))
@@ -517,7 +518,7 @@ namespace IFramework
                     Log.E($"Notify:{message} Not Fit Wait {task.GetType()}");
             }
         }
-        public static void Notify<T>(T arg) where T : IEventArgs => Notify(typeof(T).FullName, arg);
+        public static void Notify<T>(T arg) where T : IEventArgs => Notify(typeof(T).Name, arg);
 
     }
 
