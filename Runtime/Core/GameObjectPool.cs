@@ -259,7 +259,7 @@ namespace IFramework
     public interface IPoolAbleGameObjectView
     {
         string PoolKey { get; set; }
-
+        GameObject gameObject { get; }
     }
     public interface IGameObjectPoolAsset
     {
@@ -351,13 +351,13 @@ namespace IFramework
             view.SetGameObject(pool.Get());
             return view;
         }
-        public void Set<T>(T view) where T : GameObjectView, IPoolAbleGameObjectView, new()
+        public void Set(IPoolAbleGameObjectView view) 
         {
             var key = view.PoolKey;
             var objPool = GetPool(key);
             if (objPool != null)
                 objPool.Set(view.gameObject);
-            StaticPool.Set(view);
+            StaticPool.SetByRealType(view);
         }
     }
 
