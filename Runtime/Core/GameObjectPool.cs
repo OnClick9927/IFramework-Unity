@@ -290,7 +290,9 @@ namespace IFramework
             }
             protected override GameObject CreateNew()
             {
-                return GameObject.Instantiate(prefab, parent);
+                var go = GameObject.Instantiate(prefab, parent);
+                go.hideFlags = HideFlags.None;
+                return go;
             }
 
             internal void DestroyAll()
@@ -317,10 +319,13 @@ namespace IFramework
             if (asset == null) return false;
             var prefab = await asset.LoadAsset(key);
             if (prefab == null) return false;
+
+            var parent = new GameObject(key);
+            prefab = GameObject.Instantiate(prefab, parent.transform);
             prefab.gameObject.SetActive(false);
+            prefab.hideFlags = HideFlags.HideInHierarchy;
 
             pool = StaticPool.Get<Pool>();
-            var parent = new GameObject(key);
             parent.transform.SetParent(this.transform);
 
             pool.parent = parent.transform;
@@ -351,7 +356,7 @@ namespace IFramework
             view.SetGameObject(pool.Get());
             return view;
         }
-        public void Set(IPoolAbleGameObjectView view) 
+        public void Set(IPoolAbleGameObjectView view)
         {
             var key = view.PoolKey;
             var objPool = GetPool(key);
