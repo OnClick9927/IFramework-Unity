@@ -54,7 +54,6 @@ namespace IFramework
                 return instance;
             }
         }
-        protected virtual bool DestroyOnLoad { get { return false; } }
 
         protected virtual void Awake()
         {
