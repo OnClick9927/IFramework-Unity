@@ -32,17 +32,15 @@ namespace IFramework
         protected virtual void OnSingletonInit() { }
     }
     [AttributeUsage(AttributeTargets.Class)]
-    public class MonoSingletonPath : Attribute
+    public class DynamicMonoSingleton : Attribute
     {
-        public MonoSingletonPath(string pathInHierarchy)
+        public bool DestroyOnLoad = true;
+        internal string Name{ get; private set; }
+        public DynamicMonoSingleton(string name = "")
         {
-            PathInHierarchy = pathInHierarchy;
+            Name = name;
         }
 
-        public string PathInHierarchy
-        {
-            get; private set;
-        }
     }
     public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
     {
@@ -74,41 +72,12 @@ namespace IFramework
         {
             if (!Application.isPlaying) return default;
             System.Type type = typeof(T);
-            var attributes = type.GetCustomAttribute<MonoSingletonPath>(true);
+            var attributes = type.GetCustomAttribute<DynamicMonoSingleton>(true);
             if (attributes == null) return null;
-            GameObject obj = null;
-            if (attributes == null || string.IsNullOrEmpty(attributes.PathInHierarchy))
-                obj = new GameObject(type.Name);
-            else
-            {
-                var path = attributes.PathInHierarchy;
-                var subPath = path.Split('/');
-                for (int i = 0; i < subPath.Length; i++)
-                {
-                    GameObject client = null;
-                    if (obj == null)
-                        client = GameObject.Find(subPath[i]);
-                    else
-                    {
-                        var child = obj.transform.Find(subPath[i]);
-                        if (child != null)
-                            client = child.gameObject;
-                    }
-                    if (client == null)
-                        client = new GameObject(subPath[i]);
-                    if (obj != null)
-                        client.transform.SetParent(obj.transform);
-                    obj = client;
-                }
-            }
-            var instance = obj.AddComponent<T>();
-            if (!instance.DestroyOnLoad)
-            {
-                if (instance.transform.parent == null)
-                    DontDestroyOnLoad(instance.gameObject);
-                else
-                    DontDestroyOnLoad(instance.transform.root.gameObject);
-            }
+            var name = string.IsNullOrEmpty(attributes.Name) ? type.Name : attributes.Name;
+            var instance = new GameObject(name).AddComponent<T>();
+            if (attributes.DestroyOnLoad)
+                DontDestroyOnLoad(instance.gameObject);
             return instance;
         }
 

@@ -267,7 +267,7 @@ namespace IFramework
         void ReleaseAsset(string key, GameObject asset);
     }
     [AddComponentMenu("")]
-    [MonoSingletonPath(nameof(GameObjectPool))]
+    [DynamicMonoSingleton]
     public class GameObjectPool : MonoSingleton<GameObjectPool>
     {
         private class Pool : ObjectPool<GameObject>
