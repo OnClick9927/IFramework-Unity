@@ -22,6 +22,8 @@ namespace IFramework
             set
             {
                 if (_game == value) return;
+                if(_game)
+                    Destroy(_game.gameObject);
                 _game = value;
             }
         }
