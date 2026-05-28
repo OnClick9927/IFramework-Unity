@@ -9,7 +9,6 @@ while(true)
 QQ Group ：782290296 
 
  
-#### RedPoint https://github.com/OnClick9927/IFramework-Unity.git#RedPoint
 #### Record https://github.com/OnClick9927/IFramework-Unity.git#Recorder
 #### 主体 https://github.com/OnClick9927/IFramework-Unity.git#src
 * Core
@@ -36,6 +35,7 @@ QQ Group ：782290296
   * UI组件添加时 默认优化取消勾选Raycast 等
   * UI组件移除时候自动 移除CanvasRendererer
   * 支持异形屏幕适配
+  * 红点
 
 
 

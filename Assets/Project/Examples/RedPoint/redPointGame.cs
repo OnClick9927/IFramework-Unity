@@ -1,5 +1,4 @@
 using IFramework;
-using IFramework.RedPoint;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
