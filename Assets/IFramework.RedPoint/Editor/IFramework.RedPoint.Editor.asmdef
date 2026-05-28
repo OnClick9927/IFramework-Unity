@@ -1,0 +1,19 @@
+{
+    "name": "IFramework.RedPoint.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:39bdcf9872c4f0246ae136f61158a209",
+        "GUID:bd8d6c2fe44c1774ca7611885459697c"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

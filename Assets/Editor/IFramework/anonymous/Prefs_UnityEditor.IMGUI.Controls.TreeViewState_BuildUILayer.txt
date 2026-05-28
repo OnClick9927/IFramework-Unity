@@ -1,0 +1,30 @@
+{
+    "scrollPos": {
+        "x": 0.0,
+        "y": 0.0
+    },
+    "m_SelectedIDs": [],
+    "m_LastClickedID": 0,
+    "m_ExpandedIDs": [],
+    "m_RenameOverlay": {
+        "m_UserAcceptedRename": false,
+        "m_Name": "",
+        "m_OriginalName": "",
+        "m_EditFieldRect": {
+            "serializedVersion": "2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 0.0,
+            "height": 0.0
+        },
+        "m_UserData": 0,
+        "m_IsWaitingForDelay": false,
+        "m_IsRenaming": false,
+        "m_OriginalEventType": 11,
+        "m_IsRenamingFilename": false,
+        "m_ClientGUIView": {
+            "instanceID": 0
+        }
+    },
+    "m_SearchString": ""
+}

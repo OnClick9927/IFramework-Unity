@@ -1,0 +1,122 @@
+local __CSBridge = StaticUsing("IFramework.Lua.LuaBridge")
+---@param self LuaBridge
+---@param add boolean
+local function AddOrRemoveDelegate(self, add)
+    local char = add and "+" or "-"
+    local CS_instance = self.CS_instance
+    CS_instance:onDispose(char, self.handlers.onDispose)
+    CS_instance:onSubscribe(char, self.handlers.onSubscribe)
+    CS_instance:onUnSubscribe(char, self.handlers.onUnSubscribe)
+    CS_instance:onLoad(char, self.handlers.onLoad)
+    CS_instance:onShow(char, self.handlers.onShow)
+    CS_instance:onHide(char, self.handlers.onHide)
+    CS_instance:onClose(char, self.handlers.onClose)
+end
+
+---@class LuaBridge:Unit
+LuaBridge = class("LuaBridge")
+---@private
+function LuaBridge:ctor()
+    ---@private
+    self.handlers = {
+        onDispose = Handler(self.OnDispose, self),
+        onSubscribe = Handler(self.OnSubscribe, self),
+        onUnSubscribe = Handler(self.OnUnSubscribe, self),
+        onShow = Handler(self.OnShow, self),
+        onHide = Handler(self.OnHide, self),
+        onClose = Handler(self.OnClose, self),
+        onLoad = Handler(self.OnLoad, self),
+    }
+    ---@private
+    ---@type IFramework.Lua.LuaBridge
+    self.CS_instance = nil
+    ---@private
+    ---@type table<string,UIView>
+    self.map = nil
+    ---@private
+    ---@type table<string,UIView>
+    self.bridges = nil
+end
+
+--- @param map table<string,UIView> 自动生成的map
+--- @return IFramework.Lua.LuaBridge
+function LuaBridge:SetMap(map)
+    if map == nil then
+        error("map could not be null ")
+        return
+    end
+    self.map = map
+    self.CS_instance = __CSBridge()
+    AddOrRemoveDelegate(self, true)
+    return self.CS_instance
+end
+
+---@private
+function LuaBridge:OnDispose()
+    AddOrRemoveDelegate(self, false)
+    self.handlers = nil
+    self.CS_instance = nil
+    self.map = nil
+    self.bridges = nil
+end
+
+---@private
+function LuaBridge:OnSubscribe(path, panel)
+    self.bridges = self.bridges or {}
+    if self:FindView(path) ~= nil then
+        print("same name with panel  " .. path)
+        return false
+    end
+    local vvmType
+
+    for _path, v in pairs(self.map) do
+        if _path == path then
+            vvmType = v
+            break
+        end
+    end
+    if (vvmType == nil) then
+        error("not find view type with Name :" .. path)
+        return false
+    end
+
+    local view = vvmType(panel)
+    self.bridges[path] = view
+end
+
+---@private
+function LuaBridge:OnUnSubscribe(path)
+    local view = self:FindView(path)
+    if view ~= nil then
+        self.bridges[path] = nil
+        return true
+    end
+    return false
+end
+
+---@private
+---@return UIView
+function LuaBridge:FindView(path)
+    return self.bridges[path]
+end
+
+---@private
+function LuaBridge:OnLoad(path)
+    local view = self:FindView(path)
+    view:OnLoad()
+end
+
+---@private
+function LuaBridge:OnShow(path)
+    self:FindView(path):OnShow()
+end
+
+---@private
+function LuaBridge:OnHide(path)
+    self:FindView(path):OnHide()
+end
+
+---@private
+function LuaBridge:OnClose(path)
+    self:FindView(path):OnClose()
+end

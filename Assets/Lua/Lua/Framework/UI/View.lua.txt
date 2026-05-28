@@ -1,0 +1,160 @@
+local cs_UnityEventHelper = StaticUsing("IFramework.UI.UnityEventHelper")
+local cs_UIEventBox = StaticUsing("IFramework.UI.UnityEventHelper.UIEventBox")
+local cs_GameObject = StaticUsing("UnityEngine.GameObject")
+local cs_Transform = StaticUsing("UnityEngine.Transform")
+
+
+UnityEventHelper = {
+    ---@param func  function<string>
+    ---@return IFramework.UI.UnityEventHelper.UIEventEntity
+    BindInputField = function(input, func, ...)
+        return cs_UnityEventHelper.BindInputField(input, Handler(func, ...))
+    end,
+    ---@param func  function<boolean>
+    ---@return IFramework.UI.UnityEventHelper.UIEventEntity
+    BindToggle = function(toggle, func, ...)
+        return cs_UnityEventHelper.BindToggle(toggle, Handler(func, ...))
+    end,
+    ---@param func  function<number>
+    ---@return IFramework.UI.UnityEventHelper.UIEventEntity
+    BindSlider = function(slider, func, ...)
+        return cs_UnityEventHelper.BindSlider(slider, Handler(func, ...))
+    end,
+    ---@param func  function<string>
+    ---@return IFramework.UI.UnityEventHelper.UIEventEntity
+    BindOnEndEdit = function(input, func, ...)
+        return cs_UnityEventHelper.BindOnEndEdit(input, Handler(func, ...))
+    end,
+    ---@param func  function<string,number,string>
+    ---@return IFramework.UI.UnityEventHelper.UIEventEntity
+    BindOnValidateInput = function(input, func, ...)
+        return cs_UnityEventHelper.BindOnValidateInput(input, Handler(func, ...))
+    end,
+    ---@param func  function
+    ---@return IFramework.UI.UnityEventHelper.UIEventEntity
+    BindButton = function(button, func, ...)
+        return cs_UnityEventHelper.BindButton(button, Handler(func, ...))
+    end
+}
+
+
+
+
+
+
+
+
+---@class GameObjectView:Unit
+GameObjectView = class("GameObjectView")
+function GameObjectView:SetGameObject(gameObject)
+    self.gameObject = gameObject.gameObject
+    self.transform = gameObject.transform
+    ---@type EventBox
+    self.eventBox = nil
+    self.eventBox_UI = nil
+    self:InitComponents()
+end
+
+function GameObjectView:InitComponents() end
+
+---@param path string
+---@param type UnityEngine.Component
+---@return UnityEngine.Component
+function GameObjectView:GetComponent(path, type)
+    local transform
+    if string.IsNullOrEmpty(path) then
+        transform = self.transform
+    else
+        transform = self.transform:Find(path)
+    end
+    if not transform then
+        error("can't find transform with " .. path .. " in panel " .. self.gameObject.name)
+    end
+    if type == typeof(cs_GameObject) then
+        return transform.gameObject
+    end
+    if type == typeof(cs_Transform) then
+        return transform.transform
+    end
+    return transform:GetComponent(type) or transform:GetComponentInChildren(type, true)
+end
+
+---@param active boolean
+function GameObjectView:SetActive(active)
+    self.gameObject:SetActive(active)
+end
+
+---@param code string|number
+---@param func function
+---@return EventEntity
+function GameObjectView:SubscribeEvent(code, func, ...)
+    local entity = Events:Subscribe(code, func, ...)
+    if self.eventBox == nil then
+        self.eventBox = EventBox()
+    end
+    entity:AddTo(self.eventBox)
+    return entity
+end
+
+---@param entity EventEntity
+function GameObjectView:UnSubscribeEvent(entity)
+    if not self.eventBox then
+        return
+    end
+    self.eventBox:DisposeEntity(entity)
+end
+
+function GameObjectView:DisposeEvents()
+    if not self.eventBox then
+        return
+    end
+    self.eventBox:Dispose()
+    self.eventBox = nil
+end
+
+function GameObjectView:AddUIEvent(entity)
+    if self.eventBox_UI == nil then
+        self.eventBox_UI = cs_UIEventBox()
+    end
+    entity:AddTo(self.eventBox_UI)
+    return entity
+end
+
+function GameObjectView:DisposeUIEvent(entity)
+    if not self.eventBox_UI then
+        return
+    end
+    self.eventBox_UI:Dispose(entity)
+end
+
+function GameObjectView:DisposeUIEvents()
+    if not self.eventBox_UI then
+        return
+    end
+    self.eventBox_UI:Dispose()
+end
+
+-------------------------------------------------------------------------------
+
+---@class UIItemView:GameObjectView
+UIItemView = class("UIItem", GameObjectView)
+function UIItemView:ctor(gameObject, path)
+    self.path = path
+    self:SetGameObject(gameObject)
+end
+
+function UIItemView:OnGet() end
+
+function UIItemView:OnSet() end
+
+-------------------------------------------------------------------------------
+
+---@class UIView:GameObjectView
+UIView = class("UIView", GameObjectView)
+function UIView:OnLoad() end
+
+function UIView:OnShow() end
+
+function UIView:OnHide() end
+
+function UIView:OnClose() end

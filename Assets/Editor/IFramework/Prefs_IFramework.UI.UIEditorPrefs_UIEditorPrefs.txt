@@ -1,0 +1,46 @@
+{
+    "plan_index": 0,
+    "_plans": [
+        {
+            "ConfigGenPath": "Assets/Project/Examples/UI",
+            "PanelCollectPath": "Assets/Project/Examples/UI",
+            "ScriptGenPath": "Assets/Project/Examples/UI",
+            "ScriptName": "PanelNames_UIGame",
+            "name": "UIGame",
+            "typeIndex": 1,
+            "ConfigName": "UICollect"
+        }
+    ],
+    "segs": [
+        {
+            "prefab": "Assets/Project/Examples/UI/PanelOne.prefab",
+            "ScriptPath": "Assets/Project/Examples/UI/PanelOneView.cs",
+            "Paths": [
+                "Assets/Project/Examples/UI/PanelOneView.cs"
+            ]
+        },
+        {
+            "prefab": "Assets/Project/Examples/UI/PanelTwo.prefab",
+            "ScriptPath": "Assets/Project/Examples/UI/PanelTwoView.cs",
+            "Paths": [
+                "Assets/Project/Examples/UI/PanelTwoView.cs"
+            ]
+        },
+        {
+            "prefab": "Assets/Project/Examples/UI/Panel##Two 1 @.prefab",
+            "ScriptPath": "Assets/Project/Examples/UI/PanelTwo_1_View.cs",
+            "Paths": [
+                "Assets/Project/Examples/UI/PanelTwo_1_View.cs"
+            ]
+        }
+    ],
+    "layerEdit": {
+        "mode": 0,
+        "layerObjectPath": "Assets/Project/Examples/UI/New UI Layer Data.asset"
+    },
+    "pubsave": {
+        "NameSpace": "KK",
+        "viewBaseIndex": 1,
+        "widgetBaseIndex": 1
+    }
+}
