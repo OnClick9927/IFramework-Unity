@@ -46,12 +46,23 @@ namespace IFramework
             BindUpdate(_Update);
             Startup();
         }
-        private void OnDisable()
-        {
+
+        private bool quited;
+        public void Quit() {
+            if (quited) return;
+            quited = true;
+            OnQuit();
+            state = null;
             UnBindUpdate(_Update);
             ((IDisposable)_modules).Dispose();
             values.Clear();
             _modules = null;
+        }
+        protected virtual void OnQuit() { }
+
+        private void OnDestroy()
+        {
+            Quit();
         }
         private void _Update()
         {
