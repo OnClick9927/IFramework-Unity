@@ -105,11 +105,12 @@ namespace IFramework
     [AsyncMethodBuilder(typeof(AsyncTaskMethodBuilder))]
     public class AsyncTask
     {
-        private bool log = true;
+
         internal static T CreateCompleteTask<T>() where T : AsyncTask, new() => new T() { IsCompleted = true };
         internal static T CreateCanceledTask<T>() where T : AsyncTask, new()
         {
-            T task = new T() { log = false };
+            T task = new T();
+            task.OnException(_ => true);
             task.Cancel(default);
             return task;
         }
@@ -126,22 +127,33 @@ namespace IFramework
         private bool fromPool = false;
 
         public event Action completed;
-        public event Action canceled;
+        //public event Action canceled;
         public Exception exception { get; private set; }
+        private event Func<AsyncTask, bool> onException;
+
+
+        private bool ExecuteException()
+        {
+            if (onException == null) return false;
+            var succ = onException.Invoke(this);
+            if (succ)
+                this.exception = null;
+            return succ;
+        }
         public bool IsCompleted { get; private set; }
         public bool IsCanceled => exception is AsyncTaskCanceledException;
 
-        public void Cancel(CancellationToken token = default)
+        internal void Cancel(CancellationToken token = default)
         {
             if (IsCompleted || IsCanceled) return;
-            canceled?.Invoke();
-            canceled = null;
+            //canceled?.Invoke();
+            //canceled = null;
             SetException(new AsyncTaskCanceledException(token));
         }
         protected void CallComplete()
         {
             if (IsCompleted) return;
-            _tokenRegistration.Dispose();
+            //_tokenRegistration.Dispose();
             IsCompleted = true;
             completed?.Invoke();
             completed = null;
@@ -153,7 +165,8 @@ namespace IFramework
         internal void SetException(Exception exception)
         {
             this.exception = exception;
-            if (log)
+            var succ = ExecuteException();
+            if (!succ)
                 Log.Exception(exception);
             CallComplete();
         }
@@ -171,35 +184,40 @@ namespace IFramework
             completed += () => action?.Invoke(this as T);
             return this as T;
         }
-        public AsyncTask CancelWith(Action<AsyncTask> action)
+        public AsyncTask OnException(Func<AsyncTask, bool> call)
         {
-            canceled += () => action?.Invoke(this);
+            onException += call;
             return this;
         }
-        public T CancelWith<T>(Action<T> action) where T : AsyncTask
-        {
-            canceled += () => action?.Invoke(this as T);
-            return this as T;
-        }
+        //public AsyncTask CancelWith(Action<AsyncTask> action)
+        //{
+        //    canceled += () => action?.Invoke(this);
+        //    return this;
+        //}
+        //public T CancelWith<T>(Action<T> action) where T : AsyncTask
+        //{
+        //    canceled += () => action?.Invoke(this as T);
+        //    return this as T;
+        //}
 
         //private CancellationToken _attachedToken;
-        private CancellationTokenRegistration _tokenRegistration;
-        public void AttachCancellationToken(CancellationToken token)
-        {
-            if (IsCompleted) return;
-            //_attachedToken = token;
-            _tokenRegistration.Dispose();
-            if (token.IsCancellationRequested)
-            {
-                Cancel(token);
-                return;
-            }
-            _tokenRegistration = token.Register(() =>
-            {
-                if (!IsCompleted)
-                    Cancel(token);
-            });
-        }
+        //private CancellationTokenRegistration _tokenRegistration;
+        //public void AttachCancellationToken(CancellationToken token)
+        //{
+        //    if (IsCompleted) return;
+        //    //_attachedToken = token;
+        //    _tokenRegistration.Dispose();
+        //    if (token.IsCancellationRequested)
+        //    {
+        //        Cancel(token);
+        //        return;
+        //    }
+        //    _tokenRegistration = token.Register(() =>
+        //    {
+        //        if (!IsCompleted)
+        //            Cancel(token);
+        //    });
+        //}
 
 
         protected static T AllocatePoolTask<T>() where T : AsyncTask, new()
@@ -218,8 +236,9 @@ namespace IFramework
         protected virtual void BackToPool() => SetToPool(this);
         protected virtual void ResetFromPool()
         {
-            _tokenRegistration.Dispose();
-            canceled = null;
+            //_tokenRegistration.Dispose();
+            //canceled = null;
+            onException = null;
             completed = null;
             exception = null;
             IsCompleted = false;
@@ -272,12 +291,7 @@ namespace IFramework
                 }
                 t.ContinueWith<AsyncTask<T>>(OnFirstComplete);
             }
-
-            token.Register(() =>
-            {
-                if (!result.IsCompleted)
-                    result.Cancel(token);
-            });
+            token.Register(result);
 
             return result;
 
@@ -326,11 +340,7 @@ namespace IFramework
             }
 
             // 外部取消处理
-            token.Register(() =>
-            {
-                if (!result.IsCompleted)
-                    result.Cancel(token);
-            });
+            token.Register(result);
 
             return result;
         }
@@ -370,11 +380,7 @@ namespace IFramework
                 t.ContinueWith(OnFirstComplete);
             }
 
-            token.Register(() =>
-            {
-                if (!result.IsCompleted)
-                    result.Cancel(token);
-            });
+            token.Register(result);
 
             return result;
         }
@@ -385,7 +391,7 @@ namespace IFramework
                 return CanceledTask;
 
             AsyncTask task = AsyncTask.CreateFromPool();
-
+            token.Register(task);
             editor |= !Application.isPlaying;
 
 
@@ -398,7 +404,7 @@ namespace IFramework
                     if (token.IsCancellationRequested)
                     {
                         Launcher.UnBindUpdate(Update);
-                        task.Cancel(token);
+                        return;
                     }
                     if (end <= Time.time)
                     {
@@ -418,7 +424,7 @@ namespace IFramework
                     if (token.IsCancellationRequested)
                     {
                         UnityEditor.EditorApplication.update -= Update;
-                        task.Cancel(token);
+                        return;
                     }
                     if (end <= UnityEditor.EditorApplication.timeSinceStartup)
                     {
@@ -433,44 +439,117 @@ namespace IFramework
 
             return task;
         }
-        public static AsyncTask Run(Action<CancellationToken> action, CancellationToken token = default)
+
+        public static AsyncTask Repeat(float interval, int count, Action call, CancellationToken token = default, bool editor = false)
         {
-            var task = CreateFromPool();
-            token.ThrowIfCancellationRequested();
-            try
+            if (token.IsCancellationRequested)
+                return CanceledTask;
+
+            AsyncTask task = AsyncTask.CreateFromPool().OnException(_ => { return _.exception is AsyncTaskCanceledException; });
+            static async void Func(Action call, AsyncTask result, float interval, int count, CancellationToken token, bool editor)
             {
-                action(token);
-                task.SetResult();
+                var temp = count;
+                while (true)
+                {
+                    await AsyncTask.Delay(interval, default, editor);
+                    if (result.IsCompleted) break;
+
+                    if (token.IsCancellationRequested)
+                    {
+                        result.SetResult();
+                        break;
+                    }
+                    try
+                    {
+                        call?.Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        result.SetException(e);
+                        break;
+                    }
+                    if (count != -1)
+                        temp--;
+                    if (temp == 0)
+                    {
+                        result.SetResult();
+                        break;
+                    }
+                }
             }
-            catch (AsyncTaskCanceledException e)
-            {
-                task.SetException(e);
-            }
-            catch (Exception e)
-            {
-                task.SetException(e);
-            }
+            Func(call, task, interval, count, token, editor);
+
             return task;
         }
-        public static AsyncTask<T> Run<T>(Func<CancellationToken, T> func, CancellationToken cancellationToken = default)
+        public static AsyncTask _Sequence(IEnumerable<Func<AsyncTask>> calls, CancellationToken token = default)
         {
-            var task = AsyncTask<T>.CreateFromPool();
-            cancellationToken.ThrowIfCancellationRequested();
-            try
+            if (token.IsCancellationRequested)
+                return CanceledTask;
+            var count = calls.Count();
+            if (count != 0)
+                return CompletedTask;
+            AsyncTask task = AsyncTask.CreateFromPool();
+            token.Register(task);
+
+            static async void Func(AsyncTask result, CancellationToken token, IEnumerable<Func<AsyncTask>> calls)
             {
-                var value = func(cancellationToken);
-                task.SetResult(value);
+                foreach (var call in calls)
+                {
+                    var task = call?.Invoke();
+                    token.Register(task);
+                    if (task != null)
+                        await task;
+                    if (token.IsCancellationRequested)
+                        return;
+                }
+                result.SetResult();
             }
-            catch (AsyncTaskCanceledException e)
-            {
-                task.SetException(e);
-            }
-            catch (Exception e)
-            {
-                task.SetException(e);
-            }
+            Func(task, token, calls);
             return task;
         }
+
+        public static AsyncTask Sequence(CancellationToken token, params Func<AsyncTask>[] calls) => _Sequence(calls, token);
+        public static AsyncTask Sequence(params Func<AsyncTask>[] call) => _Sequence(call);
+        public static AsyncTask Sequence(IEnumerable<Func<AsyncTask>> calls, CancellationToken token = default) => _Sequence(calls, token);
+        public static AsyncTask While(Func<bool> condition, float interval = 0.02f, CancellationToken token = default, bool editor = false)
+        {
+            if (token.IsCancellationRequested)
+                return CanceledTask;
+            if (!condition.Invoke())
+                return CompletedTask;
+            AsyncTask task = null;
+            task = Repeat(interval, -1, Func, token, editor);
+            void Func()
+            {
+                var go = condition.Invoke();
+                if (!go)
+                {
+                    task.SetResult();
+                }
+            }
+
+            return task;
+        }
+        public static AsyncTask Util(Func<bool> condition, float interval = 0.02f, CancellationToken token = default, bool editor = false)
+        {
+            if (token.IsCancellationRequested)
+                return CanceledTask;
+            if (condition.Invoke())
+                return CompletedTask;
+            AsyncTask task = null;
+            task = Repeat(interval, -1, Func, token, editor);
+            void Func()
+            {
+                var go = !condition.Invoke();
+                if (!go)
+                {
+                    task.SetResult();
+                }
+            }
+
+            return task;
+        }
+
         public IAwaiter GetAwaiter() => new AsyncTaskAwaiter(this);
 
 
@@ -621,10 +700,22 @@ namespace IFramework
             if (_source == null) return default;
             return _source.Register(callback);
         }
+        public CancellationTokenRegistration Register(AsyncTask task)
+        {
+            if (task == null) return default;
+            var token = this;
+            return Register(() =>
+            {
+                if (!task.IsCompleted)
+                {
+                    task.Cancel(token);
+                }
+            });
+        }
     }
     public class CancellationTokenSource
     {
-        public string userData { get; private set; }
+        public string userData { get; set; }
         private bool _canceled;
         private readonly List<Action> _callbacks = new List<Action>();
 
