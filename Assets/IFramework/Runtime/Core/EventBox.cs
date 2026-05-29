@@ -470,7 +470,7 @@ namespace IFramework
                 return null;
             }
             var task = AsyncTask.CreateFromPool();
-            task.AttachCancellationToken(token);
+            token.Register(task);
             task.ContinueWith(task =>
             {
                 wait_map.Remove(message);
@@ -488,7 +488,7 @@ namespace IFramework
                 return null;
             }
             var task = AsyncTask<T>.CreateFromPool();
-            task.AttachCancellationToken(token);
+            token.Register(task);
 
             task.ContinueWith(task =>
             {
