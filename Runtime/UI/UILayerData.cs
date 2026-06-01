@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace IFramework.UI
 {
-    [CreateAssetMenu]
+    [CreateAssetMenu(menuName = "IFramework/UILayerData")]
     public class UILayerData : UnityEngine.ScriptableObject
     {
         public const string rayCast_layer = "RayCast";

@@ -74,7 +74,7 @@ namespace IFramework
                 AssetDatabase.Refresh();
             }
 
-            [MenuItem("Assets/Create/Format C# Script", priority = -1000)]
+            [MenuItem("Assets/Create/IFramework/Format C# Script", priority = -1000)]
             public static void Create2()
             {
                 string cs = EditorTools.projectMemoryPath.CombinePath("UserCSharpScript.txt");
