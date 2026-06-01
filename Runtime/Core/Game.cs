@@ -11,17 +11,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-
 namespace IFramework
 {
+    interface IMCBase
+    {
+        void Init();
+        void Quit();
+    }
 
-
+    public class CtrlBase : IMCBase, IInjectAble
+    {
+        void IMCBase.Init() => Init();
+        void IMCBase.Quit() => Quit();
+        protected virtual void Init() { }
+        protected virtual void Quit() { }
+    }
+    public class ModelBase : IMCBase
+    {
+        public virtual void FreshRedPoints() { }
+        void IMCBase.Init() => Init();
+        void IMCBase.Quit() => Quit();
+        protected virtual void Init() { }
+        protected virtual void Quit() { }
+    }
 
 
     public interface IInjectAble { }
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
     public class InjectAttribute : System.Attribute { }
-    public interface IGameState: IInjectAble
+    public interface IGameState : IInjectAble
     {
         void OnExit();
         void OnEnter();
@@ -44,15 +62,21 @@ namespace IFramework
             transform.SetParent(Launcher.Instance.transform);
             Launcher.Instance.game = this;
             BindUpdate(_Update);
-            Startup();
+            GameLogic();
         }
 
+
+
+
+
         private bool quited;
-        public void Quit() {
+        public void Quit()
+        {
             if (quited) return;
             quited = true;
             OnQuit();
             state = null;
+            QuitMcs();
             UnBindUpdate(_Update);
             ((IDisposable)_modules).Dispose();
             values.Clear();
@@ -69,6 +93,51 @@ namespace IFramework
             _state?.Update();
             _modules?.Update();
         }
+        public IReadOnlyList<ModelBase> models {  get; private set; }
+        public IReadOnlyList<CtrlBase> ctrls {  get; private set; }
+
+
+
+        protected virtual IReadOnlyList<ModelBase> GetModels() => null;
+        protected virtual IReadOnlyList<CtrlBase> GetCtrls() => null;
+
+
+        private void InitMcs()
+        {
+            this.models = GetModels() ?? new List<ModelBase>();
+            this.ctrls = GetCtrls() ?? new List<CtrlBase>();
+            for (int i = 0; i < models.Count; i++)
+            {
+                var model = models[i];
+                (model as IMCBase).Init();
+                RegisterValue(model.GetType(), model);
+            }
+            for (int i = 0; i < ctrls.Count; i++)
+            {
+                var ctrl = ctrls[i];
+                (ctrl as IMCBase).Init();
+                RegisterValue(ctrl.GetType(), ctrl);
+            }
+
+            for (int i = 0; i < models.Count; i++) InjectValues(models[i]);
+            for (int i = 0; i < ctrls.Count; i++) InjectValues(ctrls[i]);
+        }
+        private void QuitMcs()
+        {
+
+            for (int i = 0; i < ctrls.Count; i++) (ctrls[i] as IMCBase).Quit();
+            for (int i = 0; i < models.Count; i++) (models[i] as IMCBase).Quit();
+        }
+        protected async virtual AsyncTask Init()
+        {
+            await AsyncTask.CompletedTask;
+        }
+        private async void GameLogic()
+        {
+            await Init();
+            InitMcs();
+            Startup();
+        }
 
         protected virtual void Startup()
         {
@@ -79,6 +148,7 @@ namespace IFramework
                 {
                     var state = states[i];
                     RegisterState(state);
+                    InjectValues(state);
                 }
                 var _default = GetDefaultState();
                 if (_default != null)
@@ -101,7 +171,10 @@ namespace IFramework
             }
         }
         private Dictionary<string, IGameState> _states = new Dictionary<string, IGameState>();
-        public bool RegisterState(IGameState state)
+
+
+
+        bool RegisterState(IGameState state)
         {
             var name = state.GetType().Name;
             if (FindState(name) != null) return false;
@@ -121,13 +194,7 @@ namespace IFramework
         public IGameState FindState(string name) => _states.TryGetValue(name, out var state) ? state : null;
         public IGameState FindState<T>() where T : IGameState => FindState(typeof(T).Name);
 
-        public void InjectStates()
-        {
-            foreach (var state in _states.Values)
-            {
-                InjectValues(state);
-            }
-        }
+
 
 
 
