@@ -7,25 +7,25 @@ namespace IFramework
 {
     public abstract class Singleton<T> where T : Singleton<T>, new()
     {
-        private volatile static T _instance;
+        private volatile static T instance;
         static object lockObj = new object();
-
+        public static bool Exist => instance != null;
         public static T Instance
         {
             get
             {
-                if (_instance == null)
+                if (instance == null)
                 {
                     lock (lockObj)
                     {
-                        if (_instance == null)
+                        if (instance == null)
                         {
-                            _instance = new T();
-                            _instance.OnSingletonInit();
+                            instance = new T();
+                            instance.OnSingletonInit();
                         }
                     }
                 }
-                return _instance;
+                return instance;
             }
         }
 
@@ -44,6 +44,8 @@ namespace IFramework
     }
     public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
     {
+        public static bool Exist => instance != null;
+
         private static T instance = null;
         public static T Instance
         {
