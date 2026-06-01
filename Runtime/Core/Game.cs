@@ -13,13 +13,13 @@ using System.Reflection;
 using UnityEngine;
 namespace IFramework
 {
-    interface IMCBase
+    interface IMCBase: IInjectAble
     {
         void Init();
         void Quit();
     }
 
-    public class CtrlBase : IMCBase, IInjectAble
+    public class CtrlBase : IMCBase
     {
         void IMCBase.Init() => Init();
         void IMCBase.Quit() => Quit();
@@ -102,11 +102,10 @@ namespace IFramework
             if (ctrls != null)
                 for (int i = 0; i < ctrls.Count; i++) (ctrls[i] as IMCBase).Quit();
             if (models != null)
-
                 for (int i = 0; i < models.Count; i++) (models[i] as IMCBase).Quit();
         }
 
-        public void InitModelsAndCtrls(IReadOnlyList<ModelBase> models, IReadOnlyList<CtrlBase> ctrls)
+        protected void InitModelsAndCtrls(IReadOnlyList<ModelBase> models, IReadOnlyList<CtrlBase> ctrls)
         {
             this.models = models ?? new List<ModelBase>();
             this.ctrls = ctrls ?? new List<CtrlBase>();
@@ -136,7 +135,8 @@ namespace IFramework
                 for (int i = 0; i < states.Count; i++)
                 {
                     var state = states[i];
-                    RegisterState(state);
+                    this.RegisterValue(state.GetType(), state);
+                    state.Init();
                     InjectValues(state);
                 }
                 var _default = GetDefaultState();
@@ -159,29 +159,19 @@ namespace IFramework
                 _state?.OnEnter();
             }
         }
-        private Dictionary<string, IGameState> _states = new Dictionary<string, IGameState>();
+        //private Dictionary<string, IGameState> _states = new Dictionary<string, IGameState>();
 
-
-
-        bool RegisterState(IGameState state)
+        public bool SwitchState(Type type)
         {
-            var name = state.GetType().Name;
-            if (FindState(name) != null) return false;
-            state.Init();
-            _states[name] = state;
-            return true;
-        }
-        public bool SwitchState(string name)
-        {
-            var _state = FindState(name);
+            var _state = FindState(type);
             if (_state == null) return false;
             this.state = _state;
             return true;
         }
-        public bool SwitchState<T>() => SwitchState(typeof(T).Name);
-        public bool SwitchState(IGameState state) => SwitchState(state.GetType().Name);
-        public IGameState FindState(string name) => _states.TryGetValue(name, out var state) ? state : null;
-        public IGameState FindState<T>() where T : IGameState => FindState(typeof(T).Name);
+        public bool SwitchState<T>() => SwitchState(typeof(T));
+        public bool SwitchState(IGameState state) => SwitchState(state.GetType());
+        public IGameState FindState(Type type) => GetValue(type) as IGameState;
+        public IGameState FindState<T>() where T : IGameState => FindState(typeof(T));
 
 
 
