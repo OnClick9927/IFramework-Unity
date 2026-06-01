@@ -62,7 +62,7 @@ namespace IFramework
             transform.SetParent(Launcher.Instance.transform);
             Launcher.Instance.game = this;
             BindUpdate(_Update);
-            GameLogic();
+            Startup();
         }
 
 
@@ -93,19 +93,23 @@ namespace IFramework
             _state?.Update();
             _modules?.Update();
         }
-        public IReadOnlyList<ModelBase> models {  get; private set; }
-        public IReadOnlyList<CtrlBase> ctrls {  get; private set; }
+        public IReadOnlyList<ModelBase> models { get; private set; }
+        public IReadOnlyList<CtrlBase> ctrls { get; private set; }
 
 
-
-        protected virtual IReadOnlyList<ModelBase> GetModels() => null;
-        protected virtual IReadOnlyList<CtrlBase> GetCtrls() => null;
-
-
-        private void InitMcs()
+        private void QuitMcs()
         {
-            this.models = GetModels() ?? new List<ModelBase>();
-            this.ctrls = GetCtrls() ?? new List<CtrlBase>();
+            if (ctrls != null)
+                for (int i = 0; i < ctrls.Count; i++) (ctrls[i] as IMCBase).Quit();
+            if (models != null)
+
+                for (int i = 0; i < models.Count; i++) (models[i] as IMCBase).Quit();
+        }
+
+        public void InitModelsAndCtrls(IReadOnlyList<ModelBase> models, IReadOnlyList<CtrlBase> ctrls)
+        {
+            this.models = models ?? new List<ModelBase>();
+            this.ctrls = ctrls ?? new List<CtrlBase>();
             for (int i = 0; i < models.Count; i++)
             {
                 var model = models[i];
@@ -122,22 +126,7 @@ namespace IFramework
             for (int i = 0; i < models.Count; i++) InjectValues(models[i]);
             for (int i = 0; i < ctrls.Count; i++) InjectValues(ctrls[i]);
         }
-        private void QuitMcs()
-        {
 
-            for (int i = 0; i < ctrls.Count; i++) (ctrls[i] as IMCBase).Quit();
-            for (int i = 0; i < models.Count; i++) (models[i] as IMCBase).Quit();
-        }
-        protected async virtual AsyncTask Init()
-        {
-            await AsyncTask.CompletedTask;
-        }
-        private async void GameLogic()
-        {
-            await Init();
-            InitMcs();
-            Startup();
-        }
 
         protected virtual void Startup()
         {
