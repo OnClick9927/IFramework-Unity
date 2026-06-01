@@ -341,20 +341,30 @@ namespace IFramework
 
 
 
-        public static AsyncTask InvokeAsync(string message, IEventArgs args) => FindContext(message, true)?.InvokeAsync(args);
 
         public static void Invoke(string message, IEventArgs args) => FindContext(message, true)?.Invoke(args);
-        public static T Invoke<T>(string message, IEventArgs args)
+        public static AsyncTask InvokeAsync(string message, IEventArgs args) => FindContext(message, true)?.InvokeAsync(args);
+
+
+        public static void Invoke<TArg>(TArg args) where TArg : IEventArgs => Invoke(typeof(TArg).Name, args);
+        public static AsyncTask InvokeAsync<TArg>(TArg args) where TArg : IEventArgs => InvokeAsync(typeof(TArg).Name, args);
+
+
+
+
+
+
+        public static TResult Invoke<TResult>(string message, IEventArgs args)
         {
             var find = FindContext(message, true);
-            if (find != null) return find.Invoke<T>(args);
+            if (find != null) return find.Invoke<TResult>(args);
             return default;
         }
+        public static TResult Invoke<TResult, Arg>(Arg args) where Arg : IEventArgs => Invoke<TResult>(typeof(Arg).Name, args);
 
-        public static AsyncTask<T> InvokeAsync<T>(string message, IEventArgs args) => FindContext(message, true)?.InvokeAsync<T>(args);
 
-        public static T Invoke<T, Arg>(Arg args) where Arg : IEventArgs => Invoke<T>(typeof(Arg).Name, args);
-        public static AsyncTask<T> InvokeAsync<T, Arg>(Arg args) where Arg : IEventArgs => InvokeAsync<T>(typeof(Arg).Name, args);
+        public static AsyncTask<TResult> InvokeAsync<TResult>(string message, IEventArgs args) => FindContext(message, true)?.InvokeAsync<TResult>(args);
+        public static AsyncTask<TResult> InvokeAsync<TResult, Arg>(Arg args) where Arg : IEventArgs => InvokeAsync<TResult>(typeof(Arg).Name, args);
 
 
 
