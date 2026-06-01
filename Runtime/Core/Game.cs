@@ -13,7 +13,7 @@ using System.Reflection;
 using UnityEngine;
 namespace IFramework
 {
-    interface IMCBase: IInjectAble
+    interface IMCBase : IInjectAble
     {
         void Init();
         void Quit();
@@ -39,7 +39,7 @@ namespace IFramework
     public interface IInjectAble { }
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
     public class InjectAttribute : System.Attribute { }
-    public interface IGameState : IInjectAble
+    public interface IGameState : IInjectAble,IEventsOwner
     {
         void OnExit();
         void OnEnter();
@@ -125,11 +125,8 @@ namespace IFramework
             for (int i = 0; i < models.Count; i++) InjectValues(models[i]);
             for (int i = 0; i < ctrls.Count; i++) InjectValues(ctrls[i]);
         }
-
-
-        protected virtual void Startup()
+        protected void InitGameState(IReadOnlyList<IGameState> states, IGameState first)
         {
-            var states = GetGameStates();
             if (states != null)
             {
                 for (int i = 0; i < states.Count; i++)
@@ -139,14 +136,13 @@ namespace IFramework
                     state.Init();
                     InjectValues(state);
                 }
-                var _default = GetDefaultState();
-                if (_default != null)
-                    SwitchState(_default);
+                if (first != null)
+                    SwitchState(first);
             }
         }
 
-        protected virtual IReadOnlyList<IGameState> GetGameStates() => null;
-        protected virtual IGameState GetDefaultState() => null;
+        protected abstract void Startup();
+
 
         private IGameState _state;
         public IGameState state
@@ -154,12 +150,12 @@ namespace IFramework
             get => _state; set
             {
                 if (value == _state) return;
+                _state?.DisposeEvents();
                 _state?.OnExit();
                 _state = value;
                 _state?.OnEnter();
             }
         }
-        //private Dictionary<string, IGameState> _states = new Dictionary<string, IGameState>();
 
         public bool SwitchState(Type type)
         {
