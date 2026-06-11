@@ -39,10 +39,10 @@ namespace IFramework
     public interface IInjectAble { }
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
     public class InjectAttribute : System.Attribute { }
-    public interface IGameState : IInjectAble,IEventsOwner
+    public interface IGameState : IInjectAble, IEventsOwner
     {
-        void OnExit();
-        void OnEnter();
+        void OnExit(IGameState enter);
+        void OnEnter(IGameState exit);
         void Update();
         void Init();
     }
@@ -133,8 +133,11 @@ namespace IFramework
                 {
                     var state = states[i];
                     this.RegisterValue(state.GetType(), state);
-                    state.Init();
+                }
+                for (int i = 0; i < states.Count; i++)
+                {
                     InjectValues(state);
+                    state.Init();
                 }
                 if (first != null)
                     SwitchState(first);
@@ -151,9 +154,10 @@ namespace IFramework
             {
                 if (value == _state) return;
                 _state?.DisposeEvents();
-                _state?.OnExit();
+                _state?.OnExit(value);
+                var exit = _state;
                 _state = value;
-                _state?.OnEnter();
+                _state?.OnEnter(exit);
             }
         }
 
