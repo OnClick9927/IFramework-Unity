@@ -13,39 +13,16 @@ using System.Reflection;
 using UnityEngine;
 namespace IFramework
 {
-    interface IMCBase : IInjectAble
-    {
-        void Init();
-        void Quit();
-    }
 
-    public class CtrlBase : IMCBase
+    public interface IGameService
     {
-        void IMCBase.Init() => Init();
-        void IMCBase.Quit() => Quit();
-        protected virtual void Init() { }
-        protected virtual void Quit() { }
+        void OnUse(Game game);
+        void OnQuit(Game game);
     }
-    public class ModelBase : IMCBase
-    {
-        public virtual void FreshRedPoints() { }
-        void IMCBase.Init() => Init();
-        void IMCBase.Quit() => Quit();
-        protected virtual void Init() { }
-        protected virtual void Quit() { }
-    }
-
-
     public interface IInjectAble { }
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
     public class InjectAttribute : System.Attribute { }
-    public interface IGameState : IInjectAble, IEventsOwner
-    {
-        void OnExit(IGameState enter);
-        void OnEnter(IGameState exit);
-        void Update();
-        void Init();
-    }
+
 
 
     public abstract class Game : MonoBehaviour
@@ -53,7 +30,9 @@ namespace IFramework
         public Modules modules => _modules;
         public static Game Current { get { return Launcher.Instance.game; } }
         private ValueContainer values;
+        private bool quited;
         Modules _modules;
+        private Stack<IGameService> services = new Stack<IGameService>();
 
         private void Awake()
         {
@@ -61,117 +40,43 @@ namespace IFramework
             _modules = new Modules();
             transform.SetParent(Launcher.Instance.transform);
             Launcher.Instance.game = this;
-            BindUpdate(_Update);
+            BindUpdate(_modules.Update);
             Startup();
         }
-
-
-
-
-
-        private bool quited;
+        public void UseService(IGameService context)
+        {
+            this.RegisterValue(context.GetType(), context);
+            context.OnUse(this);
+            services.Push(context);
+        }
         public void Quit()
         {
             if (quited) return;
             quited = true;
             OnQuit();
-            state = null;
-            QuitMcs();
-            UnBindUpdate(_Update);
+            var count = services.Count;
+            for (int i = 0; i < count; i++)
+            {
+                var _func = services.Pop();
+                _func.OnQuit(this);
+            }
+            UnBindUpdate(_modules.Update);
             ((IDisposable)_modules).Dispose();
             values.Clear();
             _modules = null;
         }
         protected virtual void OnQuit() { }
-
-        private void OnDestroy()
-        {
-            Quit();
-        }
-        private void _Update()
-        {
-            _state?.Update();
-            _modules?.Update();
-        }
-        public IReadOnlyList<ModelBase> models { get; private set; }
-        public IReadOnlyList<CtrlBase> ctrls { get; private set; }
-
-
-        private void QuitMcs()
-        {
-            if (ctrls != null)
-                for (int i = 0; i < ctrls.Count; i++) (ctrls[i] as IMCBase).Quit();
-            if (models != null)
-                for (int i = 0; i < models.Count; i++) (models[i] as IMCBase).Quit();
-        }
-
-        protected void InitModelsAndCtrls(IReadOnlyList<ModelBase> models, IReadOnlyList<CtrlBase> ctrls)
-        {
-            this.models = models ?? new List<ModelBase>();
-            this.ctrls = ctrls ?? new List<CtrlBase>();
-            for (int i = 0; i < models.Count; i++)
-            {
-                var model = models[i];
-                (model as IMCBase).Init();
-                RegisterValue(model.GetType(), model);
-            }
-            for (int i = 0; i < ctrls.Count; i++)
-            {
-                var ctrl = ctrls[i];
-                (ctrl as IMCBase).Init();
-                RegisterValue(ctrl.GetType(), ctrl);
-            }
-
-            for (int i = 0; i < models.Count; i++) InjectValues(models[i]);
-            for (int i = 0; i < ctrls.Count; i++) InjectValues(ctrls[i]);
-        }
-        protected void InitGameState(IReadOnlyList<IGameState> states, IGameState first)
-        {
-            if (states != null)
-            {
-                for (int i = 0; i < states.Count; i++)
-                {
-                    var state = states[i];
-                    this.RegisterValue(state.GetType(), state);
-                }
-                for (int i = 0; i < states.Count; i++)
-                {
-                    InjectValues(state);
-                    state.Init();
-                }
-                if (first != null)
-                    SwitchState(first);
-            }
-        }
-
         protected abstract void Startup();
 
 
-        private IGameState _state;
-        public IGameState state
-        {
-            get => _state; set
-            {
-                if (value == _state) return;
-                _state?.DisposeEvents();
-                _state?.OnExit(value);
-                var exit = _state;
-                _state = value;
-                _state?.OnEnter(exit);
-            }
-        }
 
-        public bool SwitchState(Type type)
-        {
-            var _state = FindState(type);
-            if (_state == null) return false;
-            this.state = _state;
-            return true;
-        }
-        public bool SwitchState<T>() => SwitchState(typeof(T));
-        public bool SwitchState(IGameState state) => SwitchState(state.GetType());
-        public IGameState FindState(Type type) => GetValue(type) as IGameState;
-        public IGameState FindState<T>() where T : IGameState => FindState(typeof(T));
+
+
+        private void OnDestroy() => Quit();
+
+ 
+
+
 
 
 
@@ -181,9 +86,10 @@ namespace IFramework
         public void RegisterValue(Type type, object instance) => values.RegisterInstance(type, instance);
         public object GetValue(Type type) => values.Get(type);
         public void InjectValues(object obj) => values.Inject(obj);
-
         public void RegisterValue<T>(T instance) where T : class => RegisterValue(typeof(T), instance);
         public T GetValue<T>() where T : class => GetValue(typeof(T)) as T;
+      
+        
         public void RegisterValueType<TBaseType, TType>() where TType : class, TBaseType, new() => values.RegisterType<TBaseType, TType>();
         public void RegisterValueType<TType>() where TType : class, new() => RegisterValueType<TType, TType>();
 
