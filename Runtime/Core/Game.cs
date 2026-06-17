@@ -12,115 +12,31 @@ using System.Linq;
 using UnityEngine;
 namespace IFramework
 {
-
-    public abstract class IGameService
+    interface IGameService
     {
-        public string name { get; internal set; }
-        public abstract void OnUse(Game game);
-        public abstract void OnQuit(Game game);
+        string name { get; }
+        void OnQuit(Game game);
+        void OnUse(Game game);
     }
 
-    public abstract class Game : MonoBehaviour
+    public abstract class GameServiceBase : IGameService
     {
-        public Modules modules => _modules;
-        public static Game Current { get { return Launcher.Instance.game; } }
-        private bool quited;
-        Modules _modules;
-        private Stack<IGameService> services = new Stack<IGameService>();
-        private Dictionary<Type, List<IGameService>> serviceMap = new Dictionary<Type, List<IGameService>>();
+        public string name { get; internal set; }
+        protected abstract void OnUse(Game game);
+        protected abstract void OnQuit(Game game);
 
-
-        private void Awake()
+        void IGameService.OnQuit(Game game)
         {
-            _modules = new Modules();
-            transform.SetParent(Launcher.Instance.transform);
-            Launcher.Instance.game = this;
-            quited = false;
-            BindUpdate(_modules.Update);
-            //this.UseValue();
-            Startup();
-        }
-        public void UseService(IGameService context, string name)
-        {
-            context.name = name;
-            UseService(context);
+            OnQuit(game);
         }
 
-        public void UseService(IGameService context)
+        void IGameService.OnUse(Game game)
         {
-            context.OnUse(this);
-            services.Push(context);
-            var type = context.GetType();
-            if (!serviceMap.TryGetValue(type, out var result))
-            {
-                result = new List<IGameService>();
-                serviceMap.Add(type, result);
-            }
-            result.Add(context);
+            OnUse(game);
         }
-        public IReadOnlyList<IGameService> GetServices<T>() where T : IGameService
-        {
-            var type = typeof(T);
-            if (serviceMap.TryGetValue(type, out var result))
-            {
-                return result;
-            }
-            return null;
-        }
-
-        public T GetService<T>(string name="") where T : IGameService
-        {
-            var result = GetServices<T>();
-            if (result != null)
-            {
-                if (string.IsNullOrEmpty(name))
-                    return result.FirstOrDefault() as T;
-                return result.FirstOrDefault(x=>x.name==name) as T;
-            }
-            return null;
-        }
-
-
-        public void Quit()
-        {
-            if (quited) return;
-            quited = true;
-            OnQuit();
-            UnBindUpdate(_modules.Update);
-            ((IDisposable)_modules).Dispose();
-            var count = services.Count;
-            for (int i = 0; i < count; i++)
-            {
-                var service = services.Pop();
-                service.OnQuit(this);
-            }
-            _modules = null;
-            serviceMap.Clear();
-        }
-        protected virtual void OnQuit() { }
-        protected abstract void Startup();
-
-
-
-
-
-        private void OnDestroy() => Quit();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    }
+    partial class Game
+    {
         public static void BindUpdate(Action action) => Launcher.BindUpdate(action);
         public static void UnBindUpdate(Action action) => Launcher.UnBindUpdate(action);
         public static void BindFixedUpdate(Action action) => Launcher.BindFixedUpdate(action);
@@ -134,7 +50,102 @@ namespace IFramework
         public static void UnBindOnApplicationPause(Action<bool> action) => Launcher.UnBindOnApplicationPause(action);
         public static void BindDisable(Action action) => Launcher.BindDisable(action);
         public static void UnBindDisable(Action action) => Launcher.UnBindDisable(action);
+    }
+    public abstract partial class Game : MonoBehaviour
+    {
+        private class ServiceSeg
+        {
+            public Type type;
+            private List<GameServiceBase> services = new List<GameServiceBase>();
+            public Dictionary<string, GameServiceBase> map = new Dictionary<string, GameServiceBase>();
 
+            public void Add(GameServiceBase service)
+            {
+                services.Add(service);
+                var name = service.name;
+                map.Add(name, service);
+            }
+            public IReadOnlyList<GameServiceBase> GetServices()
+            {
+                return services;
+            }
+            internal GameServiceBase GetService(string name)
+            {
+                if (string.IsNullOrEmpty(name) && services.Count != 0)
+                    return services[0];
+                return map.TryGetValue(name, out var service) ? service : null;
+            }
+        }
+        public static Game Current { get { return Launcher.Instance.game; } }
+        private bool quited;
+        private Stack<IGameService> services = new Stack<IGameService>();
+        private Dictionary<Type, ServiceSeg> serviceMap = new Dictionary<Type, ServiceSeg>();
+
+
+        private void Awake()
+        {
+            transform.SetParent(Launcher.Instance.transform);
+            Launcher.Instance.game = this;
+            quited = false;
+            Startup();
+        }
+
+        public GameServiceBase UseService<T>(T service, string name = "") where T : GameServiceBase
+        {
+            service.name = name;
+            (service as IGameService).OnUse(this);
+            services.Push(service);
+            var type = service.GetType();
+            if (!serviceMap.TryGetValue(type, out var result))
+            {
+                result = new();
+                serviceMap.Add(type, result);
+            }
+            result.Add(service);
+            var value = GetService<ValueService>();
+            if (value != null)
+            {
+                value.RegisterInstance(type, service);
+                value.Inject(service);
+            }
+            return service;
+        }
+        public IReadOnlyList<GameServiceBase> GetServices<T>() where T : GameServiceBase
+        {
+            var type = typeof(T);
+            if (serviceMap.TryGetValue(type, out var result))
+            {
+                return result.GetServices();
+            }
+            return null;
+        }
+        public T GetService<T>(string name = "") where T : GameServiceBase
+        {
+            var type = typeof(T);
+            if (serviceMap.TryGetValue(type, out var result))
+            {
+                return result.GetService(name) as T;
+            }
+            return null;
+        }
+
+
+        public void Quit()
+        {
+            if (quited) return;
+            quited = true;
+            OnQuit();
+            var count = services.Count;
+            for (int i = 0; i < count; i++)
+            {
+                var service = services.Pop();
+                service.OnQuit(this);
+            }
+            serviceMap.Clear();
+        }
+        protected virtual void OnQuit() { }
+        protected abstract void Startup();
+        private void OnDestroy() => Quit();
 
     }
 }

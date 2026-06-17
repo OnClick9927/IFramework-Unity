@@ -72,7 +72,7 @@ namespace IFramework
         void Update();
         void Init();
     }
-    class GameStateService : IGameService
+    class GameStateService : GameServiceBase
     {
         private void Update()
         {
@@ -80,12 +80,12 @@ namespace IFramework
             state.Update();
         }
 
-        public override void OnUse(Game game)
+        protected override void OnUse(Game game)
         {
             Game.BindUpdate(Update);
         }
 
-        public override void OnQuit(Game game)
+        protected override void OnQuit(Game game)
         {
             Game.UnBindUpdate(Update);
             state = null;

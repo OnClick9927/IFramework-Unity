@@ -15,7 +15,26 @@ using static IFramework.UI.UIPanel;
 
 namespace IFramework.UI
 {
-    public partial class UIModule : UpdateModule
+
+    public static class UIServiceEx
+    {
+        public const string defaultName = "UI";
+        public static UIService UseUI(this Game game, UIAsset asset, IViewBridge bridge, IUIDelegate del = null, string name = defaultName)
+        {
+            UIService ui = new UIService();
+            game.UseService(ui, name);
+            ui.SetUIDelegate(del);
+            ui.SetBridge(bridge);
+            ui.SetAsset(asset);
+            ui.CreateCanvas();
+            return ui;
+        }
+        public static UIService FindUI(this Game game, string name = defaultName) => game.GetService<UIService>(name);
+
+    }
+
+
+    public partial class UIService : GameServiceBase
     {
 
         private LoadPart loadPart;
@@ -39,7 +58,7 @@ namespace IFramework.UI
         private LayerChangeCheckData check_hide;
         private LayerChangeCheckData check_close;
 
-        protected override void Awake()
+        protected override void OnUse(Game game)
         {
             layerPart = new LayerPart(this);
             loadPart = new LoadPart(this);
@@ -47,7 +66,7 @@ namespace IFramework.UI
             check_hide = new LayerChangeCheckData();
             check_close = new LayerChangeCheckData();
         }
-        protected override void OnDispose()
+        protected override void OnQuit(Game game)
         {
             if (bridgePart != null)
                 bridgePart.Dispose();
@@ -56,7 +75,8 @@ namespace IFramework.UI
         }
 
 
-        public void CreateCanvas()
+
+        internal void CreateCanvas()
         {
             var _canvas = loadPart.CreateCanvas();
             layerPart.CreateLayers(_canvas);
@@ -184,23 +204,23 @@ namespace IFramework.UI
             return show_op;
         }
 
-        private Queue<CMD> cmds = new Queue<CMD>();
-        public struct CMD
-        {
-            public enum Type
-            {
-                Hide, Close,
-            }
-            public Type type;
-            public string path;
+        //private Queue<CMD> cmds = new Queue<CMD>();
+        //public struct CMD
+        //{
+        //    public enum Type
+        //    {
+        //        Hide, Close,
+        //    }
+        //    public Type type;
+        //    public string path;
 
-            public CMD(Type type, string path)
-            {
-                this.type = type;
-                this.path = path;
-            }
-        }
-        public void _Hide(string path)
+        //    public CMD(Type type, string path)
+        //    {
+        //        this.type = type;
+        //        this.path = path;
+        //    }
+        //}
+        private void _Hide(string path)
         {
             var panel = loadPart.Find(path);
             if (panel != null)
@@ -214,7 +234,7 @@ namespace IFramework.UI
                 EndChangeLayerTopChangeCheck(layer, path, false, check_hide);
             }
         }
-        public void _Close(string path)
+        private void _Close(string path)
         {
             var panel = loadPart.Find(path);
 
@@ -238,34 +258,39 @@ namespace IFramework.UI
         }
 
 
-        public void Hide(string path)
+        public async void Hide(string path)
         {
-            cmds.Enqueue(new CMD(CMD.Type.Hide, path));
-        }
-        public void Close(string path)
-        {
-            cmds.Enqueue(new CMD(CMD.Type.Close, path));
-        }
-        protected override void OnUpdate()
-        {
-            var count = cmds.Count;
-            if (count == 0) return;
-            for (int i = 0; i < count; i++)
-            {
-                var cmd = cmds.Dequeue();
-                switch (cmd.type)
-                {
-                    case CMD.Type.Hide:
-                        _Hide(cmd.path);
-                        break;
-                    case CMD.Type.Close:
-                        _Close(cmd.path);
-                        break;
+            await AsyncTask.NextFrame();
+            _Hide(path);
 
-                }
-
-            }
+            //cmds.Enqueue(new CMD(CMD.Type.Hide, path));
         }
+        public async void Close(string path)
+        {
+            await AsyncTask.NextFrame();
+            _Close(path);
+            //cmds.Enqueue(new CMD(CMD.Type.Close, path));
+        }
+        //protected override void OnUpdate()
+        //{
+        //    var count = cmds.Count;
+        //    if (count == 0) return;
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        var cmd = cmds.Dequeue();
+        //        switch (cmd.type)
+        //        {
+        //            case CMD.Type.Hide:
+        //                _Hide(cmd.path);
+        //                break;
+        //            case CMD.Type.Close:
+        //                _Close(cmd.path);
+        //                break;
+
+        //        }
+
+        //    }
+        //}
         //private SimpleObjectPool<ClosePanelAsyncOperation> close_op = new SimpleObjectPool<ClosePanelAsyncOperation>();
         //private SimpleObjectPool<HidePanelAsyncOperation> hide_op = new SimpleObjectPool<HidePanelAsyncOperation>();
         //private List<PanelAsyncOperation> colse_hide_list = new List<PanelAsyncOperation>();
@@ -363,7 +388,7 @@ namespace IFramework.UI
         }
     }
 
-    partial class UIModule
+    partial class UIService
     {
         //min 1125*2346
         //max 768*1024
@@ -377,10 +402,10 @@ namespace IFramework.UI
             percent = (percent - min) / length;
             scaler.matchWidthOrHeight = percent;
         }
-        public void SetAsset(UIAsset asset) => assetPart = asset;
+        internal void SetAsset(UIAsset asset) => assetPart = asset;
 
-        public void SetBridge(IViewBridge bridge) => this.bridgePart = bridge;
-        public void SetUIDelegate(IUIDelegate del) => this.delPart = del;
+        internal void SetBridge(IViewBridge bridge) => this.bridgePart = bridge;
+        internal void SetUIDelegate(IUIDelegate del) => this.delPart = del;
 
         public void RefuseRayCast() => layerPart.RefuseRayCast();
         public void AcceptRayCast() => layerPart.AcceptRayCast();

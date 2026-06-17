@@ -119,11 +119,11 @@ namespace IFramework.UI
         {
             if (!EditorApplication.isPlaying) return;
             mode = (Mode)GUILayout.Toolbar((int)mode, Enum.GetNames(typeof(Mode)));
-            var moudules = Game.Current.modules.FindModules(typeof(UIModule));
+            var moudules = Game.Current.GetServices<UIService>();
             if (moudules == null) return;
             var names = moudules.Select(m => m.name).ToArray();
             ui_name_index = EditorGUILayout.Popup("Module", ui_name_index, names);
-            UIModule module = moudules.FirstOrDefault(x => x.name == names[ui_name_index]) as UIModule;
+            UIService module = moudules.FirstOrDefault(x => x.name == names[ui_name_index]) as UIService;
             show.Visible.Clear();
             show.Visible.AddRange(module.GetVisibleList().Select(x => module.FindPanel(x)));
 

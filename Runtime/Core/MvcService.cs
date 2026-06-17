@@ -31,7 +31,7 @@ namespace IFramework
         protected virtual void Quit() { }
     }
 
-    class MvcService : IGameService
+    class MvcService : GameServiceBase
     {
         public MvcService(IReadOnlyList<ModelBase> models, IReadOnlyList<CtrlBase> ctrls)
         {
@@ -39,7 +39,7 @@ namespace IFramework
             this.ctrls = ctrls;
         }
 
-        public override void OnUse(Game game)
+        protected override void OnUse(Game game)
         {
             this.models = models ?? new List<ModelBase>();
             this.ctrls = ctrls ?? new List<CtrlBase>();
@@ -59,7 +59,7 @@ namespace IFramework
             for (int i = 0; i < models.Count; i++) game.InjectValues(models[i]);
             for (int i = 0; i < ctrls.Count; i++) game.InjectValues(ctrls[i]);
         }
-        public override void OnQuit(Game game)
+        protected override void OnQuit(Game game)
         {
             if (ctrls != null)
                 for (int i = 0; i < ctrls.Count; i++) (ctrls[i] as IMCBase).Quit();

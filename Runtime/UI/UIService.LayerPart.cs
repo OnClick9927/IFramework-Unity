@@ -9,11 +9,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace IFramework.UI
 {
-    partial class UIModule
+    partial class UIService
     {
         private class LayerPart
         {
@@ -38,12 +37,12 @@ namespace IFramework.UI
 
             private Dictionary<string, List<UIPanel>> _panelOrders;
             private Dictionary<string, RectTransform> _layers;
-            private UIModule module;
+            private UIService module;
             private Empty4Raycast raycast;
             private BaseRaycaster raycast_unity;
             private bool _force_show_raycast;
             private List<string> layerNames;
-            public LayerPart(UIModule module)
+            public LayerPart(UIService module)
             {
                 this.module = module;
                 _panelOrders = new Dictionary<string, List<UIPanel>>();

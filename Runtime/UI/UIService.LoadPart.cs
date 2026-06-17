@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace IFramework.UI
 {
-    partial class UIModule
+    partial class UIService
     {
         private class LoadPart
         {
@@ -34,7 +34,7 @@ namespace IFramework.UI
                 }
             }
 
-            private UIModule module;
+            private UIService module;
             //private Queue<LoadPanelAsyncOperation> asyncLoadQueue;
             private Dictionary<string, UIPanel> panels = new Dictionary<string, UIPanel>();
             public Canvas canvas { get; private set; }
@@ -51,7 +51,7 @@ namespace IFramework.UI
             }
             //private SimpleObjectPool<LoadPanelAsyncOperation> load_op = new SimpleObjectPool<LoadPanelAsyncOperation>();
 
-            public LoadPart(UIModule module)
+            public LoadPart(UIService module)
             {
                 this.module = module;
                 //asyncLoadQueue = new Queue<LoadPanelAsyncOperation>();

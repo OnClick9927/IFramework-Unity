@@ -23,15 +23,39 @@ namespace IFramework
             ValueService service = new ValueService();
             game.UseService(service);
         }
-        public static void RegisterValue(this Game game, Type type, object instance) => game.GetService<ValueService>().RegisterInstance(type, instance);
-        public static object GetValue(this Game game, Type type) => game.GetService<ValueService>().Get(type);
-        public static void InjectValues(this Game game, object obj) => game.GetService<ValueService>().Inject(obj);
-        public static void RegisterValueType<TBaseType, TType>(this Game game) where TType : class, TBaseType, new() => game.GetService<ValueService>().RegisterType<TBaseType, TType>();
+        public static void RegisterValue(this Game game, Type type, object instance)
+        {
+            var service = game.GetService<ValueService>();
+            if (service == null) Log.FE("Game.UseValue First");
+            service.RegisterInstance(type, instance);
+        }
+
+        public static object GetValue(this Game game, Type type)
+        {
+            var service = game.GetService<ValueService>();
+            if (service == null) Log.FE("Game.UseValue First");
+            return service.Get(type);
+        }
+
+        public static void InjectValues(this Game game, object obj)
+        {
+            var service = game.GetService<ValueService>();
+            if (service == null) Log.FE("Game.UseValue First");
+            service.Inject(obj);
+        }
+
+        public static void RegisterValueType<TBaseType, TType>(this Game game) where TType : class, TBaseType, new()
+        {
+            var service = game.GetService<ValueService>();
+            if (service == null) Log.FE("Game.UseValue First");
+            service.RegisterType<TBaseType, TType>();
+        }
+
         public static void RegisterValue<T>(this Game game, T instance) where T : class => RegisterValue(game, typeof(T), instance);
         public static T GetValue<T>(this Game game) where T : class => GetValue(game, typeof(T)) as T;
         public static void RegisterValueType<TType>(this Game game) where TType : class, new() => RegisterValueType<TType, TType>(game);
     }
-    class ValueService : IGameService
+    class ValueService : GameServiceBase
     {
         private Dictionary<Type, object> values = new Dictionary<Type, object>();
         private Dictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
@@ -87,12 +111,12 @@ namespace IFramework
 
         }
 
-        public override void OnUse(Game game)
+        protected override void OnUse(Game game)
         {
 
         }
 
-        public override void OnQuit(Game game)
+        protected override void OnQuit(Game game)
         {
             values.Clear(); typeMap.Clear();
         }
