@@ -9,61 +9,93 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 namespace IFramework
 {
 
-    public interface IGameService
+    public abstract class IGameService
     {
-        void OnUse(Game game);
-        void OnQuit(Game game);
+        public string name { get; internal set; }
+        public abstract void OnUse(Game game);
+        public abstract void OnQuit(Game game);
     }
-    public interface IInjectAble { }
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-    public class InjectAttribute : System.Attribute { }
-
-
 
     public abstract class Game : MonoBehaviour
     {
         public Modules modules => _modules;
         public static Game Current { get { return Launcher.Instance.game; } }
-        private ValueContainer values;
         private bool quited;
         Modules _modules;
         private Stack<IGameService> services = new Stack<IGameService>();
+        private Dictionary<Type, List<IGameService>> serviceMap = new Dictionary<Type, List<IGameService>>();
+
 
         private void Awake()
         {
-            values = new ValueContainer();
             _modules = new Modules();
             transform.SetParent(Launcher.Instance.transform);
             Launcher.Instance.game = this;
+            quited = false;
             BindUpdate(_modules.Update);
+            //this.UseValue();
             Startup();
         }
+        public void UseService(IGameService context, string name)
+        {
+            context.name = name;
+            UseService(context);
+        }
+
         public void UseService(IGameService context)
         {
-            this.RegisterValue(context.GetType(), context);
             context.OnUse(this);
             services.Push(context);
+            var type = context.GetType();
+            if (!serviceMap.TryGetValue(type, out var result))
+            {
+                result = new List<IGameService>();
+                serviceMap.Add(type, result);
+            }
+            result.Add(context);
         }
+        public IReadOnlyList<IGameService> GetServices<T>() where T : IGameService
+        {
+            var type = typeof(T);
+            if (serviceMap.TryGetValue(type, out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        public T GetService<T>(string name="") where T : IGameService
+        {
+            var result = GetServices<T>();
+            if (result != null)
+            {
+                if (string.IsNullOrEmpty(name))
+                    return result.FirstOrDefault() as T;
+                return result.FirstOrDefault(x=>x.name==name) as T;
+            }
+            return null;
+        }
+
+
         public void Quit()
         {
             if (quited) return;
             quited = true;
             OnQuit();
+            UnBindUpdate(_modules.Update);
+            ((IDisposable)_modules).Dispose();
             var count = services.Count;
             for (int i = 0; i < count; i++)
             {
-                var _func = services.Pop();
-                _func.OnQuit(this);
+                var service = services.Pop();
+                service.OnQuit(this);
             }
-            UnBindUpdate(_modules.Update);
-            ((IDisposable)_modules).Dispose();
-            values.Clear();
             _modules = null;
+            serviceMap.Clear();
         }
         protected virtual void OnQuit() { }
         protected abstract void Startup();
@@ -74,7 +106,6 @@ namespace IFramework
 
         private void OnDestroy() => Quit();
 
- 
 
 
 
@@ -83,78 +114,11 @@ namespace IFramework
 
 
 
-        public void RegisterValue(Type type, object instance) => values.RegisterInstance(type, instance);
-        public object GetValue(Type type) => values.Get(type);
-        public void InjectValues(object obj) => values.Inject(obj);
-        public void RegisterValue<T>(T instance) where T : class => RegisterValue(typeof(T), instance);
-        public T GetValue<T>() where T : class => GetValue(typeof(T)) as T;
-      
-        
-        public void RegisterValueType<TBaseType, TType>() where TType : class, TBaseType, new() => values.RegisterType<TBaseType, TType>();
-        public void RegisterValueType<TType>() where TType : class, new() => RegisterValueType<TType, TType>();
 
 
 
-        private class ValueContainer
-        {
-            private Dictionary<Type, object> values = new Dictionary<Type, object>();
-            private Dictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
-
-            public void RegisterType<TBaseType, TType>() where TType : TBaseType, new()
-            {
-                var typeBase = typeof(TBaseType);
-                var type = typeof(TType);
-                typeMap[typeBase] = type;
-            }
-
-            public object RegisterInstance(Type type, object instance)
-            {
-                values[type] = instance;
-                return instance;
-            }
 
 
-            public object Get(Type type)
-            {
-                object result = null;
-                if (values.TryGetValue(type, out result))
-                    return result;
-                Type subType = null;
-                if (typeMap.TryGetValue(type, out subType))
-                {
-                    var ins = Activator.CreateInstance(subType);
-                    RegisterInstance(type, ins);
-                    Inject(ins);
-                    return ins;
-                }
-
-                return null;
-            }
-            public void Clear() { values.Clear(); typeMap.Clear(); }
-            static Dictionary<Type, List<FieldInfo>> fieldsMap = new Dictionary<Type, List<FieldInfo>>();
-            public void Inject(object inject)
-            {
-                if (!(inject is IInjectAble))
-                    return;
-                var type = inject.GetType();
-                List<FieldInfo> fields;
-                if (!fieldsMap.TryGetValue(type, out fields))
-                {
-                    fields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                                .Where(x => x.IsDefined(typeof(InjectAttribute), false) &&
-                                !x.IsInitOnly && !x.FieldType.IsValueType).ToList();
-
-                    fieldsMap[type] = fields;
-                }
-                for (int i = 0; i < fields.Count; i++)
-                {
-                    var field = fields[i];
-                    field.SetValue(inject, Get(field.FieldType));
-                }
-
-            }
-
-        }
 
 
         public static void BindUpdate(Action action) => Launcher.BindUpdate(action);

@@ -39,7 +39,7 @@ namespace IFramework
             this.ctrls = ctrls;
         }
 
-        public void OnUse(Game game)
+        public override void OnUse(Game game)
         {
             this.models = models ?? new List<ModelBase>();
             this.ctrls = ctrls ?? new List<CtrlBase>();
@@ -59,7 +59,7 @@ namespace IFramework
             for (int i = 0; i < models.Count; i++) game.InjectValues(models[i]);
             for (int i = 0; i < ctrls.Count; i++) game.InjectValues(ctrls[i]);
         }
-        public void OnQuit(Game game)
+        public override void OnQuit(Game game)
         {
             if (ctrls != null)
                 for (int i = 0; i < ctrls.Count; i++) (ctrls[i] as IMCBase).Quit();
@@ -80,12 +80,12 @@ namespace IFramework
         }
         public static IReadOnlyList<ModelBase> GetModels(this Game game)
         {
-           var service= game.GetValue<MvcService>();
+           var service= game.GetService<MvcService>();
             return service?.models;
         }
         public static IReadOnlyList<CtrlBase> GetCtrls(this Game game)
         {
-            var service = game.GetValue<MvcService>();
+            var service = game.GetService<MvcService>();
             return service?.ctrls;
         }
         public static T GetCtrl<T>(this Game game) where T : CtrlBase

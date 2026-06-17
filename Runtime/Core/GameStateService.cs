@@ -11,6 +11,7 @@ using System.Collections.Generic;
 
 namespace IFramework
 {
+    public delegate void GameStateChange(IGameState exit, IGameState enter);
     public static class GameStateServiceEx
     {
         public static Game UseState(this Game game, IReadOnlyList<IGameState> states, IGameState first)
@@ -50,10 +51,18 @@ namespace IFramework
 
         public static IGameState GetCurrentState(this Game game)
         {
-            var service = game.GetValue<GameStateService>();
+            var service = game.GetService<GameStateService>();
             return service?.state;
         }
 
+        public static void ListenStateChange(this Game game, GameStateChange call)
+        {
+            var service = game.GetService<GameStateService>();
+            if (service != null)
+            {
+                service.OnGameStateChange += call;
+            }
+        }
 
     }
     public interface IGameState : IInjectAble, IEventsOwner
@@ -65,20 +74,23 @@ namespace IFramework
     }
     class GameStateService : IGameService
     {
-        void IGameService.OnQuit(Game game)
-        {
-            Game.UnBindUpdate(Update);
-
-            state = null;
-        }
-
         private void Update()
         {
             if (state == null) return;
             state.Update();
         }
 
-        void IGameService.OnUse(Game game) => Game.BindUpdate(Update);
+        public override void OnUse(Game game)
+        {
+            Game.BindUpdate(Update);
+        }
+
+        public override void OnQuit(Game game)
+        {
+            Game.UnBindUpdate(Update);
+            state = null;
+            OnGameStateChange = null;
+        }
 
         private IGameState _state;
         public IGameState state
@@ -91,7 +103,9 @@ namespace IFramework
                 var exit = _state;
                 _state = value;
                 _state?.OnEnter(exit);
+                OnGameStateChange?.Invoke(exit, value);
             }
         }
+        public event GameStateChange OnGameStateChange;
     }
 }
