@@ -90,7 +90,7 @@ namespace IFramework
             Startup();
         }
 
-        public GameServiceBase UseService<T>(T service, string name = "") where T : GameServiceBase
+        public GameServiceBase UseService<T>(T service, string name = "", bool register = true) where T : GameServiceBase
         {
             service.name = name;
             (service as IGameService).OnUse(this);
@@ -105,8 +105,9 @@ namespace IFramework
             var value = GetService<ValueService>();
             if (value != null)
             {
-                value.RegisterInstance(type, service);
                 value.Inject(service);
+                if (register)
+                    value.RegisterInstance(type, service);
             }
             return service;
         }

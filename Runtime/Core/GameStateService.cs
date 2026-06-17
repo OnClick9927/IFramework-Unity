@@ -40,7 +40,7 @@ namespace IFramework
         {
             var _state = FindState(game, type);
             if (_state == null) return false;
-            var service = game.GetValue<GameStateService>();
+            var service = game.GetService<GameStateService>();
             service.state = _state;
             return true;
         }
