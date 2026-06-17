@@ -385,73 +385,58 @@ namespace IFramework
             return result;
         }
 
-        public static AsyncTask Delay(float second, CancellationToken token = default, bool editor = false)
+        public static AsyncTask NextFrame(CancellationToken token = default)
         {
             if (token.IsCancellationRequested)
                 return CanceledTask;
-
             AsyncTask task = AsyncTask.CreateFromPool();
             token.Register(task);
-            editor |= !Application.isPlaying;
-
-
-
-            if (!editor)
+            void Update()
             {
-                float end = Time.time + second;
-                void Update()
-                {
-                    if (token.IsCancellationRequested)
-                    {
-                        Launcher.UnBindUpdate(Update);
-                        return;
-                    }
-                    if (end <= Time.time)
-                    {
-                        Launcher.UnBindUpdate(Update);
-                        task.SetResult();
-                    }
-                }
-                if (Application.isPlaying)
-                    Launcher.BindUpdate(Update);
+                Launcher.UnBindUpdate(Update);
+                task.SetResult();
             }
-            else
-            {
-#if UNITY_EDITOR
-                float end = (float)UnityEditor.EditorApplication.timeSinceStartup + second;
-                void Update()
-                {
-                    if (token.IsCancellationRequested)
-                    {
-                        UnityEditor.EditorApplication.update -= Update;
-                        return;
-                    }
-                    if (end <= UnityEditor.EditorApplication.timeSinceStartup)
-                    {
-                        UnityEditor.EditorApplication.update -= Update;
-                        task.SetResult();
-                    }
-                }
-                UnityEditor.EditorApplication.update += Update;
-#endif
-            }
-
-
+            Launcher.BindUpdate(Update);
             return task;
         }
 
-        public static AsyncTask Repeat(float interval, int count, Action call, CancellationToken token = default, bool editor = false)
+        public static AsyncTask Delay(float second, CancellationToken token = default)
+        {
+            if (second <= 0) return AsyncTask.CompletedTask;
+            if (token.IsCancellationRequested)
+                return CanceledTask;
+            AsyncTask task = AsyncTask.CreateFromPool();
+            token.Register(task);
+            var end = Launcher.time + second;
+            void Update()
+            {
+                if (token.IsCancellationRequested)
+                {
+                    Launcher.UnBindUpdate(Update);
+                    return;
+                }
+                if (end <= Launcher.time)
+                {
+                    Launcher.UnBindUpdate(Update);
+                    task.SetResult();
+                }
+            }
+            Launcher.BindUpdate(Update);
+            return task;
+        }
+
+        public static AsyncTask Repeat(float interval, int count, Action call, CancellationToken token = default)
         {
             if (token.IsCancellationRequested)
                 return CanceledTask;
 
             AsyncTask task = AsyncTask.CreateFromPool().OnException(_ => { return _.exception is AsyncTaskCanceledException; });
-            static async void Func(Action call, AsyncTask result, float interval, int count, CancellationToken token, bool editor)
+            static async void Func(Action call, AsyncTask result, float interval, int count, CancellationToken token)
             {
                 var temp = count;
                 while (true)
                 {
-                    await AsyncTask.Delay(interval, default, editor);
+                    await AsyncTask.Delay(interval, default);
                     if (result.IsCompleted) break;
 
                     if (token.IsCancellationRequested)
@@ -477,7 +462,7 @@ namespace IFramework
                     }
                 }
             }
-            Func(call, task, interval, count, token, editor);
+            Func(call, task, interval, count, token);
 
             return task;
         }
@@ -511,14 +496,14 @@ namespace IFramework
         public static AsyncTask Sequence(CancellationToken token, params Func<AsyncTask>[] calls) => _Sequence(calls, token);
         public static AsyncTask Sequence(params Func<AsyncTask>[] call) => _Sequence(call);
         public static AsyncTask Sequence(IEnumerable<Func<AsyncTask>> calls, CancellationToken token = default) => _Sequence(calls, token);
-        public static AsyncTask While(Func<bool> condition, float interval = 0.02f, CancellationToken token = default, bool editor = false)
+        public static AsyncTask While(Func<bool> condition, float interval = 0.02f, CancellationToken token = default)
         {
             if (token.IsCancellationRequested)
                 return CanceledTask;
             if (!condition.Invoke())
                 return CompletedTask;
             AsyncTask task = null;
-            task = Repeat(interval, -1, Func, token, editor);
+            task = Repeat(interval, -1, Func, token);
             void Func()
             {
                 var go = condition.Invoke();
@@ -530,14 +515,14 @@ namespace IFramework
 
             return task;
         }
-        public static AsyncTask Util(Func<bool> condition, float interval = 0.02f, CancellationToken token = default, bool editor = false)
+        public static AsyncTask Util(Func<bool> condition, float interval = 0.02f, CancellationToken token = default)
         {
             if (token.IsCancellationRequested)
                 return CanceledTask;
             if (condition.Invoke())
                 return CompletedTask;
             AsyncTask task = null;
-            task = Repeat(interval, -1, Func, token, editor);
+            task = Repeat(interval, -1, Func, token);
             void Func()
             {
                 var go = !condition.Invoke();

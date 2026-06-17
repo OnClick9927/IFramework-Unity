@@ -15,6 +15,11 @@ namespace IFramework
     [DynamicMonoSingleton]
     class Launcher : MonoSingleton<Launcher>
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
+        static void HH()
+        {
+            var create = Launcher.Instance;
+        }
         private Game _game;
         public Game game
         {
@@ -22,7 +27,7 @@ namespace IFramework
             set
             {
                 if (_game == value) return;
-                if(_game)
+                if (_game)
                     Destroy(_game.gameObject);
                 _game = value;
             }
@@ -40,9 +45,33 @@ namespace IFramework
         private void OnApplicationFocus(bool focus) => onApplicationFocus?.Invoke(focus);
         private void OnApplicationPause(bool pause) => onApplicationPause?.Invoke(pause);
 
-       
+
+
+        private static double _time;
+        internal static void UpdateByEditor(double time)
+        {
+            _time = time;
+            if (Application.isPlaying) return;
+            onUpdate?.Invoke();
+        }
+
         public static void BindUpdate(Action action) => onUpdate += action;
+
+        public static double time
+        {
+            get
+            {
+#if UNITY_EDITOR
+                return _time;
+#else
+                return Time.time;
+#endif
+            }
+        }
+
+
         public static void UnBindUpdate(Action action) => onUpdate -= action;
+
         public static void BindFixedUpdate(Action action) => onFixUpdate += action;
         public static void UnBindFixedUpdate(Action action) => onFixUpdate -= action;
 

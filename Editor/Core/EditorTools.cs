@@ -138,15 +138,20 @@ namespace IFramework
             CreateDirectories(directorys);
 
             AssetDatabase.Refresh();
+            UnityEditor.EditorApplication.update -= Update;
 
-
+            UnityEditor.EditorApplication.update += Update;
 
 
             Log.logger = new UnityLogger();
             SetLogStatus();
         }
+        static void Update()
+        {
+            Launcher.UpdateByEditor(EditorApplication.timeSinceStartup);
 
-
+        }
+   
 
         public static void SetLogStatus()
         {
@@ -505,7 +510,7 @@ namespace IFramework
 
         private static Dictionary<Type, UnityEngine.Object> scriptObjs = new Dictionary<Type, UnityEngine.Object>();
 
-        public static void DrawPingScript(string label,Type type)
+        public static void DrawPingScript(string label, Type type)
         {
             if (!scriptObjs.TryGetValue(type, out var obj))
             {
