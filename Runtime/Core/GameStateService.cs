@@ -24,12 +24,12 @@ namespace IFramework
             for (int i = 0; i < states.Count; i++)
             {
                 var state = states[i];
-                game.RegisterValue(state.GetType(), state);
+                game.RegisterValue(state.GetType(), state, string.Empty);
             }
             for (int i = 0; i < states.Count; i++)
             {
                 var state = states[i];
-                game.InjectValues(state);
+                game.InjectFields(state);
                 state.Init();
             }
             if (first != null)
@@ -46,7 +46,7 @@ namespace IFramework
         }
         public static bool SwitchState<T>(this Game game) => SwitchState(game, typeof(T));
         public static bool SwitchState(this Game game, IGameState state) => SwitchState(game, state.GetType());
-        public static IGameState FindState(this Game game, Type type) => game.GetValue(type) as IGameState;
+        public static IGameState FindState(this Game game, Type type) => game.GetValue(type, string.Empty) as IGameState;
         public static IGameState FindState<T>(this Game game) where T : IGameState => FindState(game, typeof(T));
 
         public static IGameState GetCurrentState(this Game game)

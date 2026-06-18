@@ -22,7 +22,7 @@ namespace IFramework.UI
         public static UIService UseUI(this Game game, UIAsset asset, IViewBridge bridge, IUIDelegate del = null, string name = defaultName)
         {
             UIService ui = new UIService();
-            game.UseService(ui, name, false);
+            game.UseService(ui, name);
             ui.SetUIDelegate(del);
             ui.SetBridge(bridge);
             ui.SetAsset(asset);

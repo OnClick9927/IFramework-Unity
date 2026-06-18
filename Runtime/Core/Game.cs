@@ -35,35 +35,25 @@ namespace IFramework
             OnUse(game);
         }
     }
-    partial class Game
-    {
-        public static void BindUpdate(Action action) => Launcher.BindUpdate(action);
-        public static void UnBindUpdate(Action action) => Launcher.UnBindUpdate(action);
-        public static void BindFixedUpdate(Action action) => Launcher.BindFixedUpdate(action);
-        public static void UnBindFixedUpdate(Action action) => Launcher.UnBindFixedUpdate(action);
-
-        public static void BindLateUpdate(Action action) => Launcher.BindLateUpdate(action);
-        public static void UnBindLateUpdate(Action action) => Launcher.UnBindLateUpdate(action);
-        public static void BindOnApplicationFocus(Action<bool> action) => Launcher.BindOnApplicationFocus(action);
-        public static void UnBindOnApplicationFocus(Action<bool> action) => Launcher.UnBindOnApplicationFocus(action);
-        public static void BindOnApplicationPause(Action<bool> action) => Launcher.BindOnApplicationPause(action);
-        public static void UnBindOnApplicationPause(Action<bool> action) => Launcher.UnBindOnApplicationPause(action);
-        public static void BindDisable(Action action) => Launcher.BindDisable(action);
-        public static void UnBindDisable(Action action) => Launcher.UnBindDisable(action);
-    }
     public abstract partial class Game : MonoBehaviour
     {
         private class ServiceSeg
         {
-            public Type type;
             private List<GameServiceBase> services = new List<GameServiceBase>();
             public Dictionary<string, GameServiceBase> map = new Dictionary<string, GameServiceBase>();
 
             public void Add(GameServiceBase service)
             {
-                services.Add(service);
                 var name = service.name;
-                map.Add(name, service);
+                if (!map.TryAdd(name, service))
+                {
+                    Log.FE($"Same Name Service  {name}  {service.GetType()}");
+                }
+                else
+                {
+                    services.Add(service);
+                }
+
             }
             public IReadOnlyList<GameServiceBase> GetServices()
             {
@@ -71,8 +61,8 @@ namespace IFramework
             }
             internal GameServiceBase GetService(string name)
             {
-                if (string.IsNullOrEmpty(name) && services.Count != 0)
-                    return services[0];
+                if (string.IsNullOrEmpty(name))
+                    return services.Count > 0 ? services[0] : null;
                 return map.TryGetValue(name, out var service) ? service : null;
             }
         }
@@ -90,25 +80,27 @@ namespace IFramework
             Startup();
         }
 
-        public GameServiceBase UseService<T>(T service, string name = "", bool register = true) where T : GameServiceBase
+        public GameServiceBase UseService<T>(T service, string name = "") where T : GameServiceBase
         {
+            if (service == null) return null;
             service.name = name;
-            (service as IGameService).OnUse(this);
-            services.Push(service);
             var type = service.GetType();
             if (!serviceMap.TryGetValue(type, out var result))
             {
                 result = new();
                 serviceMap.Add(type, result);
             }
+
             result.Add(service);
             var value = GetService<ValueService>();
             if (value != null)
             {
                 value.Inject(service);
-                if (register)
-                    value.RegisterInstance(type, service);
+                value.RegisterValue(type, service, name);
             }
+
+            (service as IGameService).OnUse(this);
+            services.Push(service);
             return service;
         }
         public IReadOnlyList<GameServiceBase> GetServices<T>() where T : GameServiceBase
@@ -149,4 +141,23 @@ namespace IFramework
         private void OnDestroy() => Quit();
 
     }
+
+
+    partial class Game
+    {
+        public static void BindUpdate(Action action) => Launcher.BindUpdate(action);
+        public static void UnBindUpdate(Action action) => Launcher.UnBindUpdate(action);
+        public static void BindFixedUpdate(Action action) => Launcher.BindFixedUpdate(action);
+        public static void UnBindFixedUpdate(Action action) => Launcher.UnBindFixedUpdate(action);
+
+        public static void BindLateUpdate(Action action) => Launcher.BindLateUpdate(action);
+        public static void UnBindLateUpdate(Action action) => Launcher.UnBindLateUpdate(action);
+        public static void BindOnApplicationFocus(Action<bool> action) => Launcher.BindOnApplicationFocus(action);
+        public static void UnBindOnApplicationFocus(Action<bool> action) => Launcher.UnBindOnApplicationFocus(action);
+        public static void BindOnApplicationPause(Action<bool> action) => Launcher.BindOnApplicationPause(action);
+        public static void UnBindOnApplicationPause(Action<bool> action) => Launcher.UnBindOnApplicationPause(action);
+        public static void BindDisable(Action action) => Launcher.BindDisable(action);
+        public static void UnBindDisable(Action action) => Launcher.UnBindDisable(action);
+    }
+
 }

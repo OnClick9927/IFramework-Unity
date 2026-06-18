@@ -15,51 +15,64 @@ namespace IFramework
 
     public interface IInjectAble { }
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-    public class InjectAttribute : System.Attribute { }
+    public class InjectAttribute : System.Attribute
+    {
+        public InjectAttribute(string name = "")
+        {
+            this.name = name;
+        }
+
+        public string name { get; private set; }
+
+    }
     public static class ValueServiceEx
     {
-        public static void UseValue(this Game game)
+        public static void UseValues(this Game game)
         {
             ValueService service = new ValueService();
             game.UseService(service);
         }
-        public static void RegisterValue(this Game game, Type type, object instance)
+
+        private static ValueService Check(Game game)
         {
             var service = game.GetService<ValueService>();
-            if (service == null) Log.FE("Game.UseValue First");
-            service.RegisterInstance(type, instance);
+            if (service == null)
+            {
+                Log.FE("Game.UseValues First");
+            }
+            return service;
         }
-
-        public static object GetValue(this Game game, Type type)
+        public static void RegisterValue(this Game game, Type type, object instance, string name = "")
         {
-            var service = game.GetService<ValueService>();
-            if (service == null) Log.FE("Game.UseValue First");
-            return service.Get(type);
+            var service = Check(game);
+            service?.RegisterValue(type, instance, name);
         }
 
-        public static void InjectValues(this Game game, object obj)
+        public static object GetValue(this Game game, Type type, string name = "")
         {
-            var service = game.GetService<ValueService>();
-            if (service == null) Log.FE("Game.UseValue First");
-            service.Inject(obj);
+            var service = Check(game);
+            return service?.Get(type, name);
         }
 
-        public static void RegisterValueType<TBaseType, TType>(this Game game) where TType : class, TBaseType, new()
+        public static void InjectFields(this Game game, object obj)
         {
-            var service = game.GetService<ValueService>();
-            if (service == null) Log.FE("Game.UseValue First");
-            service.RegisterType<TBaseType, TType>();
+            var service = Check(game);
+            service?.Inject(obj);
         }
-
-        public static void RegisterValue<T>(this Game game, T instance) where T : class => RegisterValue(game, typeof(T), instance);
-        public static T GetValue<T>(this Game game) where T : class => GetValue(game, typeof(T)) as T;
-        public static void RegisterValueType<TType>(this Game game) where TType : class, new() => RegisterValueType<TType, TType>(game);
+        public static void RegisterType<TBaseType, TType>(this Game game) where TType : class, TBaseType, new()
+        {
+            var service = Check(game);
+            service?.RegisterType<TBaseType, TType>();
+        }
+        public static void RegisterValue<T>(this Game game, T instance, string name = "") where T : class => RegisterValue(game, typeof(T), instance, name);
+        public static T GetValue<T>(this Game game, string name = "") where T : class => GetValue(game, typeof(T), name) as T;
+        public static void RegisterType<TType>(this Game game) where TType : class, new() => RegisterType<TType, TType>(game);
     }
     class ValueService : GameServiceBase
     {
-        private Dictionary<Type, object> values = new Dictionary<Type, object>();
-        private Dictionary<Type, Type> typeMap = new Dictionary<Type, Type>();
-        static Dictionary<Type, List<FieldInfo>> fieldsMap = new Dictionary<Type, List<FieldInfo>>();
+        private readonly Dictionary<Type, Dictionary<string, object>> values = new();
+        private Dictionary<Type, Type> typeMap = new();
+        static Dictionary<Type, Dictionary<FieldInfo, string>> fieldsMap = new();
 
         public void RegisterType<TBaseType, TType>() where TType : TBaseType, new()
         {
@@ -68,23 +81,36 @@ namespace IFramework
             typeMap[typeBase] = type;
         }
 
-        public object RegisterInstance(Type type, object instance)
+        public object RegisterValue(Type type, object instance, string name)
         {
-            values[type] = instance;
+            name ??= string.Empty;
+            if (!values.TryGetValue(type, out var dict))
+            {
+                dict = new Dictionary<string, object>();
+                values[type] = dict;
+            }
+            dict[name] = instance;
             return instance;
         }
-        public object Get(Type type)
+        public object Get(Type type, string name)
         {
-            object result = null;
-            if (values.TryGetValue(type, out result))
+            name ??= string.Empty;
+            if (values.TryGetValue(type, out var dict) && dict.TryGetValue(name, out object result))
                 return result;
-            Type subType = null;
-            if (typeMap.TryGetValue(type, out subType))
+
+            if (typeMap.TryGetValue(type, out Type subType))
             {
-                var ins = Activator.CreateInstance(subType);
-                RegisterInstance(type, ins);
-                Inject(ins);
-                return ins;
+                try
+                {
+                    var instance = Activator.CreateInstance(subType);
+                    RegisterValue(type, instance, string.Empty);
+                    Inject(instance);
+                    return instance;
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Failed to create instance of {subType} for name '{name}'", ex);
+                }
             }
 
             return null;
@@ -94,19 +120,28 @@ namespace IFramework
             if (!(inject is IInjectAble))
                 return;
             var type = inject.GetType();
-            List<FieldInfo> fields;
+            Dictionary<FieldInfo, string> fields;
             if (!fieldsMap.TryGetValue(type, out fields))
             {
                 fields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                             .Where(x => x.IsDefined(typeof(InjectAttribute), false) &&
-                            !x.IsInitOnly && !x.FieldType.IsValueType).ToList();
+                            !x.IsInitOnly && !x.FieldType.IsValueType).ToDictionary(x => x, x => x.GetCustomAttribute<InjectAttribute>(false).name);
 
                 fieldsMap[type] = fields;
             }
-            for (int i = 0; i < fields.Count; i++)
+            foreach (var item in fields)
             {
-                var field = fields[i];
-                field.SetValue(inject, Get(field.FieldType));
+                var field = item.Key;
+                var value = Get(field.FieldType, item.Value);
+                if (value == null)
+                {
+                    Log.FE($"Inject value Not found: {inject.GetType()}->{field.Name}\n" +
+                        $"FieldType:{field.FieldType} \n" +
+                        $"InjectName:{item.Value} ");
+
+                }
+                else
+                    field.SetValue(inject, value);
             }
 
         }

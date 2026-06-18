@@ -47,17 +47,17 @@ namespace IFramework
             {
                 var model = models[i];
                 (model as IMCBase).Init();
-                game.RegisterValue(model.GetType(), model);
+                game.RegisterValue(model.GetType(), model, string.Empty);
             }
             for (int i = 0; i < ctrls.Count; i++)
             {
                 var ctrl = ctrls[i];
                 (ctrl as IMCBase).Init();
-                game.RegisterValue(ctrl.GetType(), ctrl);
+                game.RegisterValue(ctrl.GetType(), ctrl, string.Empty);
             }
 
-            for (int i = 0; i < models.Count; i++) game.InjectValues(models[i]);
-            for (int i = 0; i < ctrls.Count; i++) game.InjectValues(ctrls[i]);
+            for (int i = 0; i < models.Count; i++) game.InjectFields(models[i]);
+            for (int i = 0; i < ctrls.Count; i++) game.InjectFields(ctrls[i]);
         }
         protected override void OnQuit(Game game)
         {
@@ -72,15 +72,15 @@ namespace IFramework
     }
     public static class MvcServiceEx
     {
-        public static Game UseMvc(this Game game,IReadOnlyList<ModelBase> models,IReadOnlyList<CtrlBase> ctrls)
+        public static Game UseMvc(this Game game, IReadOnlyList<ModelBase> models, IReadOnlyList<CtrlBase> ctrls)
         {
-            MvcService service = new MvcService(models,ctrls);
+            MvcService service = new MvcService(models, ctrls);
             game.UseService(service);
             return game;
         }
         public static IReadOnlyList<ModelBase> GetModels(this Game game)
         {
-           var service= game.GetService<MvcService>();
+            var service = game.GetService<MvcService>();
             return service?.models;
         }
         public static IReadOnlyList<CtrlBase> GetCtrls(this Game game)
@@ -90,12 +90,12 @@ namespace IFramework
         }
         public static T GetCtrl<T>(this Game game) where T : CtrlBase
         {
-            var service = game.GetValue<T>();
+            var service = game.GetValue<T>(string.Empty);
             return service;
         }
         public static T GetModel<T>(this Game game) where T : ModelBase
         {
-            var service = game.GetValue<T>();
+            var service = game.GetValue<T>(string.Empty);
             return service;
         }
     }
