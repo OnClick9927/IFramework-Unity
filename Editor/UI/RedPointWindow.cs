@@ -5,9 +5,11 @@
  *Date:           2024-07-25
 *********************************************************************************/
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using static IFramework.EditorTools;
 
@@ -16,11 +18,13 @@ namespace IFramework
     [EditorWindowCache("RedPoint")]
     class RedPointWindow : EditorWindow
     {
-        private class ViewTree : TreeView, ITreeViewer
+        private class ViewTree : TreeView
         {
+            public RedPointWindow window;
             private List<RedPoint> root;
             private SearchField field = new SearchField();
             private string _ping;
+            internal RedTreeService red;
 
             public ViewTree(TreeViewState state, MultiColumnHeaderState headerState) : base(state)
             {
@@ -114,7 +118,7 @@ namespace IFramework
             {
                 if (string.IsNullOrEmpty(searchString)) return;
                 var _ping = FindItem(id, rootItem).displayName;
-                char separator = RedTree.separator;
+                char separator = RedTreeService.separator;
                 var columns = _ping.Split(separator);
                 for (int j = 0; j < columns.Length; j++)
                 {
@@ -154,8 +158,8 @@ namespace IFramework
             {
                 float indent = this.GetContentIndent(args.item);
                 GUI.Label(EditorTools.RectEx.Zoom(args.GetCellRect(0), TextAnchor.MiddleRight, new Vector2(-indent, 0)), args.item.displayName);
-                GUI.Label(args.GetCellRect(1), RedTree.GetCount(args.item.displayName).ToString());
-                GUI.Label(args.GetCellRect(2), RedTree.GetDotCount(args.item.displayName).ToString());
+                GUI.Label(args.GetCellRect(1), red.GetCount(args.item.displayName).ToString());
+                GUI.Label(args.GetCellRect(2), red.GetDotCount(args.item.displayName).ToString());
 
 
                 if (args.item.displayName == _ping)
@@ -165,7 +169,13 @@ namespace IFramework
             public override void OnGUI(Rect rect)
             {
                 var rs = EditorTools.RectEx.HorizontalSplit(rect, 20);
-                var tmp = field.OnGUI(rs[0], searchString);
+
+                var rss = RectEx.VerticalSplit(rs[0], rs[0].width - 100);
+                var tmp = field.OnGUI(rss[0], searchString);
+                if (GUI.Button(rss[1], "Fresh"))
+                {
+                    window.Fresh();
+                }
                 if (tmp != searchString)
                 {
                     searchString = tmp;
@@ -206,13 +216,41 @@ namespace IFramework
 
                     }
                 });
+
             _tree = new ViewTree(state, headerState);
-            RedTree.SetViewer(_tree);
+            _tree.window = this;
+            //RedTree.SetViewer(_tree);
+            Fresh();
         }
+
         private void OnGUI()
         {
+            if (!EditorApplication.isPlaying) return;
+            var tree = Game.Current.GetService<RedTreeService>();
+            if (tree == null) return;
+
+            tree.OnFresh -= Tree_OnFresh;
+            tree.OnFresh += Tree_OnFresh;
+
+
             _tree.OnGUI(new UnityEngine.Rect(Vector2.zero, this.position.size));
         }
+        public void Fresh()
+        {
+            if (!EditorApplication.isPlaying) return;
+
+            Tree_OnFresh(Game.Current.GetService<RedTreeService>());
+
+        }
+        private void Tree_OnFresh(RedTreeService tree)
+        {
+            if (tree == null) return;
+            _tree.red = tree;
+
+            _tree.FreshView(tree.key_map.Values.ToList().Where(x => string.IsNullOrEmpty(x.parent_key)).ToList());
+
+        }
+
         private void OnInspectorUpdate()
         {
             Repaint();
