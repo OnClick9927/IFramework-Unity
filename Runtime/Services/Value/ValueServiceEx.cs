@@ -15,6 +15,7 @@ namespace IFramework
         {
             ValueService service = new ValueService();
             services.UseService(service);
+            service.RegisterValue(services.GetType(), services, string.Empty);
             return services;
         }
 
