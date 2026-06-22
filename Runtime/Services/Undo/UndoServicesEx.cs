@@ -7,10 +7,25 @@ namespace IFramework
     {
         public static IServiceCollection UseUndo(this IServiceCollection services, string name = "")
         {
-            UndoServices recorder = new UndoServices();
-            services.UseService(recorder, name);
+            UndoServices recorder = services.GetService<UndoServices>(name);
+            if (recorder != null)
+            {
+                recorder.Clear();
+            }
+            else
+            {
+                recorder = new UndoServices();
+                services.UseService(recorder, name);
+            }
+
             return services;
         }
+        public static void ClearUndo(this IServiceCollection services, string name = "")
+        {
+            UndoServices recorder = services.GetService<UndoServices>(name);
+            recorder.Clear();
+        }
+
         public static T SubscribeUndo<T>(this IServiceCollection services, Action<T> init, bool redo = true, string name = "") where T : BaseUndoRecord, new()
         {
             UndoServices recorder = services.GetService<UndoServices>(name);

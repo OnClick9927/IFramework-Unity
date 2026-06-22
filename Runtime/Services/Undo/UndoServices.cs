@@ -13,9 +13,7 @@ namespace IFramework
         }
         protected override void OnQuit(IServiceCollection services)
         {
-            if (_head.next != null)
-                Cycle(_head.next);
-            _current = _head;
+            Clear();
         }
 
         private class HeadState : BaseUndoRecord
@@ -91,6 +89,12 @@ namespace IFramework
         public BaseUndoRecord GetCurrent()
         {
             return _current;
+        }
+        public void Clear()
+        {
+            if (_head.next != null)
+                Cycle(_head.next);
+            _current = _head;
         }
     }
 
