@@ -18,7 +18,10 @@ namespace IFramework
             this.baseKey = baseKey;
             this.loader = loader;
 #if UNITY_EDITOR
-            dir = $"Assets/Editor/{baseKey}";
+            dir = $"Assets/Editor/Pref";
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            dir = $"{dir}/{baseKey}";
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 #endif
@@ -28,11 +31,11 @@ namespace IFramework
             if (prefs.Count <= 0) return;
             foreach (var item in prefs)
             {
-                SavePref(item.Key, item.Value);
+                SaveByReadKey(item.Key, item.Value);
             }
         }
         public void SetPrefContext<T>(PrefContext<T> context) where T : class, new() => contexts[typeof(T)] = context;
-
+        public PrefContext<T> FindPrefContext<T>() where T : class, new() => contexts.TryGetValue(typeof(T), out var result) ? result as PrefContext<T> : default;
         public void ClearPref()
         {
             prefs.Clear();
@@ -47,19 +50,23 @@ namespace IFramework
             if (prefs.TryGetValue(real_key, out var result))
                 return result;
             var str = LoadString(real_key);
-            var pref = string.IsNullOrEmpty(str) ? Activator.CreateInstance(type) : converter.FromString(type,str);
+            var pref = string.IsNullOrEmpty(str) ? Activator.CreateInstance(type) : converter.FromString(type, str);
             prefs[real_key] = pref;
 
 
             if (contexts.TryGetValue(type, out var context))
             {
                 (context).SetValue(pref);
-                context.key = real_key;
+                context.key = key;
             }
 
             return pref;
         }
-
+        private void SaveByReadKey(string real_key, object obj)
+        {
+            var type = obj.GetType();
+            SaveString(real_key, converter.ToString(obj, type));
+        }
 
         public void SavePref(string key, object obj)
         {
