@@ -11,8 +11,13 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace IFramework
 {
-    public abstract class GameObjectView
+    public abstract class GameObjectView : IInjectAble
     {
+        public GameObjectView()
+        {
+            Game.Current.InjectFields(this);
+        }
+
         private IScriptCreatorContext context;
         public GameObject gameObject { get; protected set; }
         public Transform transform { get; private set; }
