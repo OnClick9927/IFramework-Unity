@@ -121,9 +121,9 @@ namespace IFramework.UI
             mode = (Mode)GUILayout.Toolbar((int)mode, Enum.GetNames(typeof(Mode)));
             var moudules = Game.Current.GetServices<UIService>();
             if (moudules == null) return;
-            var names = moudules.Select(m => m.name).ToArray();
+            var names = moudules.Select(m => m.Name).ToArray();
             ui_name_index = EditorGUILayout.Popup("Module", ui_name_index, names);
-            UIService module = moudules.FirstOrDefault(x => x.name == names[ui_name_index]) as UIService;
+            UIService module = moudules.FirstOrDefault(x => x.Name == names[ui_name_index]) as UIService;
             show.Visible.Clear();
             show.Visible.AddRange(module.GetVisibleList().Select(x => module.FindPanel(x)));
 

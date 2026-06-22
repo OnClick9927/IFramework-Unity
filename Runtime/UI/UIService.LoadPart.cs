@@ -127,7 +127,7 @@ namespace IFramework.UI
                     root.AddComponent<GraphicRaycaster>();
                     _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 }
-                _canvas.name = module.name;
+                _canvas.name = module.Name;
                 this.canvas = _canvas;
                 return _canvas;
             }

@@ -34,7 +34,7 @@ namespace IFramework.UI
     }
 
 
-    public partial class UIService : GameServiceBase
+    public partial class UIService : ServiceBase
     {
 
         private LoadPart loadPart;
@@ -58,7 +58,7 @@ namespace IFramework.UI
         private LayerChangeCheckData check_hide;
         private LayerChangeCheckData check_close;
 
-        protected override void OnUse(Game game)
+        protected override void OnUse(IServiceCollection services)
         {
             layerPart = new LayerPart(this);
             loadPart = new LoadPart(this);
@@ -66,7 +66,7 @@ namespace IFramework.UI
             check_hide = new LayerChangeCheckData();
             check_close = new LayerChangeCheckData();
         }
-        protected override void OnQuit(Game game)
+        protected override void OnQuit(IServiceCollection services)
         {
             if (bridgePart != null)
                 bridgePart.Dispose();

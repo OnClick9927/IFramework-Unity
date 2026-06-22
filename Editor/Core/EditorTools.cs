@@ -105,8 +105,31 @@ namespace IFramework
 
         }
 
+        class A : IPrefConverter
+        {
+            public object FromString(Type type, string str)
+            {
+                return JsonUtility.FromJson(str, type);
+            }
+
+            public string ToString(object obj, Type type)
+            {
+                return JsonUtility.ToJson(obj, true);
+            }
+        }
         static EditorTools()
         {
+            var directorys = new List<string>()
+            {
+                "Assets/Editor",
+                //EditorTools.projectMemoryPath,
+            };
+            CreateDirectories(directorys);
+            services = new ServiceCollection("EditorPrefs").UseValues().UsePref(new A(), null);
+            services_setting = new ServiceCollection("EditorSetting").UseValues().UsePref(new A(), null);
+
+
+
             ObjectFactory.componentWasAdded += CallAddComponent;
 
             var result = GetTypes()
@@ -130,28 +153,24 @@ namespace IFramework
                 on_addComp[type] = new List<Delegate>(list.Select(x => x.method.ToDelegate(null)));
             }
 
-            var directorys = new List<string>()
-            {
-                "Assets/Editor",
-                EditorTools.projectMemoryPath,
-            };
-            CreateDirectories(directorys);
+
 
             AssetDatabase.Refresh();
             UnityEditor.EditorApplication.update -= Update;
 
             UnityEditor.EditorApplication.update += Update;
-
-
             Log.logger = new UnityLogger();
             SetLogStatus();
         }
+        public static IServiceCollection services { get; private set; }
+        public static IServiceCollection services_setting { get; private set; }
+
         static void Update()
         {
             Launcher.UpdateByEditor(EditorApplication.timeSinceStartup);
 
         }
-   
+
 
         public static void SetLogStatus()
         {
@@ -164,7 +183,7 @@ namespace IFramework
             Log.enable = ProjectConfig.enable;
         }
 
-        public const string projectMemoryPath = "Assets/Editor/IFramework";
+        //public const string projectMemoryPath = "Assets/Editor/IFramework";
 
         private static string GetFilePath() => AssetDatabase.GetAllAssetPaths().FirstOrDefault(x => x.Contains(nameof(IFramework))
                                                         && x.EndsWith($"{nameof(EditorTools)}.cs"));
@@ -186,11 +205,21 @@ namespace IFramework
         }
 
 
-        public static void SaveToPrefs<T>(T value, string key, bool unique = true) => Prefs.SetObject(value.GetType(), key, value, unique);
-        public static T GetFromPrefs<T>(string key, bool unique = true) => Prefs.GetObject<T>(key, unique);
-        public static object GetFromPrefs(Type type, string key, bool unique = true) => Prefs.GetObject(type, key, unique);
+        public static void SaveToPrefs<T>(T value, string key, bool unique = true) where T : class
+        {
+            if (unique)
+                services.SavePref(key, value);
+            else
+                services_setting.SavePref(key, value);
+        }
 
-
+        public static T GetFromPrefs<T>(string key, bool unique = true) where T : class => GetFromPrefs(typeof(T), key, unique) as T;
+        public static object GetFromPrefs(Type type, string key, bool unique = true)
+        {
+            if (unique)
+                return services.LoadPref(type, key);
+            return services_setting.LoadPref(type, key);
+        }
 
         public static void OpenFolder(string folder) => EditorUtility.OpenWithDefaultApp(folder);
 

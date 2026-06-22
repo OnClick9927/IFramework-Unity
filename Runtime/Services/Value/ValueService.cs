@@ -12,63 +12,7 @@ using System.Linq;
 using System.Reflection;
 namespace IFramework
 {
-
-    public interface IInjectAble { }
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-    public class InjectAttribute : System.Attribute
-    {
-        public InjectAttribute(string name = "")
-        {
-            this.name = name;
-        }
-
-        public string name { get; private set; }
-
-    }
-    public static class ValueServiceEx
-    {
-        public static void UseValues(this Game game)
-        {
-            ValueService service = new ValueService();
-            game.UseService(service);
-        }
-
-        private static ValueService Check(Game game)
-        {
-            var service = game.GetService<ValueService>();
-            if (service == null)
-            {
-                Log.FE("Game.UseValues First");
-            }
-            return service;
-        }
-        public static void RegisterValue(this Game game, Type type, object instance, string name = "")
-        {
-            var service = Check(game);
-            service?.RegisterValue(type, instance, name);
-        }
-
-        public static object GetValue(this Game game, Type type, string name = "")
-        {
-            var service = Check(game);
-            return service?.Get(type, name);
-        }
-
-        public static void InjectFields(this Game game, object obj)
-        {
-            var service = Check(game);
-            service?.Inject(obj);
-        }
-        public static void RegisterType<TBaseType, TType>(this Game game) where TType : class, TBaseType, new()
-        {
-            var service = Check(game);
-            service?.RegisterType<TBaseType, TType>();
-        }
-        public static void RegisterValue<T>(this Game game, T instance, string name = "") where T : class => RegisterValue(game, typeof(T), instance, name);
-        public static T GetValue<T>(this Game game, string name = "") where T : class => GetValue(game, typeof(T), name) as T;
-        public static void RegisterType<TType>(this Game game) where TType : class, new() => RegisterType<TType, TType>(game);
-    }
-    class ValueService : GameServiceBase
+    class ValueService : ServiceBase
     {
         private readonly Dictionary<Type, Dictionary<string, object>> values = new();
         private Dictionary<Type, Type> typeMap = new();
@@ -146,12 +90,12 @@ namespace IFramework
 
         }
 
-        protected override void OnUse(Game game)
+        protected override void OnUse(IServiceCollection services)
         {
 
         }
 
-        protected override void OnQuit(Game game)
+        protected override void OnQuit(IServiceCollection services)
         {
             values.Clear(); typeMap.Clear();
         }
