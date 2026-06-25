@@ -52,7 +52,6 @@ namespace IFramework.UI
             {
                 GameObject go = new GameObject(layerName);
                 RectTransform rect = go.AddComponent<RectTransform>();
-                //var group = rect.gameObject.AddComponent<CanvasGroup>();
                 rect.SetParent(parent);
                 rect.anchorMin = Vector2.zero;
                 rect.anchorMax = Vector2.one;
@@ -71,9 +70,6 @@ namespace IFramework.UI
                 foreach (var item in layerNames)
                     CreateLayer(item, canvas.transform);
                 raycast_unity = canvas.GetComponent<BaseRaycaster>();
-
-                //CreateLayer(UILayerData.item_layer, parent);
-                //SwitchLayerVisible(UILayerData.item_layer, false);
                 if (raycast_unity == null)
                 {
                     var ray = CreateLayer(UILayerData.rayCast_layer, canvas.transform);
@@ -110,10 +106,6 @@ namespace IFramework.UI
             {
                 _force_show_raycast = false;
                 AcceptRayCast();
-            }
-            public void Clear()
-            {
-                _layers.Clear();
             }
 
             public void SetAsLastOrder(string path, UIPanel panel)

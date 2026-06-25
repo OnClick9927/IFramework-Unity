@@ -18,8 +18,8 @@ namespace IFramework.UI
 
         void OnBecameVisible();
         void OnBecameInvisible();
-        void OnHideAsync(PanelAsyncOperation operation);
-        void OnCloseAsync(PanelAsyncOperation operation);
+        void OnHideAsync(AsyncTask operation);
+        void OnCloseAsync(AsyncTask operation);
     }
     public abstract class UIView : WidgetView, IUIView
     {
@@ -38,8 +38,8 @@ namespace IFramework.UI
         protected virtual void OnBecameVisible() { }
         protected virtual void OnBecameInvisible() { }
 
-        protected virtual void OnHideAsync(PanelAsyncOperation operation) { }
-        protected virtual void OnCloseAsync(PanelAsyncOperation operation) { }
+        protected virtual void OnHideAsync(AsyncTask operation) { }
+        protected virtual void OnCloseAsync(AsyncTask operation) { }
         protected virtual void AfterOnClose() { }
 
         void IUIView.OnLoad() => OnLoad();
@@ -47,8 +47,8 @@ namespace IFramework.UI
         void IUIView.OnShow() => OnShow();
 
         void IUIView.OnHide() => OnHide();
-        void IUIView.OnHideAsync(PanelAsyncOperation operation) => OnHideAsync(operation);
-        void IUIView.OnCloseAsync(PanelAsyncOperation operation) => OnCloseAsync(operation);
+        void IUIView.OnHideAsync(AsyncTask operation) => OnHideAsync(operation);
+        void IUIView.OnCloseAsync(AsyncTask operation) => OnCloseAsync(operation);
         void IUIView.OnClose()
         {
             OnClose();

@@ -6,10 +6,16 @@
  *Description:    IFramework
  *History:        2018.11--
 *********************************************************************************/
+using UnityEngine;
+
 namespace IFramework.UI
 {
     public interface IUIDelegate
     {
+
+        AsyncTask<UIPanel> LoadPanelAsync(RectTransform parent, string path);
+        void DestroyPanel(GameObject gameObject);
+
         void OnFullScreenCount(bool hide, int count);
         void OnLayerTopChange(int layer, string path);
         void OnTopShowChange(int layer, string path);

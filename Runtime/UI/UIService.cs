@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.UI;
 using static IFramework.UI.UIPanel;
@@ -19,13 +20,13 @@ namespace IFramework.UI
     public static class UIServiceEx
     {
         public const string defaultName = "UI";
-        public static UIService UseUI(this Game game, UIAsset asset, IViewBridge bridge, IUIDelegate del = null, string name = defaultName)
+        public static UIService UseUI(this Game game, UILayerData layer,
+            PanelCollection collection, IViewBridge bridge, IUIDelegate del, Canvas canvas = null, string name = defaultName)
         {
-            UIService ui = new UIService();
+            UIService ui = new UIService(layer, collection, canvas);
             game.UseService(ui, name);
             ui.SetUIDelegate(del);
             ui.SetBridge(bridge);
-            ui.SetAsset(asset);
             ui.CreateCanvas();
             return ui;
         }
@@ -39,12 +40,24 @@ namespace IFramework.UI
 
         private LoadPart loadPart;
         private LayerPart layerPart;
-        internal UIAsset assetPart;
         private IViewBridge bridgePart;
         private IUIDelegate delPart;
         public Canvas canvas { get; private set; }
 
         //private SimpleObjectPool<ShowPanelAsyncOperation> show_op = new SimpleObjectPool<ShowPanelAsyncOperation>();
+        private UILayerData layer;
+        private PanelCollection collection;
+
+        public UIService(UILayerData layer, PanelCollection collection, Canvas canvas)
+        {
+            this.layer = layer;
+            this.collection = collection;
+            this.canvas = canvas;
+            collection.ListToMap();
+        }
+
+
+
 
         class LayerChangeCheckData
         {
@@ -70,17 +83,25 @@ namespace IFramework.UI
         {
             if (bridgePart != null)
                 bridgePart.Dispose();
-            layerPart.Clear();
-            loadPart.DeleteCanvas();
+            if (canvas != null)
+                GameObject.Destroy(canvas.gameObject);
         }
-
-
 
         internal void CreateCanvas()
         {
-            var _canvas = loadPart.CreateCanvas();
+            var _canvas = canvas;
+            if (_canvas == null)
+            {
+                var root = new GameObject();
+                root.AddComponent<RectTransform>();
+                _canvas = root.AddComponent<Canvas>();
+                root.AddComponent<CanvasScaler>();
+                root.AddComponent<GraphicRaycaster>();
+                _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            }
+            _canvas.name = Name;
+            this.canvas = _canvas;
             layerPart.CreateLayers(_canvas);
-            canvas = _canvas;
         }
 
 
@@ -149,9 +170,9 @@ namespace IFramework.UI
 
 
 
-        private void UILoadComplete(UIPanel ui, PanelAsyncOperation op)
+        private void UILoadComplete(string path, UIPanel ui, AsyncTask op)
         {
-            string path = op.path;
+            //string path = op.path;
 
             if (ui != null)
             {
@@ -165,12 +186,12 @@ namespace IFramework.UI
                     delPart.OnPanelLoad(path);
             }
             CallPanelVisibleChange(ui, true);
-            OnShowCallBack(false, ui, op);
+            OnShowCallBack(path,false, ui, op);
         }
 
-        private void OnShowCallBack(bool exist, UIPanel panel, PanelAsyncOperation op)
+        private void OnShowCallBack(string path, bool exist, UIPanel panel, AsyncTask op)
         {
-            string path = op.path;
+            //string path = op.path;
             if (panel != null)
             {
                 if (exist)
@@ -187,20 +208,20 @@ namespace IFramework.UI
             //show_op.Set(op);
         }
 
-        public PanelAsyncOperation Show(string path)
+        public AsyncTask Show(string path)
         {
 
             if (bridgePart == null)
                 throw new Exception("Please Set Bridge First");
-            if (assetPart == null)
-                throw new Exception("Please Set UILoader First");
+            if (delPart == null)
+                throw new Exception("Please Set UIDelegate First");
 
             this.delPart?.OnShowPanelRequest(path);
-            var show_op = StaticPool.Get<PanelAsyncOperation>();
-            show_op.path = path;
+            var show_op = AsyncTask.CreateFromPool();
+            //show_op.path = path;
             var layer = GetPanelLayer(path);
             BeginChangeLayerTopChangeCheck(layer, check_show);
-            loadPart.LoadPanel(layer, show_op);
+            loadPart.LoadPanel(path, layer, show_op);
             return show_op;
         }
 
@@ -296,13 +317,13 @@ namespace IFramework.UI
         //private List<PanelAsyncOperation> colse_hide_list = new List<PanelAsyncOperation>();
         public AsyncTask CloseAsync(string path)
         {
-            if (loadPart.Find(path) == null) return PanelAsyncOperation.CompletedTask;
+            if (loadPart.Find(path) == null) return AsyncTask.CompletedTask;
 
-            var operation = PanelAsyncOperation.CreateFromPool();
-            operation.path = path;
-            operation.ContinueWith<PanelAsyncOperation>(_ =>
+            var operation = AsyncTask.CreateFromPool();
+            //operation.path = path;
+            operation.ContinueWith(_ =>
             {
-                Close(_.path);
+                Close(path);
             });
             this.bridgePart.OnCloseAsync(path, operation);
             this.delPart?.OnClosePanelAsync(path);
@@ -312,12 +333,11 @@ namespace IFramework.UI
         }
         public AsyncTask HideAsync(string path)
         {
-            if (loadPart.Find(path) == null) return PanelAsyncOperation.CompletedTask;
-            var operation = PanelAsyncOperation.CreateFromPool();
-            operation.path = path;
-            operation.ContinueWith<PanelAsyncOperation>(_ =>
+            if (loadPart.Find(path) == null) return AsyncTask.CompletedTask;
+            var operation = AsyncTask.CreateFromPool();
+            operation.ContinueWith(_ =>
             {
-                Hide(_.path);
+                Hide(path);
             });
             this.bridgePart.OnHideAsync(path, operation);
             this.delPart?.OnHidePanelAsync(path);
@@ -402,7 +422,7 @@ namespace IFramework.UI
             percent = (percent - min) / length;
             scaler.matchWidthOrHeight = percent;
         }
-        internal void SetAsset(UIAsset asset) => assetPart = asset;
+        //internal void SetAsset(UIAsset asset) => assetPart = asset;
 
         internal void SetBridge(IViewBridge bridge) => this.bridgePart = bridge;
         internal void SetUIDelegate(IUIDelegate del) => this.delPart = del;
@@ -414,11 +434,31 @@ namespace IFramework.UI
         private RectTransform GetLayerTransform(string layer) => layerPart.GetLayerTransform(layer);
 
 
-        public int GetPanelLayer(string path) => this.assetPart.GetPanelLayer(path);
-        private bool GetPanelFullScreen(string path) => this.assetPart.GetPanelFullScreen(path);
-        public List<string> GetLayerNames() => this.assetPart.GetLayerNames();
-        public int LayerNameToIndex(string layerName) => this.assetPart.LayerNameToIndex(layerName);
-        public string GetLayerName(int layer) => this.assetPart.GetLayerName(layer);
+
+        public PanelCollection.Data GetData(string path) => collection?.GetData(path);
+        public List<string> GetLayerNames() => layer.GetLayerNames();
+        public virtual int GetPanelLayer(string path)
+        {
+            var data = GetData(path);
+            if (data != null)
+                return data.layer;
+            return 0;
+        }
+        public virtual bool GetPanelFullScreen(string path)
+        {
+            var data = GetData(path);
+            if (data != null)
+                return data.fullScreen;
+            return false;
+        }
+        public virtual string GetLayerName(int layer) => this.layer.GetLayerName(layer);
+        public virtual int LayerNameToIndex(string layerName) => this.layer.LayerNameToIndex(layerName);
+
+        //public int GetPanelLayer(string path) => this.assetPart.GetPanelLayer(path);
+        //private bool GetPanelFullScreen(string path) => this.assetPart.GetPanelFullScreen(path);
+        //public List<string> GetLayerNames() => this.assetPart.GetLayerNames();
+        //public int LayerNameToIndex(string layerName) => this.assetPart.LayerNameToIndex(layerName);
+        //public string GetLayerName(int layer) => this.assetPart.GetLayerName(layer);
         public bool GetIsPanelOpen(string path) => loadPart.Find(path) != null;
 
         public UIPanel FindPanel(string path) => loadPart.Find(path);

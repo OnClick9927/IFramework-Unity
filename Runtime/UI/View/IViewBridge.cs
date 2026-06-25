@@ -50,8 +50,8 @@ namespace IFramework.UI
 
         void OnBecameVisible(string path);
         void OnBecameInvisible(string path);
-        void OnHideAsync(string path, PanelAsyncOperation operation);
-        void OnCloseAsync(string path, PanelAsyncOperation operation);
+        void OnHideAsync(string path, AsyncTask operation);
+        void OnCloseAsync(string path, AsyncTask operation);
     }
 
     public class ViewBridge : IViewBridge
@@ -129,9 +129,9 @@ namespace IFramework.UI
             return false;
         }
 
-        void IViewBridge.OnHideAsync(string path, PanelAsyncOperation operation) => FindView(path).OnHideAsync(operation);
+        void IViewBridge.OnHideAsync(string path, AsyncTask operation) => FindView(path).OnHideAsync(operation);
 
-        void IViewBridge.OnCloseAsync(string path, PanelAsyncOperation operation) => FindView(path).OnCloseAsync(operation);
+        void IViewBridge.OnCloseAsync(string path, AsyncTask operation) => FindView(path).OnCloseAsync(operation);
     }
     public class MixedViewBridge : IViewBridge
     {
@@ -260,7 +260,7 @@ namespace IFramework.UI
             }
         }
 
-        void IViewBridge.OnHideAsync(string path, PanelAsyncOperation operation)
+        void IViewBridge.OnHideAsync(string path, AsyncTask operation)
         {
             if (_nameMap.ContainsKey(path))
             {
@@ -272,7 +272,7 @@ namespace IFramework.UI
             }
         }
 
-        void IViewBridge.OnCloseAsync(string path, PanelAsyncOperation operation)
+        void IViewBridge.OnCloseAsync(string path, AsyncTask operation)
         {
             if (_nameMap.ContainsKey(path))
             {
