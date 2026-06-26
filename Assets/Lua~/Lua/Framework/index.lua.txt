@@ -1,0 +1,8 @@
+require("Framework.Tools.Base")
+require("Framework.Tools.Log")
+require("Framework.Tools.EventSystem")
+require("Framework.Tools.LuaTask")
+Json = require("Framework.Tools.Json")
+require("Framework.UI.View")
+require("Framework.UI.LuaBridge")
+require("Framework.UI.UIItemPool")

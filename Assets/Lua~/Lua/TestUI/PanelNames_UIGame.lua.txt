@@ -1,0 +1,9 @@
+PanelNames_UIGame =
+{
+    PanelOne = "Assets/Project/Examples/UI/PanelOne.prefab",
+    PanelOneTWO = "Assets/Project/Examples/UI/PanelOneTWO.prefab",
+}
+PanelNames_UIGame.map =
+{
+    [PanelNames_UIGame.PanelOne] = require "TestUI.PanelOneView",
+}

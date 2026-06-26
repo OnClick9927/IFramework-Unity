@@ -1,0 +1,29 @@
+Log.L('Game Logic')
+local Launcher = StaticUsing("IFramework.Launcher")
+local game = Launcher.Instance.game
+local ui = game.module
+---@type LuaBridge
+local bridge = LuaBridge()
+local cs = bridge:SetMap(PanelNames_UIGame.map)
+ui:SetBridge(cs)
+ui:Show(PanelNames_UIGame.PanelOne)
+
+async(function()
+    print("zzz1")
+    await(LuaTask.Delay(5))
+    print("zzz2")
+end)()
+
+try {
+    function()
+        print("1111")
+        error("big err")
+    end,
+    catch = function(e)
+        print(e .. "  222")
+    end,
+    finally = function()
+        print(3333)
+    end
+
+}

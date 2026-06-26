@@ -1,0 +1,37 @@
+/*********************************************************************************
+*Author:         #Author#
+*Date:           #Date#
+*********************************************************************************/
+using static IFramework.UI.UnityEventHelper;
+
+namespace #ScriptNameSpace#
+{
+    public class #ScriptName# : #ParentClass#
+    {
+
+        class View {
+            //FieldsStart
+        #field#
+            //FieldsEnd
+
+            public View(#ScriptName# context)
+            {
+                //InitComponentsStart
+            #FindField#
+                //InitComponentsEnd
+            }
+        }
+
+        private View view;
+
+        protected override void InitComponents()
+        {
+            view = new View(this);
+        }
+        protected override void OnLoad(){}
+        protected override void OnShow(){}
+        protected override void OnHide(){}
+        protected override void OnClose(){}
+
+    }
+}

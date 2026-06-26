@@ -1,0 +1,32 @@
+--*********************************************************************************
+--Author:         OnClick
+--Version:        1.0
+--UnityVersion:   2021.3.33f1c1
+--Date:           2024-10-24
+--*********************************************************************************
+---StaticUsing
+local Transform = StaticUsing("UnityEngine.Transform")
+---StaticUsing
+---@class PanelOneItemView : UIItemView
+local PanelOneItemView = class("PanelOneItemView", UIItemView)
+
+function PanelOneItemView:InitComponents()
+    self.view = {
+        --InitComponentsStart
+		---@type UnityEngine.Transform
+		PanelOneItem = self:GetComponent("", typeof(Transform)),
+
+
+        --InitComponentsEnd
+    }
+end
+
+function PanelOneItemView:OnGet()
+end
+
+function PanelOneItemView:OnSet()
+    self:DisposeEvents()
+    self:DisposeUIEvents()
+end
+
+return PanelOneItemView

@@ -1,0 +1,32 @@
+/*********************************************************************************
+*Author:         #Author#
+*Date:           #Date#
+*********************************************************************************/
+namespace #ScriptNameSpace#
+{
+    public class #ScriptName# : IFramework.GameObjectView
+    {
+
+        class View {
+            //FieldsStart
+        #field#
+            //FieldsEnd
+
+            public View(#ScriptName# context)
+            {
+                //InitComponentsStart
+            #FindField#
+                //InitComponentsEnd
+            }
+        }
+
+        private View view;
+
+        protected override void InitComponents()
+        {
+            view = new View(this);
+        }
+
+
+    }
+}

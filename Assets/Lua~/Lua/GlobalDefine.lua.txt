@@ -1,0 +1,2 @@
+Log.L('GlobalDefine')
+require "TestUI.PanelNames_UIGame"

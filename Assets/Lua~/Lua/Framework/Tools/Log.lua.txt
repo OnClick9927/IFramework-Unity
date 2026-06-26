@@ -1,0 +1,86 @@
+local __log = StaticUsing("IFramework.Log")
+--- @class Log
+Log = {}
+
+local function FormatMessage(message, depth)
+    depth = depth or 3
+    local info = debug.getinfo(3, "S")
+    local source = info.source
+    info = debug.getinfo(3, "l")
+    return "LUA :" .. message .. "\nLine: " .. info.currentline .. "\n at  " .. source
+end
+
+---输出
+---@param  message string
+function Log.L(message)
+    __log.L(FormatMessage(message))
+end
+
+---输出警告
+---@param  message string
+function Log.W(message)
+    __log.W(FormatMessage(message))
+end
+
+---输出 错误
+---@param  message string
+function Log.E(message)
+    __log.E(FormatMessage(message))
+end
+
+---格式化输出
+---@param fmt string
+---@param ... any
+function Log.LF(fmt, ...)
+    __log.L(FormatMessage(string.format(fmt, ...)))
+end
+
+---格式化输出警告
+---@param fmt string
+---@param ... any
+function Log.WF(fmt, ...)
+    __log.W(string.format(fmt, ...))
+end
+
+---格式化输出 错误
+---@param fmt string
+---@param ... any
+function Log.EF(fmt, ...)
+    __log.E(string.format(fmt, ...))
+end
+
+setmetatable(
+Log,
+    {
+        __index = function(t, k)
+            if k == "enable" then
+                return __log.enable
+            elseif k == "enable_L" then
+                return __log.enable_L
+            elseif k == "enable_W" then
+                return __log.enable_W
+            elseif k == "enable_E" then
+                return __log.enable_E
+            else
+                error("No such Field in Log :" .. tostring(k))
+            end
+        end,
+        __newindex = function(t, k, v)
+            if type(v) == LuaDataType.Booean then
+                if k == "enable" then
+                    __log.enable = v
+                elseif k == "enable_L" then
+                    __log.enable_L = v
+                elseif k == "enable_W" then
+                    __log.enable_W = v
+                elseif k == "enable_E" then
+                    __log.enable_E = v
+                else
+                    error("No such Field in Log :" .. tostring(k))
+                end
+            else
+                error("No such Field in Log :" .. tostring(k))
+            end
+        end
+    }
+)

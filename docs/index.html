@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <!-- <title>Document</title> -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Description">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <style>
+    .navbar {
+      position: fixed;
+      top: 0;
+      background: #edf7ff;
+      z-index: 1;
+      width: 100%;
+      margin-top: 0px;
+      padding-top: 10px;
+      height: 50px;
+      /* padding-right: 50px; */
+      margin-right: 0px;
+      display: flex;
+      border-bottom: 1px solid rgba(3, 50, 146, 0.227);
+
+    }
+
+    
+    .sidebar {
+      position: sticky;
+      top: 90px;
+      z-index: 99;
+      width: 300px;
+      bottom: 35px;
+      min-width: 180px;
+      max-width: 500px;
+    }
+
+    .sidebar .search {
+      position: fixed;
+      margin-top: -35px;
+      /* border-bottom: 1px solid #1e1e1e; */
+
+      background: rgb(255, 255, 255);
+      border: 1px solid rgba(3, 50, 146, 0.227);
+      margin: -40px 0px 0px 0px;
+      width: 300px;
+      z-index: 999;
+    }
+  </style>
+
+
+</head>
+
+<body>
+  <nav class="navbar"></nav>
+  <div id="app"></div>
+
+  <script>
+    window.$docsify = {
+      loadSidebar: true,
+      subMaxLevel: 6,
+      loadNavbar: true,
+      //  cornerExternalLinkTarget: 'https://www.baidu.com', // default: '_blank'
+      repo: 'https://github.com/OnClick9927/IFramework-Unity',
+      sidebarDisplayLevel: 2, // 左侧边栏显示的最大层级
+      search: {
+        maxAge: 0, // 过期时间，单位毫秒，默认一天
+        paths: 'auto', // or 'auto'
+        placeholder: 'Search',
+        noData: 'No Results!',
+        depth: 6,
+        hideOtherSidebarContent: true, // 是否隐藏其他侧边栏内容
+        namespace: 'IFramework_Unity' // 存储搜索数据的命名空间，避免多站点数据冲突,
+
+      },
+      toc:// 右侧边栏
+      {
+        scope: '.markdown-section',
+        headings: 'h1, h2, h3, h4, h5, h6',
+        title: '',
+      },
+      'flexible-alerts': {
+        style: 'flat'
+      }
+    }
+  </script>
+  <!-- Docsify v4 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <!-- 外链脚本 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/external-script.min.js"></script>
+  <!-- 图片缩放 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+  <!-- 字数统计 -->
+  <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
+
+
+  <!-- 代码复制 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <!-- 代码高亮 -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-php.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-csharp.js"></script>
+  <!-- emoji 解析 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
+
+  <!-- 上下页 -->
+  <!-- <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script> -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+
+
+  <!-- 左侧目录 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar-folder.min.css" />
+  <!-- <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" /> -->
+
+
+
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+
+
+
+  <!-- 右侧目录 -->
+  <script src="https://unpkg.com/docsify-toc@1.0.0/dist/toc.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/docsify-toc@1.0.0/dist/toc.css">
+
+
+  <!-- note、tip、WARNING、ATTENTION -->
+
+  <script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
+
+  <!-- 回到顶部 -->
+  <script src="https://cdn.jsdelivr.net/gh/Sumsung524/docsify-backTop/dist/docsify-backTop.min.js"></script>
+  <script>
+    docsifyBackTop = {
+      size: 50,           	// 数值，组件大小，默认值32。
+      bottom: 30,         	// 数值，组件底部偏移距离，默认值15。
+      right: 30,          	// 数值，组件右侧偏移距离，默认值15。
+      logo: '<svg t="1755056112082" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7951" width="200" height="200"><path d="M512 0C229.517 0 0 229.517 0 512s227.752 512 512 512c282.483 0 512-227.752 512-512C1024 229.517 794.483 0 512 0zM351.338 271.89h305.434c14.125 0 26.483 12.358 26.483 26.482s-12.358 26.483-26.483 26.483H351.338c-14.124 0-26.483-12.358-26.483-26.483 0-15.89 12.359-26.482 26.483-26.482z m331.917 303.669c-12.358 12.358-33.545 12.358-45.903 0L531.42 471.393v270.124c0 14.124-12.359 26.483-26.483 26.483s-26.483-12.359-26.483-26.483v-271.89l-105.93 104.166c-12.36 12.359-33.546 12.359-45.904 0-12.359-12.359-12.359-31.78 0-45.903l155.365-151.835c7.062-7.062 14.124-8.827 22.952-8.827s15.89 3.53 22.952 8.827L683.255 527.89c12.359 15.89 12.359 35.31 0 47.669z" fill="#4582f0" p-id="7952"></path></svg>',
+      bgColor: '\#bbb5'    	// 背景颜色，#fff、pink等，logo为svg图标时，不填。
+    };
+  </script>
+</body>
+
+</html>

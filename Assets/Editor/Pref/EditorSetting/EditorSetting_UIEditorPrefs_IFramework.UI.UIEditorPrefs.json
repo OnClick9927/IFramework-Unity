@@ -1,0 +1,46 @@
+{
+    "plan_index": 0,
+    "_plans": [
+        {
+            "ConfigGenPath": "Assets",
+            "PanelCollectPath": "Assets",
+            "ScriptGenPath": "Assets",
+            "ScriptName": "PanelNames",
+            "name": "26_06_22_12_04_02",
+            "typeIndex": 0,
+            "ConfigName": "UICollect"
+        }
+    ],
+    "segs": [
+        {
+            "prefab": "Assets/Project/Examples/UI/PanelOne.prefab",
+            "ScriptPath": "Assets/Project/Examples/UI/PanelOneView.cs",
+            "Paths": [
+                "Assets/Project/Examples/UI/PanelOneView.cs"
+            ]
+        },
+        {
+            "prefab": "Assets/Project/Examples/UI/PanelTwo.prefab",
+            "ScriptPath": "Assets/Project/Examples/UI/PanelTwoView.cs",
+            "Paths": [
+                "Assets/Project/Examples/UI/PanelTwoView.cs"
+            ]
+        },
+        {
+            "prefab": "Assets/Project/Examples/UI/Panel##Two 1 @.prefab",
+            "ScriptPath": "Assets/Project/Examples/UI/PanelTwo_1_View.cs",
+            "Paths": [
+                "Assets/Project/Examples/UI/PanelTwo_1_View.cs"
+            ]
+        }
+    ],
+    "layerEdit": {
+        "mode": 0,
+        "layerObjectPath": "Assets/Project/Examples/UI/New UI Layer Data.asset"
+    },
+    "pubsave": {
+        "NameSpace": "",
+        "viewBaseIndex": 0,
+        "widgetBaseIndex": 0
+    }
+}
