@@ -13,7 +13,7 @@ namespace IFramework.UI
     public interface IUIDelegate
     {
 
-        AsyncTask<UIPanel> LoadPanelAsync(RectTransform parent, string path);
+        AsyncTask<UIPanel> LoadPanelAsync(RectTransform parent, PanelCollection.Data data);
         void DestroyPanel(GameObject gameObject);
 
         void OnFullScreenCount(bool hide, int count);

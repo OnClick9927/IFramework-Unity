@@ -446,18 +446,18 @@ namespace IFramework.UI
 
 
 
-        public PanelCollection.Data GetData(string path) => collection?.GetData(path);
+        public PanelCollection.Data GetPanelData(string path) => collection?.GetData(path);
         public List<string> GetLayerNames() => layer.GetLayerNames();
         public virtual int GetPanelLayer(string path)
         {
-            var data = GetData(path);
+            var data = GetPanelData(path);
             if (data != null)
                 return data.layer;
             return 0;
         }
         public virtual bool GetPanelFullScreen(string path)
         {
-            var data = GetData(path);
+            var data = GetPanelData(path);
             if (data != null)
                 return data.fullScreen;
             return false;
