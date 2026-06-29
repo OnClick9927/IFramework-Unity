@@ -6,11 +6,10 @@ using UnityEngine;
 
 public class UIGame : Game, IUIDelegate
 {
-    async AsyncTask<UIPanel> IUIDelegate.LoadPanelAsync(RectTransform parent, string path)
+    async AsyncTask<UIPanel> IUIDelegate.LoadPanelAsync(RectTransform parent, PanelCollection.Data data)
     {
-
         await Task.Delay(2000);
-        var go = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<UIPanel>(path), parent);
+        var go = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<UIPanel>(data.path), parent);
         return go;
     }
     void IUIDelegate.DestroyPanel(GameObject gameObject)

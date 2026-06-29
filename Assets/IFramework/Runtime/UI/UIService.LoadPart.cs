@@ -66,9 +66,15 @@ namespace IFramework.UI
                     module.OnShowCallBack(path, true, panel, show_op);
                 else
                 {
+                    var data = module.GetPanelData(path);
+                    if (data == null)
+                    {
+                        Log.FE($"{path} Not Find Panel In {nameof(PanelCollection)} ,Try Gen Plan");
+                        return;
+                    }
                     RectTransform parent = module.GetLayerTransform(module.GetLayerName(layer));
                     _loading++;
-                    var result = await module.delPart.LoadPanelAsync(parent, path);
+                    var result = await module.delPart.LoadPanelAsync(parent, data);
                     if (result != null)
                     {
 
