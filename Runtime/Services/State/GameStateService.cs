@@ -41,7 +41,7 @@ namespace IFramework
             state = null;
             OnGameStateChange = null;
             for (int i = 0; i < states.Count; i++)
-                state.Quit();
+                states[i].Quit();
         }
         public void RemoveListenStateChange(GameStateChange call)
         {
