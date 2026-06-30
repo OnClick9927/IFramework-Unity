@@ -14,5 +14,6 @@ namespace IFramework
         void OnEnter(IGameState exit);
         void Update();
         void Init();
+        void Quit();
     }
 }

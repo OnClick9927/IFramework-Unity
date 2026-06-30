@@ -40,6 +40,8 @@ namespace IFramework
             Game.UnBindUpdate(Update);
             state = null;
             OnGameStateChange = null;
+            for (int i = 0; i < states.Count; i++)
+                state.Quit();
         }
         public void RemoveListenStateChange(GameStateChange call)
         {
