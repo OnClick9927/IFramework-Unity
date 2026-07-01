@@ -1,9 +1,10 @@
 ﻿
 using System;
 using System.Collections.Generic;
+
 namespace IFramework
 {
-    public interface IEventsOwner { }
+    //public interface IEventsOwner { }
     public interface IEventArgs { }
     public interface IEventHandler { }
     public interface IEventHandler<T> : IEventHandler where T : IEventArgs
@@ -16,7 +17,7 @@ namespace IFramework
     }
     abstract class EventEntityBase : IDisposable, IPoolObject
     {
-        public IEventsOwner owner;
+        //public IEventsOwner owner;
         public string msg { get; protected set; }
         public bool valid { get; set; }
 
@@ -26,7 +27,7 @@ namespace IFramework
 
         protected virtual void Reset()
         {
-            owner = null;
+            //owner = null;
             msg = string.Empty;
         }
 
@@ -197,15 +198,15 @@ namespace IFramework
 
 
 
-        internal static IDisposable Subscribe<T>(IEventHandler handler) where T : IEventArgs
+        public static IDisposable Subscribe<T>(IEventHandler handler) where T : IEventArgs
         {
             var type = typeof(T);
             string msg = type.Name;
             return GetContext(msg).Subscribe(StaticPool.Get<EventHandlerEntity<T>>().SetData(handler is IAsyncEventHandler<T>, msg, handler));
         }
-        internal static IDisposable Subscribe<T>(string msg, Func<T, AsyncTask> action) where T : IEventArgs
+        public static IDisposable Subscribe<T>(string msg, Func<T, AsyncTask> action) where T : IEventArgs
             => GetContext(msg).Subscribe(StaticPool.Get<DelegateEventEntity<Func<T, AsyncTask>>>().SetData(true, msg, action));
-        internal static IDisposable Subscribe(string msg, Action<IEventArgs> action)
+        public static IDisposable Subscribe(string msg, Action<IEventArgs> action)
             => GetContext(msg).Subscribe(StaticPool.Get<DelegateEventEntity<Action<IEventArgs>>>().SetData(false, msg, action));
 
 
@@ -217,74 +218,13 @@ namespace IFramework
 
 
 
-        private static Dictionary<IEventsOwner, List<EventEntityBase>> help = new Dictionary<IEventsOwner, List<EventEntityBase>>();
-
-        private static List<EventEntityBase> GetList(IEventsOwner msg)
-        {
-            List<EventEntityBase> result = null;
-            if (!help.TryGetValue(msg, out result))
-            {
-                result = StaticPool.Get<List<EventEntityBase>>();
-                help.Add(msg, result);
-            }
-            return result;
-        }
-        private static List<EventEntityBase> FindList(IEventsOwner msg)
-        {
-            List<EventEntityBase> result = null;
-            help.TryGetValue(msg, out result);
-            return result;
-        }
-
-        private static void TryRecycleList(IEventsOwner key, List<EventEntityBase> list)
-        {
-            if (list.Count != 0) return;
-            StaticPool.Set(list);
-            help.Remove(key);
-        }
 
 
-        public static IDisposable SubscribeEvent(this IEventsOwner self, string msg, Action<IEventArgs> action)
-        {
-            EventEntityBase entity = Subscribe(msg, action) as EventEntityBase;
-            entity.owner = self;
-            var list = GetList(self);
-            list.Add(entity);
-            return entity;
-        }
-        public static IDisposable SubscribeEvent(this IEventsOwner self, string msg, Func<IEventArgs, AsyncTask> action)
-        {
-            EventEntityBase entity = Subscribe(msg, action) as EventEntityBase;
-            entity.owner = self;
-            var list = GetList(self);
-            list.Add(entity);
-            return entity;
-        }
-        public static IDisposable SubscribeEvent<T>(this IEventsOwner self, IEventHandler handler) where T : IEventArgs
-        {
-            EventEntityBase entity = Subscribe<T>(handler) as EventEntityBase;
-            entity.owner = self;
-            var list = GetList(self);
-            list.Add(entity);
-            return entity;
-        }
 
-        public static void DisposeEvents(this IEventsOwner self)
-        {
-            var list = FindList(self);
+        public static T SubscribeEvent<T>(this T self, string msg, Action<IEventArgs> action) => Subscribe(msg, action).AddTo(self);
+        public static T SubscribeEvent<T>(this T self, string msg, Func<IEventArgs, AsyncTask> action) => Subscribe(msg, action).AddTo(self);
+        public static object SubscribeEvent<T>(this object self, IEventHandler handler) where T : IEventArgs => Subscribe<T>(handler).AddTo(self);
 
-            if (list == null) return;
-            for (int i = list.Count - 1; i >= 0; i--)
-            {
-                var e = list[i];
-                if (e.owner == self)
-                {
-                    e.Dispose();
-                    list.RemoveAt(i);
-                }
-            }
-            TryRecycleList(self, list);
-        }
 
 
 

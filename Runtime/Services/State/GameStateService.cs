@@ -65,7 +65,7 @@ namespace IFramework
             get => _state; set
             {
                 if (value == _state) return;
-                _state?.DisposeEvents();
+                _state?.ClearDisposable();
                 _state?.OnExit(value);
                 var exit = _state;
                 _state = value;

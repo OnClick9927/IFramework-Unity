@@ -8,7 +8,7 @@
 *********************************************************************************/
 namespace IFramework
 {
-    public interface IGameState : IInjectAble, IEventsOwner
+    public interface IGameState : IInjectAble
     {
         void OnExit(IGameState enter);
         void OnEnter(IGameState exit);

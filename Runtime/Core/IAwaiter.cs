@@ -697,7 +697,7 @@ namespace IFramework
             });
         }
     }
-    public class CancellationTokenSource
+    public class CancellationTokenSource:IDisposable
     {
         public string userData { get; set; }
         private bool _canceled;
@@ -731,6 +731,8 @@ namespace IFramework
         }
 
         internal void Unregister(Action callback) => _callbacks.Remove(callback);
+
+        void IDisposable.Dispose() => Cancel();
     }
     public struct CancellationTokenRegistration : IDisposable
     {
