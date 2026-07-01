@@ -4,10 +4,8 @@
  *UnityVersion:   2021.3.33f1c1
  *Date:           2024-10-24
 *********************************************************************************/
-using IFramework.UI;
 using System.Collections.Generic;
 using UnityEngine;
-using static IFramework.UI.UnityEventHelper;
 namespace IFramework.UI
 {
     class AddArg : IEventArgs
@@ -80,7 +78,17 @@ namespace IFramework.UI
             {
                 Debug.Log("add");
             });
-
+            var cts = new CancellationTokenSource();
+            cts.AddTo(this);
+            DO(cts.Token).Coroutine();
+        }
+        async AsyncTask DO(CancellationToken token)
+        {
+            while (true) { 
+            await AsyncTask.Delay(0.5f);
+            if (token.IsCancellationRequested) break;
+            Debug.Log("Test");
+            }
         }
 
 

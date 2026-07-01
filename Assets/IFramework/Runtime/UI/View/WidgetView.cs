@@ -10,10 +10,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static IFramework.UI.UnityEventHelper;
 namespace IFramework.UI
 {
-    public abstract class WidgetView : GameObjectView, IUIEventOwner, IEventsOwner
+    public abstract class WidgetView : GameObjectView
     {
 
 
@@ -150,8 +149,7 @@ namespace IFramework.UI
         {
             OnClearFields();
             DisposeChildren();
-            this.DisposeEvents();
-            this.DisposeUIEvents();
+            this.ClearDisposable();
             ClearWidgetPools();
             ClearPrefabs();
             this.gameObject = null;
