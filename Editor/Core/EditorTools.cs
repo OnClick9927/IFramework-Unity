@@ -156,20 +156,16 @@ namespace IFramework
 
 
             AssetDatabase.Refresh();
-            UnityEditor.EditorApplication.update -= Update;
+            UnityEditor.EditorApplication.update -= Launcher.UpdateByEditor;
 
-            UnityEditor.EditorApplication.update += Update;
+            UnityEditor.EditorApplication.update += Launcher.UpdateByEditor;
             Log.logger = new UnityLogger();
             SetLogStatus();
         }
         public static IServiceCollection services { get; private set; }
         public static IServiceCollection services_setting { get; private set; }
 
-        static void Update()
-        {
-            Launcher.UpdateByEditor(EditorApplication.timeSinceStartup);
 
-        }
 
 
         public static void SetLogStatus()

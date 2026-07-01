@@ -47,10 +47,8 @@ namespace IFramework
 
 
 
-        private static double _time;
-        internal static void UpdateByEditor(double time)
+        internal static void UpdateByEditor()
         {
-            _time = time;
             if (Application.isPlaying) return;
             onUpdate?.Invoke();
         }
@@ -62,7 +60,7 @@ namespace IFramework
             get
             {
 #if UNITY_EDITOR
-                return _time;
+                return UnityEditor.EditorApplication.timeSinceStartup;
 #else
                 return Time.time;
 #endif
