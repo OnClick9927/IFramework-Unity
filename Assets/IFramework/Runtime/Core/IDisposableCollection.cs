@@ -7,8 +7,9 @@ namespace IFramework
     public static class IDisposableCollection
     {
         private static Dictionary<object, HashSet<IDisposable>> map = new();
-        public static T AddTo<T>(this IDisposable self, T obj)
+        public static T AddTo<T>(this T self, object obj) where T : IDisposable
         {
+            if (self == null) return self;
             if (!map.TryGetValue(obj, out var list))
             {
                 list = StaticPool.Get<HashSet<IDisposable>>();
@@ -22,7 +23,7 @@ namespace IFramework
             catch (Exception)
             {
             }
-            return obj;
+            return self;
         }
         public static T RemoveDisposable<T>(this T t, IDisposable disposable)
         {

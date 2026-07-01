@@ -12,7 +12,7 @@ namespace IFramework.UI
     {
         public float time;
     }
-    public class PanelOneView : TestViewBase, IEventHandler<AddArg>,IInjectAble
+    public class PanelOneView : TestViewBase, IEventHandler<AddArg>, IInjectAble
     {
         class View
         {
@@ -50,44 +50,43 @@ namespace IFramework.UI
 
         protected override void OnLoad()
         {
+            CreateWidgetPool<PanelOneItemWidget>(view.Prefab_PanelOneItem, view.items);
             this.BindButton(this.view.remove, () =>
              {
                  Events.Publish(eve_key_remove, null);
-             });
-            this.BindButton(view.OpenOne, async () =>
+             })
+            .BindButton(view.OpenOne, async () =>
              {
                  Log.L("BeginShow");
                  await UI.Show(PanelNames_UIGame.PanelTwo);
                  Log.L("EndShow");
-             });
-            CreateWidgetPool<PanelOneItemWidget>(view.Prefab_PanelOneItem, view.items);
-            //collection = new UIItemViewCollection((Launcher.Instance.game as UIGame).ui);
-            this.BindButton(this.view.Close, (Game.Current as UIGame).CloseView);
-            this.BindButton(this.view.add, () =>
+             })
+            .BindButton(this.view.Close, (Game.Current as UIGame).CloseView)
+                .BindButton(this.view.add, () =>
                  {
                      //Events.Publish(new AddArg() { time = Time.deltaTime });
                      Events.Publish(nameof(AddArg), new AddArg() { time = Time.deltaTime });
 
-                 });
-            this.SubscribeEvent<AddArg>(this);
-            this.SubscribeEvent(eve_key_remove, (e) =>
+                 })
+            .SubscribeEvent<AddArg>(this)
+            .SubscribeEvent(eve_key_remove, (e) =>
             {
                 Remove();
-            });
-            this.SubscribeEvent(nameof(AddArg), (e) =>
+            })
+            .SubscribeEvent(nameof(AddArg), (e) =>
             {
                 Debug.Log("add");
             });
-            var cts = new CancellationTokenSource();
-            cts.AddTo(this);
+            var cts = new CancellationTokenSource().AddTo(this);
             DO(cts.Token).Coroutine();
         }
         async AsyncTask DO(CancellationToken token)
         {
-            while (true) { 
-            await AsyncTask.Delay(0.5f);
-            if (token.IsCancellationRequested) break;
-            Debug.Log("Test");
+            while (true)
+            {
+                await AsyncTask.Delay(0.5f);
+                if (token.IsCancellationRequested) break;
+                Debug.Log("Test");
             }
         }
 

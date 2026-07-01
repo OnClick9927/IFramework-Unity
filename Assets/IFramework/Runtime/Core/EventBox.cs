@@ -221,14 +221,23 @@ namespace IFramework
 
 
 
-        public static T SubscribeEvent<T>(this T self, string msg, Action<IEventArgs> action) => Subscribe(msg, action).AddTo(self);
-        public static T SubscribeEvent<T>(this T self, string msg, Func<IEventArgs, AsyncTask> action) => Subscribe(msg, action).AddTo(self);
-        public static object SubscribeEvent<T>(this object self, IEventHandler handler) where T : IEventArgs => Subscribe<T>(handler).AddTo(self);
+        public static T SubscribeEvent<T>(this T self, string msg, Action<IEventArgs> action)
+        {
+            Subscribe(msg, action).AddTo(self);
+            return self;
+        }
 
+        public static T SubscribeEvent<T>(this T self, string msg, Func<IEventArgs, AsyncTask> action)
+        {
+            Subscribe(msg, action).AddTo(self);
+            return self;
+        }
 
-
-
-
+        public static object SubscribeEvent<T>(this object self, IEventHandler handler) where T : IEventArgs
+        {
+            Subscribe<T>(handler).AddTo(self);
+            return self;
+        }
 
         private static Dictionary<string, AsyncTask> wait_map = new Dictionary<string, AsyncTask>();
 
