@@ -40,6 +40,7 @@ namespace IFramework
             quited = true;
             OnQuit();
             services.Quit();
+            this.ClearDisposable();
         }
         protected virtual void OnQuit() { }
         protected abstract void Startup();
