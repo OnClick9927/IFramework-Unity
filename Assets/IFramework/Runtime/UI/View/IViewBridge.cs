@@ -64,7 +64,6 @@ namespace IFramework.UI
         {
             if (maps != null)
             {
-                _typemap = new Dictionary<string, Type>();
                 foreach (var item in maps)
                 {
                     foreach (var _item in item)
@@ -112,6 +111,11 @@ namespace IFramework.UI
                 return false;
             }
             UIView ui_view = Activator.CreateInstance(viewType) as UIView;
+            if (ui_view == null)
+            {
+                UnityEngine.Debug.LogError($"Panel view type must inherit {nameof(UIView)}: {viewType}");
+                return false;
+            }
             ui_view.SetPanel(panel);
             _view = ui_view;
             _views.Add(path, _view);
@@ -129,9 +133,23 @@ namespace IFramework.UI
             return false;
         }
 
-        void IViewBridge.OnHideAsync(string path, AsyncTask operation) => FindView(path).OnHideAsync(operation);
+        void IViewBridge.OnHideAsync(string path, AsyncTask operation)
+        {
+            var view = FindView(path);
+            if (view == null)
+                operation?.SetResult();
+            else
+                view.OnHideAsync(operation);
+        }
 
-        void IViewBridge.OnCloseAsync(string path, AsyncTask operation) => FindView(path).OnCloseAsync(operation);
+        void IViewBridge.OnCloseAsync(string path, AsyncTask operation)
+        {
+            var view = FindView(path);
+            if (view == null)
+                operation?.SetResult();
+            else
+                view.OnCloseAsync(operation);
+        }
     }
     public class MixedViewBridge : IViewBridge
     {
@@ -139,7 +157,7 @@ namespace IFramework.UI
         private Dictionary<string, IViewBridge> _nameMap;
         public MixedViewBridge(IViewBridge[] bridges)
         {
-            this._bridges = bridges;
+            this._bridges = bridges ?? Array.Empty<IViewBridge>();
             _nameMap = new Dictionary<string, IViewBridge>();
         }
 
@@ -189,33 +207,30 @@ namespace IFramework.UI
         }
         bool IViewBridge.Subscribe(string path, UIPanel panel)
         {
-            bool sucess = false;
+            if (_nameMap.ContainsKey(path))
+            {
+                UnityEngine.Debug.LogError("Same name, can't Subscribe the panel with name " + path);
+                return false;
+            }
             for (int i = 0; i < _bridges.Length; i++)
             {
-                sucess |= _bridges[i].Subscribe(path, panel);
-                if (sucess)
+                if (_bridges[i].Subscribe(path, panel))
                 {
-                    if (_nameMap.ContainsKey(path))
-                    {
-                        UnityEngine.Debug.LogError("Same name, can't Subscribe the panel with name " + path);
-                        return false;
-                    }
                     _nameMap[path] = _bridges[i];
-                    break;
+                    return true;
                 }
             }
-            if (!sucess)
-            {
-                UnityEngine.Debug.LogError("can't Subscribe the panel with name " + path);
-            }
-            return sucess;
+            UnityEngine.Debug.LogError("can't Subscribe the panel with name " + path);
+            return false;
         }
 
         bool IViewBridge.UnSubscribe(string path)
         {
             if (_nameMap.ContainsKey(path))
             {
-                return _nameMap[path].UnSubscribe(path);
+                if (!_nameMap[path].UnSubscribe(path)) return false;
+                _nameMap.Remove(path);
+                return true;
             }
             else
             {
@@ -269,6 +284,7 @@ namespace IFramework.UI
             else
             {
                 UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
+                operation?.SetResult();
             }
         }
 
@@ -281,6 +297,7 @@ namespace IFramework.UI
             else
             {
                 UnityEngine.Debug.LogError("the panel have not subscribe  panel name :" + path);
+                operation?.SetResult();
             }
         }
     }
