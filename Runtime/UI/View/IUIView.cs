@@ -38,8 +38,8 @@ namespace IFramework.UI
         protected virtual void OnBecameVisible() { }
         protected virtual void OnBecameInvisible() { }
 
-        protected virtual void OnHideAsync(AsyncTask operation) { }
-        protected virtual void OnCloseAsync(AsyncTask operation) { }
+        protected virtual void OnHideAsync(AsyncTask operation) => operation?.SetResult();
+        protected virtual void OnCloseAsync(AsyncTask operation) => operation?.SetResult();
         protected virtual void AfterOnClose() { }
 
         void IUIView.OnLoad() => OnLoad();

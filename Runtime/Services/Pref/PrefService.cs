@@ -77,6 +77,7 @@ namespace IFramework
         {
             var type = obj.GetType();
             var real_key = $"{baseKey}_{key}_{type}";
+            prefs[real_key] = obj;
             SaveString(real_key, converter.ToString(obj, type));
         }
 
@@ -107,7 +108,6 @@ namespace IFramework
 
         protected override void OnQuit(IServiceCollection game)
         {
-            if (prefs.Count <= 0) return;
             SaveAll();
             prefs.Clear();
             contexts.Clear();

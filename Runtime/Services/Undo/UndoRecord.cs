@@ -8,7 +8,7 @@ namespace IFramework
         {
             base.OnReset();
             redo = null;
-            redo = null;
+            undo = null;
         }
         public UndoRecord SetValue(Action redo, Action undo)
         {

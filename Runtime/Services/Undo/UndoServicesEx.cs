@@ -27,7 +27,7 @@ namespace IFramework
         {
             var state = StaticPool.Get<T>();
             init?.Invoke(state);
-            service.Subscribe(state);
+            service.Subscribe(state, redo);
         }
 
     }

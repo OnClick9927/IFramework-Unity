@@ -12,7 +12,7 @@ namespace IFramework
     {
         public static T GetRequiredService<T>(this IServiceProvider services, string name = "") where T : class, IService
         {
-            T service = services.GetService<T>();
+            T service = services.GetService<T>(name);
             if (service == null)
             {
                 Log.FE($"{typeof(T)} Service is null : {name}->Please Use Method {nameof(IServiceCollection)}.{nameof(IServiceCollection.Use)}xxx");

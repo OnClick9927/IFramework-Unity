@@ -20,7 +20,7 @@ namespace IFramework
         }
         public static IServiceProvider EnterMvc(this IServiceProvider services) => services.EnterService<IMvcService>();
         public static IMvcService Mvc(this IServiceProvider services) =>
-          services.GetRequiredService<MvcService>();
+          services.GetRequiredService<IMvcService>();
         public static T GetCtrl<T>(this IMvcService mvc) where T : CtrlBase => mvc.Values().Get<T>();
         public static T GetModel<T>(this IMvcService mvc) where T : ModelBase => mvc.Values().Get<T>();
     }
