@@ -58,7 +58,7 @@ namespace IFramework.UI
     {
         private Dictionary<string, IUIView> _views = new Dictionary<string, IUIView>();
 
-        private Dictionary<string, Type> _typemap;
+        private Dictionary<string, Type> _typemap=new Dictionary<string, Type>();
 
         public ViewBridge(params Dictionary<string, Type>[] maps)
         {
