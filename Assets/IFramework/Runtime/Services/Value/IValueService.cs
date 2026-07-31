@@ -14,6 +14,7 @@ namespace IFramework
     {
         object Get(Type type, string name);
         void Inject(object inject);
+        void Register<TType>(Func<IValueService, TType> create);
         void Register<TBaseType, TType>() where TType : TBaseType, new();
         object Register(Type type, object instance, string name);
     }

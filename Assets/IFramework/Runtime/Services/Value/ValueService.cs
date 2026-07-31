@@ -8,21 +8,36 @@
 *********************************************************************************/
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 namespace IFramework
 {
     class ValueService : ServiceBase, IValueService
     {
         private readonly Dictionary<Type, Dictionary<string, object>> values = new();
-        private Dictionary<Type, Type> typeMap = new();
-        static Dictionary<Type, Dictionary<FieldInfo, string>> fieldsMap = new();
+        private readonly Dictionary<Type, Func<IValueService, object>> factories = new();
+        private static readonly Dictionary<Type, InjectField[]> fieldsMap = new();
+
+        private readonly struct InjectField
+        {
+            public readonly FieldInfo field;
+            public readonly string name;
+
+            public InjectField(FieldInfo field, string name)
+            {
+                this.field = field;
+                this.name = name;
+            }
+        }
+
+        public void Register<TType>(Func<IValueService, TType> create)
+        {
+            if (create == null) throw new ArgumentNullException(nameof(create));
+            factories[typeof(TType)] = service => create(service);
+        }
 
         public void Register<TBaseType, TType>() where TType : TBaseType, new()
         {
-            var typeBase = typeof(TBaseType);
-            var type = typeof(TType);
-            typeMap[typeBase] = type;
+            factories[typeof(TBaseType)] = _ => new TType();
         }
 
         public object Register(Type type, object instance, string name)
@@ -42,18 +57,18 @@ namespace IFramework
             if (values.TryGetValue(type, out var dict) && dict.TryGetValue(name, out object result))
                 return result;
 
-            if (typeMap.TryGetValue(type, out Type subType))
+            if (factories.TryGetValue(type, out var create))
             {
                 try
                 {
-                    var instance = Activator.CreateInstance(subType);
-                    Register(type, instance, string.Empty);
+                    var instance = create(this);
+                    Register(type, instance, name);
                     Inject(instance);
                     return instance;
                 }
                 catch (Exception ex)
                 {
-                    throw new InvalidOperationException($"Failed to create instance of {subType} for name '{name}'", ex);
+                    throw new InvalidOperationException($"Failed to create instance of {type} for name '{name}'", ex);
                 }
             }
 
@@ -64,28 +79,34 @@ namespace IFramework
             if (!(inject is IInjectAble))
                 return;
             var type = inject.GetType();
-            Dictionary<FieldInfo, string> fields;
-            if (!fieldsMap.TryGetValue(type, out fields))
+            if (!fieldsMap.TryGetValue(type, out var fields))
             {
-                fields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                            .Where(x => x.IsDefined(typeof(InjectAttribute), false) &&
-                            !x.IsInitOnly && !x.FieldType.IsValueType).ToDictionary(x => x, x => x.GetCustomAttribute<InjectAttribute>(false).name);
-
+                var typeFields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                var injectFields = new List<InjectField>(typeFields.Length);
+                for (int i = 0; i < typeFields.Length; i++)
+                {
+                    var field = typeFields[i];
+                    if (field.IsInitOnly || field.FieldType.IsValueType) continue;
+                    var attribute = field.GetCustomAttribute<InjectAttribute>(false);
+                    if (attribute != null)
+                        injectFields.Add(new InjectField(field, attribute.name));
+                }
+                fields = injectFields.ToArray();
                 fieldsMap[type] = fields;
             }
-            foreach (var item in fields)
+            for (int i = 0; i < fields.Length; i++)
             {
-                var field = item.Key;
-                var value = Get(field.FieldType, item.Value);
+                var field = fields[i];
+                var value = Get(field.field.FieldType, field.name);
                 if (value == null)
                 {
-                    Log.FE($"Inject value Not found: {inject.GetType()}->{field.Name}\n" +
-                        $"FieldType:{field.FieldType} \n" +
-                        $"InjectName:{item.Value} ");
+                    Log.FE($"Inject value Not found: {type}->{field.field.Name}\n" +
+                        $"FieldType:{field.field.FieldType} \n" +
+                        $"InjectName:{field.name} ");
 
                 }
                 else
-                    field.SetValue(inject, value);
+                    field.field.SetValue(inject, value);
             }
 
         }
@@ -100,7 +121,8 @@ namespace IFramework
 
         protected override void OnQuit(IServiceCollection services)
         {
-            values.Clear(); typeMap.Clear();
+            values.Clear();
+            factories.Clear();
         }
     }
 }
