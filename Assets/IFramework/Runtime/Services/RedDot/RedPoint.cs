@@ -36,10 +36,7 @@ namespace IFramework
         }
         public void RemoveChild(RedPoint p)
         {
-            var key = p.key;
-            if (!children.ContainsKey(key))
-                return;
-            children.Remove(key);
+            children.Remove(p.key);
         }
 
         public bool SetCount(int count)
