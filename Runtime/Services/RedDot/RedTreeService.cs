@@ -26,8 +26,7 @@ namespace IFramework
 
         public int GetDotCount(string key)
         {
-            List<RedDot> result;
-            if (red_dot_map.TryGetValue(key, out result))
+            if (red_dot_map.TryGetValue(key, out var result))
                 return result.Count;
             return 0;
         }
@@ -40,23 +39,25 @@ namespace IFramework
         internal void AddDot(RedDot dot)
         {
             var path = dot.path;
-            if (!red_dot_map.ContainsKey(path))
-                red_dot_map.Add(path, new List<RedDot>());
-            red_dot_map[path].Add(dot);
+            if (!red_dot_map.TryGetValue(path, out var dots))
+            {
+                dots = new List<RedDot>();
+                red_dot_map.Add(path, dots);
+            }
+            dots.Add(dot);
         }
         internal void RemoveDot(RedDot dot)
         {
             var path = dot.path;
-            if (!red_dot_map.ContainsKey(path))
+            if (!red_dot_map.TryGetValue(path, out var dots))
                 return;
-            if (!red_dot_map[path].Contains(dot)) return;
-            red_dot_map[path].Remove(dot);
+            dots.Remove(dot);
         }
         private void FreshDot(string path, int count)
         {
-            if (!red_dot_map.ContainsKey(path))
+            if (!red_dot_map.TryGetValue(path, out var dots))
                 return;
-            foreach (var item in red_dot_map[path])
+            foreach (var item in dots)
             {
                 item.FreshView(count);
             }
@@ -65,9 +66,8 @@ namespace IFramework
 
         private RedPoint Find(string key)
         {
-            if (key_map.ContainsKey(key))
-                return key_map[key];
-            return null;
+            key_map.TryGetValue(key, out var point);
+            return point;
         }
 
         private RedPoint AddPoint(string parentKey, string key)
@@ -99,6 +99,7 @@ namespace IFramework
         {
             if (string.IsNullOrEmpty(key)) return;
             var point = Find(key);
+            if (point == null) return;
             int sum = 0;
             foreach (var item in point.children.Values)
             {
@@ -153,17 +154,21 @@ namespace IFramework
         }
         public void ReadPath(string key)
         {
-            var columns = key.Split(separator);
             RedPoint last = null;
-            for (int j = 0; j < columns.Length; j++)
+            string parentKey = string.Empty;
+            int separatorIndex = key.IndexOf(separator);
+            while (true)
             {
-                var _pkey = string.Join(separator.ToString(), columns, 0, j);
-                var _key = string.Join(separator.ToString(), columns, 0, j + 1);
-                var point = AddPoint(_pkey, _key);
+                string pointKey = separatorIndex < 0 ? key : key.Substring(0, separatorIndex);
+                var point = AddPoint(parentKey, pointKey);
                 if (last != null)
                     last.AddChild(point);
 
                 last = point;
+                if (separatorIndex < 0)
+                    break;
+                parentKey = pointKey;
+                separatorIndex = key.IndexOf(separator, separatorIndex + 1);
             }
             //SetViewer(RedTree.viewer);
         }
@@ -177,9 +182,13 @@ namespace IFramework
                 p_point.RemoveChild(point);
                 dirty_P.Enqueue(p_point);
             }
+            while (point.children.Count > 0)
+            {
+                using var enumerator = point.children.Keys.GetEnumerator();
+                enumerator.MoveNext();
+                ClearPath(enumerator.Current);
+            }
             key_map.Remove(key);
-            foreach (var item in point.children.Keys)
-                ClearPath(item);
 
             //#if UNITY_EDITOR
             //            if (root.RemoveAll(x => x.key == key) > 0)

@@ -108,9 +108,11 @@ namespace IFramework
         internal static T CreateCompleteTask<T>() where T : AsyncTask, new() => new T() { IsCompleted = true };
         internal static T CreateCanceledTask<T>() where T : AsyncTask, new()
         {
-            T task = new T();
-            task.OnException(_ => true);
-            task.Cancel(default);
+            T task = new T
+            {
+                exception = new AsyncTaskCanceledException(),
+                IsCompleted = true
+            };
             return task;
         }
 
@@ -122,8 +124,6 @@ namespace IFramework
 
         public static AsyncTask CompletedTask => _compeledTask;
 
-
-        private bool fromPool = false;
 
         public event Action completed;
         //public event Action canceled;
@@ -149,6 +149,13 @@ namespace IFramework
             //canceled = null;
             SetException(new AsyncTaskCanceledException(token));
         }
+        internal void RegisterContinuation(Action continuation)
+        {
+            if (IsCompleted)
+                continuation?.Invoke();
+            else
+                completed += continuation;
+        }
         protected void CallComplete()
         {
             if (IsCompleted) return;
@@ -156,13 +163,11 @@ namespace IFramework
             IsCompleted = true;
             completed?.Invoke();
             completed = null;
-            if (!fromPool) return;
-            //ResetToPool();
-            BackToPool();
         }
 
         internal void SetException(Exception exception)
         {
+            if (IsCompleted) return;
             this.exception = exception;
             var succ = ExecuteException();
             if (!succ)
@@ -174,13 +179,13 @@ namespace IFramework
         public void Coroutine() { }
         public AsyncTask ContinueWith(Action<AsyncTask> action)
         {
-            completed += () => action?.Invoke(this);
+            RegisterContinuation(() => action?.Invoke(this));
             return this;
         }
 
         public T ContinueWith<T>(Action<T> action) where T : AsyncTask
         {
-            completed += () => action?.Invoke(this as T);
+            RegisterContinuation(() => action?.Invoke(this as T));
             return this as T;
         }
         public AsyncTask OnException(Func<AsyncTask, bool> call)
@@ -221,9 +226,8 @@ namespace IFramework
 
         protected static T AllocatePoolTask<T>() where T : AsyncTask, new()
         {
-            var task = StaticPool.Get<T>();
+            var task = new T();
             task.ResetFromPool();
-            task.fromPool = true;
             return task;
         }
         protected static void SetToPool<T>(T task) where T : AsyncTask, new()
@@ -401,9 +405,11 @@ namespace IFramework
 
         public static AsyncTask Delay(float second, CancellationToken token = default)
         {
-            if (second <= 0) return AsyncTask.CompletedTask;
             if (token.IsCancellationRequested)
                 return CanceledTask;
+            if (float.IsNaN(second))
+                throw new ArgumentOutOfRangeException(nameof(second));
+            if (second <= 0) return AsyncTask.CompletedTask;
             AsyncTask task = AsyncTask.CreateFromPool();
             token.Register(task);
             var end = Launcher.time + second;
@@ -428,6 +434,10 @@ namespace IFramework
         {
             if (token.IsCancellationRequested)
                 return CanceledTask;
+            if (count == 0)
+                return CompletedTask;
+            if (count < -1)
+                throw new ArgumentOutOfRangeException(nameof(count));
 
             AsyncTask task = AsyncTask.CreateFromPool().OnException(_ => { return _.exception is AsyncTaskCanceledException; });
             static async void Func(Action call, AsyncTask result, float interval, int count, CancellationToken token)
@@ -469,8 +479,7 @@ namespace IFramework
         {
             if (token.IsCancellationRequested)
                 return CanceledTask;
-            var count = calls.Count();
-            if (count != 0)
+            if (calls == null)
                 return CompletedTask;
             AsyncTask task = AsyncTask.CreateFromPool();
             token.Register(task);
@@ -562,6 +571,7 @@ namespace IFramework
         public T result { get; private set; }
         public void SetResult(T result)
         {
+            if (IsCompleted) return;
             this.result = result;
             CallComplete();
         }
@@ -574,22 +584,11 @@ namespace IFramework
     }
     struct AsyncTaskAwaiter : IAwaiter, ICriticalNotifyCompletion
     {
-        private AsyncTask task;
-        private Queue<Action> calls;
+        private readonly AsyncTask task;
         public AsyncTaskAwaiter(AsyncTask task)
         {
             if (task == null) throw new ArgumentNullException("task");
             this.task = task;
-            calls = new Queue<Action>();
-            this.task.completed += Task_completed;
-        }
-
-        private void Task_completed()
-        {
-            while (calls.Count != 0)
-            {
-                calls.Dequeue()?.Invoke();
-            }
         }
 
         public bool IsCompleted => task.IsCompleted;
@@ -609,29 +608,18 @@ namespace IFramework
         {
             if (continuation == null)
                 throw new ArgumentNullException("continuation");
-            calls.Enqueue(continuation);
+            task.RegisterContinuation(continuation);
         }
 
 
     }
     struct AsyncTaskAwaiter<T> : IAwaiter<T>, ICriticalNotifyCompletion
     {
-        private AsyncTask<T> task;
-        private Queue<Action> calls;
+        private readonly AsyncTask<T> task;
         public AsyncTaskAwaiter(AsyncTask<T> task)
         {
             if (task == null) throw new ArgumentNullException("task");
             this.task = task;
-            calls = new Queue<Action>();
-            this.task.completed += Task_completed;
-        }
-
-        private void Task_completed()
-        {
-            while (calls.Count != 0)
-            {
-                calls.Dequeue()?.Invoke();
-            }
         }
 
         public bool IsCompleted => task.IsCompleted;
@@ -652,7 +640,7 @@ namespace IFramework
         {
             if (continuation == null)
                 throw new ArgumentNullException("continuation");
-            calls.Enqueue(continuation);
+            task.RegisterContinuation(continuation);
         }
 
 
@@ -686,7 +674,7 @@ namespace IFramework
         }
         public CancellationTokenRegistration Register(AsyncTask task)
         {
-            if (task == null) return default;
+            if (_source == null || task == null) return default;
             var token = this;
             return Register(() =>
             {

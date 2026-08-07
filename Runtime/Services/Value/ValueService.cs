@@ -81,17 +81,28 @@ namespace IFramework
             var type = inject.GetType();
             if (!fieldsMap.TryGetValue(type, out var fields))
             {
-                var typeFields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-                var injectFields = new List<InjectField>(typeFields.Length);
-                for (int i = 0; i < typeFields.Length; i++)
+                var reflectedFields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                int injectionCount = 0;
+                for (int i = 0; i < reflectedFields.Length; i++)
                 {
-                    var field = typeFields[i];
-                    if (field.IsInitOnly || field.FieldType.IsValueType) continue;
+                    var field = reflectedFields[i];
+                    if (!field.IsInitOnly && !field.FieldType.IsValueType &&
+                        field.IsDefined(typeof(InjectAttribute), false))
+                        injectionCount++;
+                }
+
+                fields = new InjectField[injectionCount];
+                int index = 0;
+                for (int i = 0; i < reflectedFields.Length; i++)
+                {
+                    var field = reflectedFields[i];
+                    if (field.IsInitOnly || field.FieldType.IsValueType)
+                        continue;
                     var attribute = field.GetCustomAttribute<InjectAttribute>(false);
                     if (attribute != null)
-                        injectFields.Add(new InjectField(field, attribute.name));
+                        fields[index++] = new InjectField(field, attribute.name);
                 }
-                fields = injectFields.ToArray();
+
                 fieldsMap[type] = fields;
             }
             for (int i = 0; i < fields.Length; i++)

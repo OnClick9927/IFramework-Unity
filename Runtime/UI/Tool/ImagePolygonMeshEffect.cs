@@ -26,6 +26,8 @@ namespace IFramework.UI
         private static UIVertex vertice = new UIVertex();
         private RectTransform rectTransform = null;
         private Image image = null;
+        private List<UIVertex> vertices;
+        private List<int> triangles;
         public override void ModifyMesh(VertexHelper vh)
         {
             if (!isActiveAndEnabled) return;
@@ -44,7 +46,12 @@ namespace IFramework.UI
             }
        
             Sprite sprite = image.overrideSprite;
-            if (sprite == null || sprite.triangles.Length == 6)
+            if (sprite == null)
+            {
+                return;
+            }
+            var spriteTriangles = sprite.triangles;
+            if (spriteTriangles.Length == 6)
             {
                 // only 2 triangles
                 return;
@@ -60,27 +67,44 @@ namespace IFramework.UI
             rectTransform.GetLocalCorners(fourCorners);
 
             // Kanglai: recalculate vertices from Sprite!
-            int len = sprite.vertices.Length;
-            var vertices = new List<UIVertex>(len);
-            Vector2 Center = sprite.bounds.center;
-            Vector2 invExtend = new Vector2(1 / sprite.bounds.size.x, 1 / sprite.bounds.size.y);
+            var spriteVertices = sprite.vertices;
+            var spriteUV = sprite.uv;
+            int len = spriteVertices.Length;
+            if (vertices == null)
+                vertices = new List<UIVertex>(len);
+            else
+            {
+                vertices.Clear();
+                if (vertices.Capacity < len)
+                    vertices.Capacity = len;
+            }
+            var bounds = sprite.bounds;
+            Vector2 Center = bounds.center;
+            Vector2 invExtend = new Vector2(1 / bounds.size.x, 1 / bounds.size.y);
             for (int i = 0; i < len; i++)
             {
                 // normalize
-                float x = (sprite.vertices[i].x - Center.x) * invExtend.x + 0.5f;
-                float y = (sprite.vertices[i].y - Center.y) * invExtend.y + 0.5f;
+                float x = (spriteVertices[i].x - Center.x) * invExtend.x + 0.5f;
+                float y = (spriteVertices[i].y - Center.y) * invExtend.y + 0.5f;
                 // lerp to position
                 vertice.position = new Vector2(Mathf.Lerp(fourCorners[0].x, fourCorners[2].x, x), Mathf.Lerp(fourCorners[0].y, fourCorners[2].y, y));
                 vertice.color = image.color;
-                vertice.uv0 = sprite.uv[i];
+                vertice.uv0 = spriteUV[i];
                 vertices.Add(vertice);
             }
 
-            len = sprite.triangles.Length;
-            var triangles = new List<int>(len);
+            len = spriteTriangles.Length;
+            if (triangles == null)
+                triangles = new List<int>(len);
+            else
+            {
+                triangles.Clear();
+                if (triangles.Capacity < len)
+                    triangles.Capacity = len;
+            }
             for (int i = 0; i < len; i++)
             {
-                triangles.Add(sprite.triangles[i]);
+                triangles.Add(spriteTriangles[i]);
             }
 
             vh.Clear();

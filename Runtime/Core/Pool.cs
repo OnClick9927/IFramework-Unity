@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace IFramework
@@ -50,18 +51,18 @@ namespace IFramework
 
         public virtual bool Set(T t)
         {
+            if (t is null)
+                return false;
             if (!pool.Contains(t))
             {
-                if (OnSet(t))
+                if (!OnSet(t)) return false;
+                if (t is IPoolObject)
                 {
-                    if (t is IPoolObject)
-                    {
-                        IPoolObject obj = t as IPoolObject;
-                        obj.valid = false;
-                        obj.OnSet();
-                    }
-                    pool.Enqueue(t);
+                    IPoolObject obj = t as IPoolObject;
+                    obj.valid = false;
+                    obj.OnSet();
                 }
+                pool.Enqueue(t);
                 return true;
             }
             else
@@ -72,7 +73,7 @@ namespace IFramework
         }
 
 
-        public void Clear()
+        public virtual void Clear()
         {
             while (pool.Count > 0)
             {
@@ -107,7 +108,7 @@ namespace IFramework
         {
             if (!(context is T))
             {
-                Log.FE($"{nameof(context)} is not {typeof(T)} is {context.GetType()}");
+                Log.FE($"{nameof(context)} is not {typeof(T)} is {(context == null ? "null" : context.GetType().ToString())}");
                 return;
             }
             base.Set(context as T);
@@ -181,6 +182,7 @@ namespace IFramework
 
         public static void SetByRealType<T>(T toRelease)
         {
+            if (toRelease is null) return;
             var type = toRelease.GetType();
             if (map.TryGetValue(type, out var result))
             {
@@ -198,37 +200,35 @@ namespace IFramework
     public class ArrayPool<T> : ObjectPool<T[]>
     {
         private Queue<int> _lengthqueue = new Queue<int>();
+        private static readonly bool clearOnRelease = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
         private int length;
 
         protected override T[] CreateNew() => new T[length];
-        Queue<T[]> queue = new Queue<T[]>();
 
         public void SetLength(int length)
         {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length));
             this.length = length;
         }
         public override T[] Get()
         {
             T[] t;
-            if (pool.Count > 0 && _lengthqueue.Contains(length))
+            int poolCount = pool.Count;
+            t = null;
+            for (int i = 0; i < poolCount; i++)
             {
-                while (_lengthqueue.Peek() != length)
+                int itemLength = _lengthqueue.Dequeue();
+                var item = pool.Dequeue();
+                if (itemLength == length)
                 {
-                    _lengthqueue.Dequeue();
-                    queue.Enqueue(pool.Dequeue());
+                    t = item;
+                    break;
                 }
-                t = pool.Dequeue();
-                while (pool.Count != 0) queue.Enqueue(pool.Dequeue());
-                int _count = queue.Count;
-                for (int i = 0; i < _count; i++)
-                {
-                    var tmp = queue.Dequeue();
-                    int _len = tmp.Length;
-                    _lengthqueue.Enqueue(_len);
-                    pool.Enqueue(tmp);
-                }
+                _lengthqueue.Enqueue(itemLength);
+                pool.Enqueue(item);
             }
-            else
+            if (t == null)
             {
                 t = CreateNew();
                 OnCreate(t);
@@ -239,20 +239,27 @@ namespace IFramework
 
         public override bool Set(T[] t)
         {
+            if (t == null)
+                return false;
             if (!pool.Contains(t))
             {
-                if (OnSet(t))
-                {
-                    int _len = t.Length;
-                    _lengthqueue.Enqueue(_len);
-                    pool.Enqueue(t);
-                }
+                if (!OnSet(t)) return false;
+                if (clearOnRelease)
+                    Array.Clear(t, 0, t.Length);
+                _lengthqueue.Enqueue(t.Length);
+                pool.Enqueue(t);
                 return true;
             }
             else
             {
                 return false;
             }
+        }
+
+        public override void Clear()
+        {
+            base.Clear();
+            _lengthqueue.Clear();
         }
     }
 

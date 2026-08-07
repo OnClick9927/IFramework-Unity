@@ -8,7 +8,6 @@
 *********************************************************************************/
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using static IFramework.UI.UIPanel;
@@ -392,7 +391,16 @@ namespace IFramework.UI
                 while (this.close_all_help_queue.Count > 0)
                 {
                     var path = this.close_all_help_queue.Dequeue();
-                    if (paths.Any(x => x == path)) continue;
+                    bool keepOpen = false;
+                    for (int i = 0; i < paths.Length; i++)
+                    {
+                        if (paths[i] == path)
+                        {
+                            keepOpen = true;
+                            break;
+                        }
+                    }
+                    if (keepOpen) continue;
                     Close(path);
                 }
             }
